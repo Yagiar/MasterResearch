@@ -18,6 +18,8 @@
 | [it-11-median-smoother-impl](iterations/it-11-median-smoother-impl.md) | 2026-09-04 | MedianSmoother в коде fusion (off по умолчанию) | ✅ | fusion/temporal.py + consumer/__main__/config (+15 строк), 7/7 тестов, ruff чист |
 | [it-12-threshold-calibration](iterations/it-12-threshold-calibration.md) | 2026-09-04 | Калибровка порога AST | ✅ | Опровергнута: F1 плоский 0.05–0.5 (модель бимодальна); late оптимум 0.45–0.5; рекомендация отдавать вероятности обоих классов |
 | [it-13-systematic-channel-shift](iterations/it-13-systematic-channel-shift.md) | 2026-09-04 | Систематический сдвиг канала | ✅ | Глухой канал на смешанных окнах: late F1=0.000 (!); защита трёхуровневая: медиана (промахи) + w_v≥0.7/детектор здоровья (глухота) |
+| [it-14-channel-health](iterations/it-14-channel-health.md) | 2026-09-04 | Детектор здоровья канала | ✅ | Спасает при глухоте (0.539→0.827), вредит при тишине — «тишину≠глухоту по классовому выходу не отличить»; не внедрять в текущем виде |
+| [it-15-p-drone-probability](iterations/it-15-p-drone-probability.md) | 2026-09-04 | p(drone) в AudioDetection (AST) | ✅ | Информация «насколько не дрон» больше не теряется; 3/3 теста; проброс в контракт — отдельное решение |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)

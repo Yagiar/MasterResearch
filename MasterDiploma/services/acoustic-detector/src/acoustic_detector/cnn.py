@@ -80,6 +80,10 @@ class AudioDetection:
     label: str          # "drone" | "non-drone"
     confidence: float
     backend: str        # "cnn" | "energy-threshold"
+    # Вероятность класса drone (softmax-пара, 0..1), если бэкенд её отдаёт (AST отдаёт,
+    # lwcnn — пока нет). В отличие от пары (label, confidence) не теряет «насколько не дрон» —
+    # нужно для калибровки порога и энтропийных весов (research/it-12, it-15).
+    p_drone: float | None = None
 
 
 class LightweightCnnDetector:

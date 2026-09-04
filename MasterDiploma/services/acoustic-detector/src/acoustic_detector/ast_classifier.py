@@ -158,4 +158,5 @@ class AstAudioClassifier:
             label="drone" if p_drone >= 0.5 else "non-drone",
             confidence=p_drone if p_drone >= 0.5 else 1.0 - p_drone,
             backend="ast",
+            p_drone=p_drone,
         )
