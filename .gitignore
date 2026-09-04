@@ -22,3 +22,6 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# Кадры sandbox для GT-разметки (тяжёлые, локальные)
+research/sandbox_frames/
