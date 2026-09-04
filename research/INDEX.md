@@ -33,6 +33,8 @@
 | [it-27-gost-table-captions](iterations/it-27-gost-table-captions.md) | 2026-09-04 | ГОСТ-подписи таблиц раздела 7 | ✅ | Подписи 7.1–7.4 вставлены; найден дефект рендера (подпись вплотную роняет таблицу из docx) — исправлено пустой строкой, 8/8 таблиц + 4/4 подписи |
 | [it-28-gost-captions-2](iterations/it-28-gost-captions-2.md) | 2026-09-04 | Подписи таблиц 1.1/4.1/4.2/5.1 | ✅ | Смещение подписи на строку роняло таблицы из docx — поймано подсчётом <w:tbl>, исправлено; итог 8/8 таблиц + 8/8 подписей |
 | [it-18-p-drone-contract](iterations/it-18-p-drone-contract.md) | 2026-09-04 | p_drone в контракте InferenceMsg | ✅ | Аддитивно, schema_ver=1 сохранён; lwcnn+AST отдают softmax; fusion использует; 22/22 теста |
+| [it-18-p-drone-contract](iterations/it-18-p-drone-contract.md) | 2026-09-04 | p_drone в контракте InferenceMsg | ✅ | Аддитивно, schema_ver=1; lwcnn+AST отдают softmax; 22/22 теста |
+| [it-29-citations-1-25](iterations/it-29-citations-1-25.md) | 2026-09-04 | Верификация источников 1–25 | 🔄 13/25 | TRIDENT/Aydın/Dafrallah/Jamil/Dumitrescu/Linn/Liu Z/Ren/AV-DTEC подтверждены; 12 остались (поиск таймаутит) |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
