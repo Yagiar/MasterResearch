@@ -1,0 +1,109 @@
+stress,policy,F1_mean,F1_std
+drop0.0,video-only,0.8706,0.0
+drop0.0,audio-only,0.8586,0.0
+drop0.0,late 0.5/0.5,0.8586,0.0
+drop0.0,late 0.5/0.5+Δ,0.8586,0.0
+drop0.0,late w_v=0.7,0.8017,0.0
+drop0.0,late w_v=0.9,0.8706,0.0
+drop0.0,entropy λ=1,0.8586,0.0
+drop0.0,consensus,0.8706,0.0
+drop0.0,late+median5,0.9223,0.0
+drop0.2,video-only,0.8706,0.0
+drop0.2,audio-only,0.8567,0.016
+drop0.2,late 0.5/0.5,0.8567,0.016
+drop0.2,late 0.5/0.5+Δ,0.8567,0.016
+drop0.2,late w_v=0.7,0.8145,0.0079
+drop0.2,late w_v=0.9,0.8706,0.0
+drop0.2,entropy λ=1,0.8567,0.016
+drop0.2,consensus,0.8706,0.0
+drop0.2,late+median5,0.9113,0.0181
+drop0.4,video-only,0.8706,0.0
+drop0.4,audio-only,0.8648,0.0152
+drop0.4,late 0.5/0.5,0.8648,0.0152
+drop0.4,late 0.5/0.5+Δ,0.8648,0.0152
+drop0.4,late w_v=0.7,0.8278,0.0104
+drop0.4,late w_v=0.9,0.8706,0.0
+drop0.4,entropy λ=1,0.8648,0.0152
+drop0.4,consensus,0.8706,0.0
+drop0.4,late+median5,0.8941,0.0174
+drop0.6,video-only,0.8706,0.0
+drop0.6,audio-only,0.8686,0.0132
+drop0.6,late 0.5/0.5,0.8686,0.0132
+drop0.6,late 0.5/0.5+Δ,0.8686,0.0132
+drop0.6,late w_v=0.7,0.8432,0.008
+drop0.6,late w_v=0.9,0.8706,0.0
+drop0.6,entropy λ=1,0.8686,0.0132
+drop0.6,consensus,0.8706,0.0
+drop0.6,late+median5,0.8879,0.0164
+drop0.8,video-only,0.8706,0.0
+drop0.8,audio-only,0.8717,0.0112
+drop0.8,late 0.5/0.5,0.8717,0.0112
+drop0.8,late 0.5/0.5+Δ,0.8717,0.0112
+drop0.8,late w_v=0.7,0.8599,0.0071
+drop0.8,late w_v=0.9,0.8706,0.0
+drop0.8,entropy λ=1,0.8717,0.0112
+drop0.8,consensus,0.8706,0.0
+drop0.8,late+median5,0.8799,0.0085
+noise0.0,video-only,0.8706,0.0
+noise0.0,audio-only,0.8586,0.0
+noise0.0,late 0.5/0.5,0.8586,0.0
+noise0.0,late 0.5/0.5+Δ,0.8586,0.0
+noise0.0,late w_v=0.7,0.8017,0.0
+noise0.0,late w_v=0.9,0.8706,0.0
+noise0.0,entropy λ=1,0.8586,0.0
+noise0.0,consensus,0.8706,0.0
+noise0.0,late+median5,0.9223,0.0
+noise0.2,video-only,0.8706,0.0
+noise0.2,audio-only,0.7469,0.0267
+noise0.2,late 0.5/0.5,0.8231,0.0128
+noise0.2,late 0.5/0.5+Δ,0.7564,0.0242
+noise0.2,late w_v=0.7,0.8278,0.0115
+noise0.2,late w_v=0.9,0.8706,0.0
+noise0.2,entropy λ=1,0.8231,0.0128
+noise0.2,consensus,0.8706,0.0
+noise0.2,late+median5,0.9014,0.0184
+noise0.4,video-only,0.8706,0.0
+noise0.4,audio-only,0.68,0.0351
+noise0.4,late 0.5/0.5,0.7606,0.0255
+noise0.4,late 0.5/0.5+Δ,0.6817,0.0327
+noise0.4,late w_v=0.7,0.8137,0.0151
+noise0.4,late w_v=0.9,0.8706,0.0
+noise0.4,entropy λ=1,0.7606,0.0255
+noise0.4,consensus,0.8706,0.0
+noise0.4,late+median5,0.8375,0.0349
+noise0.6,video-only,0.8706,0.0
+noise0.6,audio-only,0.658,0.0404
+noise0.6,late 0.5/0.5,0.7229,0.0313
+noise0.6,late 0.5/0.5+Δ,0.6572,0.0379
+noise0.6,late w_v=0.7,0.7926,0.0173
+noise0.6,late w_v=0.9,0.8706,0.0
+noise0.6,entropy λ=1,0.7229,0.0313
+noise0.6,consensus,0.8706,0.0
+noise0.6,late+median5,0.7864,0.0504
+outage0.1,video-only,0.8706,0.0
+outage0.1,audio-only,0.823,0.0
+outage0.1,late 0.5/0.5,0.823,0.0
+outage0.1,late 0.5/0.5+Δ,0.823,0.0
+outage0.1,late w_v=0.7,0.795,0.0
+outage0.1,late w_v=0.9,0.8706,0.0
+outage0.1,entropy λ=1,0.823,0.0
+outage0.1,consensus,0.8706,0.0
+outage0.1,late+median5,0.8767,0.0
+outage0.25,video-only,0.8706,0.0
+outage0.25,audio-only,0.8611,0.0
+outage0.25,late 0.5/0.5,0.8611,0.0
+outage0.25,late 0.5/0.5+Δ,0.8611,0.0
+outage0.25,late w_v=0.7,0.8293,0.0
+outage0.25,late w_v=0.9,0.8706,0.0
+outage0.25,entropy λ=1,0.8611,0.0
+outage0.25,consensus,0.8706,0.0
+outage0.25,late+median5,0.8969,0.0
+outage0.5,video-only,0.8706,0.0
+outage0.5,audio-only,0.9018,0.0
+outage0.5,late 0.5/0.5,0.9018,0.0
+outage0.5,late 0.5/0.5+Δ,0.9018,0.0
+outage0.5,late w_v=0.7,0.848,0.0
+outage0.5,late w_v=0.9,0.8706,0.0
+outage0.5,entropy λ=1,0.9018,0.0
+outage0.5,consensus,0.8706,0.0
+outage0.5,late+median5,0.9211,0.0
