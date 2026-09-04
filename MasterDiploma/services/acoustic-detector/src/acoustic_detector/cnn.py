@@ -154,6 +154,7 @@ class LightweightCnnDetector:
                 label="drone" if p_drone >= 0.5 else "non-drone",
                 confidence=p_drone if p_drone >= 0.5 else 1.0 - p_drone,
                 backend="cnn",
+                p_drone=p_drone,
             )
         # энергетический порог (заглушка)
         energy = raw_energy if raw_energy is not None else float(np.mean(features_array.astype(np.float64) ** 2))

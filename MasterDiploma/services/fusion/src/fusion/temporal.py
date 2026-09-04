@@ -56,7 +56,10 @@ def apply_audio_smoothing(window: AlignedWindow, smoother: MedianSmoother | None
     best_a = window.best_audio()
     if best_a is None:
         return window
-    p_drone = best_a.confidence if best_a.label == _LABEL_DRONE else 0.0
+    # p_drone из сообщения (it-18) точнее деградированной пары (label, confidence);
+    # fallback — старый маппинг для сообщений без поля
+    p_drone = best_a.p_drone if best_a.p_drone is not None else (
+        best_a.confidence if best_a.label == _LABEL_DRONE else 0.0)
     smoothed = smoother.smoothed(window.source_id, p_drone)
     new_a: InferenceMsg = best_a.model_copy(update={"label": _LABEL_DRONE, "confidence": smoothed})
     audio = [new_a if m.msg_id == best_a.msg_id else m for m in window.audio]

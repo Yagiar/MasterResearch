@@ -71,6 +71,7 @@ class AudioConsumer(KafkaConsumerService):
             modality="audio",
             label=det.label,
             confidence=det.confidence,
+            p_drone=det.p_drone,
             bbox=None,
             track_id=None,
             model=ModelRef(name=self._detector.model_name, ver=self._detector.model_ver),

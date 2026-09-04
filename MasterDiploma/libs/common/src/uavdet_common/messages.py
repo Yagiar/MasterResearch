@@ -107,6 +107,7 @@ class InferenceMsg(_Base):
     modality: Modality
     label: Label
     confidence: float
+    p_drone: float | None = None          # вероятность класса «drone» (softmax), если бэкенд отдаёт (research/it-15, it-18); None — совместимость со старыми сообщениями
     bbox: list[float] | None = None       # [x, y, w, h] — только для modality=video
     track_id: int | None = None           # только для modality=video с трекером
     model: ModelRef = Field(default_factory=ModelRef)

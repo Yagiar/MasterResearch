@@ -66,3 +66,23 @@ def test_ast_detect_exposes_p_drone_both_sides() -> None:
             assert d.p_drone < 0.5
     # полёт vs стоянка: p_drone в полёте должна быть заметно выше
     assert results[0].p_drone > results[1].p_drone
+
+
+def test_inference_msg_p_drone_additive_contract() -> None:
+    """it-18: поле p_drone в InferenceMsg аддитивно — старые сообщения без него парсятся,
+    новые сериализуют значение; schema_ver не менялся."""
+    from uavdet_common.messages import InferenceMsg
+
+    old = InferenceMsg.model_validate({
+        "source_id": "cam-01", "modality": "audio", "label": "non-drone",
+        "confidence": 0.97, "ts": 1000.0,
+    })
+    assert old.p_drone is None                       # старое сообщение — поле None
+    new = InferenceMsg.model_validate({
+        "source_id": "cam-01", "modality": "audio", "label": "drone",
+        "confidence": 0.71, "p_drone": 0.71, "ts": 1000.0,
+    })
+    assert new.p_drone == pytest.approx(0.71)
+    data = new.model_dump()
+    assert data["p_drone"] == pytest.approx(0.71)    # сериализация сохраняет значение
+    # старый потребитель (без поля в схеме) бы проигнорировал ключ — pydantic extra=ignore по умолчанию
