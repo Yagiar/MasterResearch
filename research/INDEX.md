@@ -28,6 +28,7 @@
 | [it-22-pandoc-render](iterations/it-22-pandoc-render.md) | 2026-09-04 | Pandoc-рендер отчёта | ✅ | pandoc 3.9 (pypandoc-binary): docx собрался, 8 таблиц, 10/10 контент-проверок раздела 7; docx в git не входит |
 | [it-23-citation-verification](iterations/it-23-citation-verification.md) | 2026-09-04 | Верификация источников [37]–[39] | ✅ | Все три реальны; библиография уточнена (DOI 10.1109/ACCESS.2020.3026192, Interspeech 2021, 180320 клипов DADS) |
 | [it-24-citation-verification-2](iterations/it-24-citation-verification-2.md) | 2026-09-04 | Верификация библиографии [26]–[36] | ✅ | 3 уточнения: ByteTrack → ECCV 2022, DUT Anti-UAV → IEEE T-ITS 23(12), Al-Emadi IWCMC 2019 (не 2021); библиография отчёта вся веб-верифицирована |
+| [it-25-yolo11-26-vs-v8](iterations/it-25-yolo11-26-vs-v8.md) | 2026-09-04 | YOLO11/YOLO26 vs YOLOv8 | ✅ | База остаётся v8; YOLO11n — дешёвый сравнительный эксперимент (+2.2 mAP nano, C2PSA); YOLO26 отложен — NMS-free конфликтует с ByteTrack |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
