@@ -25,3 +25,12 @@ venv/
 
 # Кадры sandbox для GT-разметки (тяжёлые, локальные)
 research/sandbox_frames/
+
+# Локальные материалы, НЕ публикуемые в remote (персональные документы, черновики, бандлы):
+# Диплом-бака (зачётка, ВКР, антиплагиат), Vault (черновики диссертации), backups (git-бандлы),
+# MasterDiploma/reports (отчёты НИР — антиплагиат-риски). Полная история — в локальном бандле
+# backups/workspace-full-pre-public-2026-09-05.bundle.
+/Диплом-бака/
+/MasterDiplomaVaultObsidian/
+/backups/
+/MasterDiploma/reports/
