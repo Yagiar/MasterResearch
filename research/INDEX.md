@@ -25,6 +25,7 @@
 | [it-19-quality-hint-health-gate](iterations/it-19-quality-hint-health-gate.md) | 2026-09-04 | audio_rms в QualityHint + ChannelHealthGate в fusion | ✅ | Контракт+акустика+fusion, 23/23 теста; 2 дефекта дизайна найдены тестами (mean_pa, rms_abs_floor); off по умолчанию |
 | [it-20-etap6-corrections](iterations/it-20-etap6-corrections.md) | 2026-09-04 | Поправки в Vault «Этап 6» | ✅ | Переинтерпретация №4 (двухслойный GT), entropy-gating опровергнут, GT-вопрос закрыт, новые открытые пункты |
 | [it-21-otchet-section7](iterations/it-21-otchet-section7.md) | 2026-09-04 | Черновик раздела 7 отчёта НИР-2 | ✅ | otchet.md: заглушка → полный текст (7.1–7.8) + источники [37]–[39]; числа только из артефактов |
+| [it-22-pandoc-render](iterations/it-22-pandoc-render.md) | 2026-09-04 | Pandoc-рендер отчёта | ✅ | pandoc 3.9 (pypandoc-binary): docx собрался, 8 таблиц, 10/10 контент-проверок раздела 7; docx в git не входит |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
