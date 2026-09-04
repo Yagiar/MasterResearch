@@ -14,6 +14,7 @@
 - `.agents/skills/` (в корне workspace) — 24 навыка (yolo*, literature-review*, paper-review, tufte-viz, lab-notes и др.); перенесены сюда из `NIR-2-SEM-Full/.agents/skills/` 2026-09-04 — workspace-скиллы ZCode сканирует только от корня workspace вверх, из дочерних папок они не видны.
 - `Диплом-бака/` — документы бакалаврской ВКР (docx/pdf/pptx) + standalone OpenCV-скрипты (`server_bpla.py`, `02-04-2025-cams-sync.py`, `24-03-2025-diploma-video.py`). Файлы `~$...` — временные lock-файлы MS Office, не трогать.
 - `backups/*.bundle` — git-bundle снапшоты историй всех пяти прежних репо на момент консолидации; восстановление: `git clone <файл.bundle> <папка>`.
+- `research/` — автономный цикл улучшения диплома: `INDEX.md` (реестр итераций it-01…), `iterations/*.md` (отчёт на итерацию), GT-разметка и скрипты-симуляции (it-02…08: скоринг fusion против GT, стресс-симуляции). Окружение `research/.venv` (ultralytics/torch CPU) и `sandbox_frames/` в git не входят.
 
 ## Команды (в `MasterDiploma/`)
 
