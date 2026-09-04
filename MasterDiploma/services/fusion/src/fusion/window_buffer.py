@@ -17,7 +17,6 @@ from dataclasses import dataclass, field
 
 from uavdet_common.messages import InferenceMsg
 
-
 _LABEL_DRONE = "drone"
 
 

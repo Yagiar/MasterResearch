@@ -100,6 +100,7 @@ class QualityHint(BaseModel):
     img_sharpness: float | None = None    # резкость кадра (напр. дисперсия лапласиана), 0..∞ — больше = резче
     img_brightness: float | None = None   # средняя яркость кадра, 0..1
     snr_db: float | None = None            # отношение сигнал/шум аудио-окна, дБ
+    audio_rms: float | None = None         # RMS окна (0..1 float32) — признак «тишина vs глухота» (research/it-16, it-19)
 
 
 class InferenceMsg(_Base):

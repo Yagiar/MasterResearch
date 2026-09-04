@@ -53,6 +53,7 @@ class AstFeatures:
     """SNR-оценка окна (AST сам строит свою спектрограмму внутри detect())."""
 
     snr_db: float
+    rms: float = 0.0
 
 
 class AstAudioClassifier:
@@ -128,7 +129,7 @@ class AstAudioClassifier:
                 sig = librosa.resample(sig, orig_sr=src_sample_rate, target_sr=self._target_sr)
             except Exception:  # noqa: BLE001
                 pass
-        return AstFeatures(snr_db=_estimate_snr_db(sig))
+        return AstFeatures(snr_db=_estimate_snr_db(sig), rms=float(np.sqrt(np.mean(sig**2))) if sig.size else 0.0)
 
     def detect(self, payload_b64: str, *, src_sample_rate: int, channels: int) -> AudioDetection:
         """Сырой PCM → label/confidence. payload_b64 — base64 PCM int16 LE моно/стерео; channels — из meta."""

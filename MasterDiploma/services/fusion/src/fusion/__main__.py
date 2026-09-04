@@ -17,7 +17,7 @@ from uavdet_common.metrics import start_metrics_server
 
 from .consumer import InferenceConsumer
 from .factory import build_gating, build_strategy
-from .temporal import MedianSmoother
+from .temporal import ChannelHealthGate, MedianSmoother
 from .window_buffer import TimeWindowBuffer
 
 
@@ -57,6 +57,11 @@ def main(argv: list[str] | None = None) -> int:
     temporal_k = int(fusion_cfg.get("audio_temporal_k", 0))
     audio_smoother = MedianSmoother(k=temporal_k) if temporal_k > 0 else None
 
+    # гейт здоровья аудиоканала: «тишина ≠ глухота» по RMS+std p_a (it-16/it-19; выключено по умолчанию)
+    health_gate = None
+    if bool(fusion_cfg.get("audio_health_gate", False)):
+        health_gate = ChannelHealthGate(w=int(fusion_cfg.get("audio_health_w", 12)))
+
     service = InferenceConsumer(
         bus,
         group_id=str(fusion_cfg.get("group_id", "fusion")),
@@ -65,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         window_buffer=buffer,
         decision_threshold=float(fusion_cfg.get("decision_threshold", 0.5)),
         audio_smoother=audio_smoother,
+        health_gate=health_gate,
     )
     service.run()
     return 0

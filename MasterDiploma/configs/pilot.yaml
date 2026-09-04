@@ -109,6 +109,11 @@ fusion:
   # 5 поднимает F1 решений против GT «БПЛА активен» с 0.859 до 0.913 без добавленной
   # задержки (research/iterations/it-08): провалы AST в полёте лечатся перекрытием окон.
   audio_temporal_k: 0
+  # гейт здоровья аудиоканала (research/it-16/it-19): «звук есть (RMS), а p_a всегда 0
+  # (std<0.05) 6 окон подряд → w_a→0». Отличает глухоту от тишины; требует audio_rms в
+  # QualityHint (акустический consumer отдаёт). Выключено по умолчанию; абlation-кандидат.
+  audio_health_gate: false
+  audio_health_w: 12
   weights:                                # базовые веса модальностей (для late/hybrid и FixedGating)
     w_v: 0.5
     w_a: 0.5

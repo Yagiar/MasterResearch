@@ -22,6 +22,7 @@
 | [it-15-p-drone-probability](iterations/it-15-p-drone-probability.md) | 2026-09-04 | p(drone) в AudioDetection (AST) | ✅ | Информация «насколько не дрон» больше не теряется; 3/3 теста; проброс в контракт — отдельное решение |
 | [it-16-health-v2-energy](iterations/it-16-health-v2-energy.md) | 2026-09-04 | Health v2: энергия входа + std выхода | ✅ | «Тишина ≠ глухота» решена (RMS 0.005 vs 0.070); healthy без потерь 0.913, full_deaf 0.902, deaf_last50 0.840; intermittent — честный предел |
 | [it-17-mmaud-plan](iterations/it-17-mmaud-plan.md) | 2026-09-04 | MMAUD: разбор репо и план адаптера | ✅ | ROSBag, V1 5×11–20 ГБ (OneDrive), CC BY-NC-SA; план: V1 Mavic3 → tools/mmaud_extract.py → ablation; AV-FDTI как референс |
+| [it-19-quality-hint-health-gate](iterations/it-19-quality-hint-health-gate.md) | 2026-09-04 | audio_rms в QualityHint + ChannelHealthGate в fusion | ✅ | Контракт+акустика+fusion, 23/23 теста; 2 дефекта дизайна найдены тестами (mean_pa, rms_abs_floor); off по умолчанию |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)

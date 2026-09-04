@@ -32,6 +32,7 @@ class AudioFeatures:
 
     array: np.ndarray          # float32, shape [F, n_frames]
     snr_db: float
+    rms: float = 0.0           # RMS окна — для health-гейта fusion (research/it-16, it-19)
 
 
 def _pcm_int16_to_float(pcm_bytes: bytes, channels: int) -> np.ndarray:
@@ -110,10 +111,11 @@ class FeatureExtractor:
         if src_sample_rate != self._sr and signal.size > 0:
             signal = librosa.resample(signal, orig_sr=src_sample_rate, target_sr=self._sr)
         snr = _estimate_snr_db(signal)
+        rms = float(np.sqrt(np.mean(signal**2))) if signal.size else 0.0
 
         if signal.size == 0:
             feat = np.zeros((self.feature_dim, self._n_frames), dtype=np.float32)
-            return AudioFeatures(array=feat, snr_db=snr)
+            return AudioFeatures(array=feat, snr_db=snr, rms=rms)
 
         if self._feature == "mfcc":
             feat = librosa.feature.mfcc(y=signal, sr=self._sr, n_mfcc=self._n_mfcc)
@@ -121,4 +123,4 @@ class FeatureExtractor:
             mel = librosa.feature.melspectrogram(y=signal, sr=self._sr, n_mels=self._n_mels)
             feat = librosa.power_to_db(mel, ref=np.max)
         feat = _zscore(_fix_width(feat, self._n_frames))
-        return AudioFeatures(array=feat.astype(np.float32), snr_db=snr)
+        return AudioFeatures(array=feat.astype(np.float32), snr_db=snr, rms=rms)

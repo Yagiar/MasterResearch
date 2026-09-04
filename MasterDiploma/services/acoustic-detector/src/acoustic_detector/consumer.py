@@ -53,12 +53,15 @@ class AudioConsumer(KafkaConsumerService):
 
         # маршрутизация: AST принимает СЫРОЙ PCM (свой ASTFeatureExtractor); lwcnn/resnet18 — наши признаки.
         if getattr(self._detector, "expects_pcm", False):
-            snr = float(self._detector.features_from_pcm(msg.payload, src_sample_rate=src_sr, channels=channels).snr_db)
+            feats = self._detector.features_from_pcm(msg.payload, src_sample_rate=src_sr, channels=channels)
+            snr = float(feats.snr_db)
+            rms = float(feats.rms)
             det = self._detector.detect(msg.payload, src_sample_rate=src_sr, channels=channels)
         else:
             feats = self._extractor.from_audio_raw(msg.payload, src_sample_rate=src_sr, channels=channels)
             det = self._detector.detect(feats.array)
             snr = float(feats.snr_db)
+            rms = float(feats.rms)
         latency_ms = (time.perf_counter() - t0) * 1000.0
         DETECT_LATENCY.labels(service=_SERVICE).observe(latency_ms / 1000.0)
 
@@ -73,7 +76,7 @@ class AudioConsumer(KafkaConsumerService):
             model=ModelRef(name=self._detector.model_name, ver=self._detector.model_ver),
             det_latency_ms=latency_ms,
             ingest_ts=msg.ts,
-            quality=QualityHint(snr_db=snr),
+            quality=QualityHint(snr_db=snr, audio_rms=rms),
         )
         self.publish(Topics.INFERENCE, msg.source_id, inf)
         MESSAGES_TOTAL.labels(service=_SERVICE, topic=Topics.INFERENCE).inc()
