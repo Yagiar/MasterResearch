@@ -17,6 +17,7 @@ from uavdet_common.metrics import start_metrics_server
 
 from .consumer import InferenceConsumer
 from .factory import build_gating, build_strategy
+from .temporal import MedianSmoother
 from .window_buffer import TimeWindowBuffer
 
 
@@ -52,6 +53,10 @@ def main(argv: list[str] | None = None) -> int:
     gating = build_gating(fusion_cfg)
     buffer = TimeWindowBuffer(epsilon_ms=float(fusion_cfg.get("window_epsilon_ms", 80.0)))
 
+    # каузальная медиана p_a по последним k аудио-окнам (0 = выключено; рекомендация it-08: 5)
+    temporal_k = int(fusion_cfg.get("audio_temporal_k", 0))
+    audio_smoother = MedianSmoother(k=temporal_k) if temporal_k > 0 else None
+
     service = InferenceConsumer(
         bus,
         group_id=str(fusion_cfg.get("group_id", "fusion")),
@@ -59,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         gating=gating,
         window_buffer=buffer,
         decision_threshold=float(fusion_cfg.get("decision_threshold", 0.5)),
+        audio_smoother=audio_smoother,
     )
     service.run()
     return 0

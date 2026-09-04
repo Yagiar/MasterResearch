@@ -18,6 +18,7 @@ from uavdet_common.messages import Contributions, DecisionMsg, Gating, Inference
 from uavdet_common.metrics import DECISIONS_TOTAL, DELTA_T_MS, E2E_LATENCY, MESSAGES_TOTAL
 
 from .strategies.base import FusionStrategy
+from .temporal import MedianSmoother, apply_audio_smoothing
 from .window_buffer import AlignedWindow, TimeWindowBuffer
 
 _SERVICE = "fusion"
@@ -38,6 +39,7 @@ class InferenceConsumer(KafkaConsumerService):
         gating,                              # FixedGating | AdaptiveGating (метод weights(window)->GatingResult)
         window_buffer: TimeWindowBuffer,
         decision_threshold: float = 0.5,
+        audio_smoother: MedianSmoother | None = None,  # каузальная медиана p_a (k<=0/None → выключено)
     ) -> None:
         super().__init__(bus)
         self.group_id = group_id
@@ -45,6 +47,7 @@ class InferenceConsumer(KafkaConsumerService):
         self._gating = gating
         self._buffer = window_buffer
         self._threshold = float(decision_threshold)
+        self._audio_smoother = audio_smoother
 
     def on_start(self) -> None:
         self._log.info(
@@ -52,10 +55,12 @@ class InferenceConsumer(KafkaConsumerService):
             mode=getattr(self._strategy, "mode", "?"),
             gating=type(self._gating).__name__,
             threshold=self._threshold,
+            audio_temporal_k=self._audio_smoother._k if self._audio_smoother else 0,
         )
 
     def process(self, key: str | None, msg: InferenceMsg) -> None:  # type: ignore[override]
         window = self._buffer.add(msg)
+        window = apply_audio_smoothing(window, self._audio_smoother)
         gr = self._gating.weights(window)
         outcome = self._strategy.fuse(window, w_v=gr.w_v, w_a=gr.w_a, threshold=self._threshold)
         if outcome is None:
