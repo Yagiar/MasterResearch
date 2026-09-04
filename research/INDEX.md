@@ -15,6 +15,9 @@
 | [it-08-temporal-filters-patch](iterations/it-08-temporal-filters-patch.md) | 2026-09-04 | Медиана vs EMA vs гистерезис + эскиз патча | ✅ | Каузальная медиана-5: F1 0.913 без задержки; эскиз патча fusion + критерии приёмки |
 | [it-09-web-research-2](iterations/it-09-web-research-2.md) | 2026-09-04 | Веб-ресёрч №2 (recall AST, конфьюзеры, MMAUD) | ✅ | Калибровка порога + PETL; AeroSonicDB/YPAD-0523 как конфьюзеры; MMAUD доступен на GitHub |
 | [it-10-summary-vault](../../MasterDiplomaVaultObsidian/00%20—%20Карта/03%20—%20НИР-2%20(текущий%20семестр)/Цикл%20улучшения%20НИР-2%20—%20сводка%20итераций%20(2026-09-04).md) | 2026-09-04 | Сводный отчёт цикла в Vault | ✅ | Сводка 1–9 + план внедрения перенесены в базу знаний |
+| [it-11-median-smoother-impl](iterations/it-11-median-smoother-impl.md) | 2026-09-04 | MedianSmoother в коде fusion (off по умолчанию) | ✅ | fusion/temporal.py + consumer/__main__/config (+15 строк), 7/7 тестов, ruff чист |
+| [it-12-threshold-calibration](iterations/it-12-threshold-calibration.md) | 2026-09-04 | Калибровка порога AST | ✅ | Опровергнута: F1 плоский 0.05–0.5 (модель бимодальна); late оптимум 0.45–0.5; рекомендация отдавать вероятности обоих классов |
+| [it-13-systematic-channel-shift](iterations/it-13-systematic-channel-shift.md) | 2026-09-04 | Систематический сдвиг канала | ✅ | Глухой канал на смешанных окнах: late F1=0.000 (!); защита трёхуровневая: медиана (промахи) + w_v≥0.7/детектор здоровья (глухота) |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
