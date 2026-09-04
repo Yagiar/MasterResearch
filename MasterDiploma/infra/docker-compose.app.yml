@@ -1,0 +1,126 @@
+# Сервисы приложения (накладывается поверх infra/docker-compose.yml).
+# Запуск MVP-пайплайна: make run-pipeline
+#   (= docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml up --build source-simulator ingest-gateway visual-detector fusion sink)
+# Контекст сборки — корень репо (нужны libs/ для установки uavdet-common / uavdet-proto).
+
+name: uavdet-infra
+
+x-common-env: &common-env
+  UAVDET_CONFIG: /app/configs/pilot.yaml
+
+services:
+  ingest-gateway:
+    build:
+      context: ..
+      dockerfile: services/ingest-gateway/Dockerfile
+    container_name: uavdet-ingest-gateway
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+    networks: [uavdet]
+
+  source-simulator:
+    build:
+      context: ..
+      dockerfile: services/source-simulator/Dockerfile
+    container_name: uavdet-source-simulator
+    depends_on:
+      - ingest-gateway
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+      - ../data/sample:/data/sample:ro                          # adapter: dataset_replay (sample.mp4)
+      - ../sandboxDataForSimulator:/data/sandbox:ro             # adapter: media_file («тепличный» сценарий: видео+wav дрона)
+      # для adapter: mmaud_replay — раскомментировать и положить срез MMAUD в train/data/mmaud/:
+      # - ../train/data/mmaud:/data/mmaud:ro
+    networks: [uavdet]
+
+  visual-detector:
+    build:
+      context: ..
+      dockerfile: services/visual-detector/Dockerfile
+    container_name: uavdet-visual-detector
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+      - ../models:/models:ro                    # веса детектора
+    networks: [uavdet]
+
+  acoustic-detector:
+    build:
+      context: ..
+      dockerfile: services/acoustic-detector/Dockerfile
+    container_name: uavdet-acoustic-detector
+    profiles: ["audio"]                          # заготовка; запускается явно
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+      - ../models:/models:ro
+    networks: [uavdet]
+
+  fusion:
+    build:
+      context: ..
+      dockerfile: services/fusion/Dockerfile
+    container_name: uavdet-fusion
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+    networks: [uavdet]
+
+  sink:
+    build:
+      context: ..
+      dockerfile: services/sink/Dockerfile
+    container_name: uavdet-sink
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "9108:9108"                              # Prometheus /metrics
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+      - ../data/decisions:/data/decisions        # jsonl с решениями
+    networks: [uavdet]
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: services/gateway/Dockerfile
+    container_name: uavdet-gateway
+    profiles: ["dashboard"]                      # заготовка; запускается явно
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      <<: *common-env
+    volumes:
+      - ../configs:/app/configs:ro
+    networks: [uavdet]
+
+networks:
+  uavdet:
+    name: uavdet-net

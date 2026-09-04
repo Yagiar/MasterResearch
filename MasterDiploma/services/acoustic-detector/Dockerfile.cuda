@@ -1,0 +1,32 @@
+# acoustic-detector — AST (transformers) / lightweight CNN / ResNet-18, GPU-сборка (CUDA).
+# Используется через override infra/docker-compose.gpu.yml (make run-pipeline-gpu); требует
+# nvidia-container-toolkit на хосте и драйвер NVIDIA. Контекст сборки — корень монорепо.
+# CUDA 12.1 (cu121) — подходит для большинства драйверов; GTX 1660 Ti (Turing, sm_75) поддерживается.
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv \
+        libsndfile1 librdkafka1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/python3 /usr/local/bin/python
+
+WORKDIR /app
+
+# устойчивость pip к медленной/нестабильной сети при сборке
+ENV PIP_DEFAULT_TIMEOUT=120 PIP_RETRIES=10
+
+# torch + torchvision (CUDA 12.1) + librosa/numpy + transformers/safetensors (AST) — отдельным слоем для кеша
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121 \
+    && pip install --no-cache-dir librosa numpy \
+    && pip install --no-cache-dir 'transformers>=4.40' 'safetensors>=0.4'
+
+COPY libs/common /app/libs/common
+COPY services/acoustic-detector /app/services/acoustic-detector
+
+RUN pip install --no-cache-dir ./libs/common ./services/acoustic-detector \
+    && mkdir -p /models/acoustic
+
+ENV UAVDET_CONFIG=/app/configs/pilot.yaml
+ENTRYPOINT ["python", "-m", "acoustic_detector"]

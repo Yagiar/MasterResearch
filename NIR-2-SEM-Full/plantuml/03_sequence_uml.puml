@@ -1,0 +1,31 @@
+@startuml
+title Последовательность обработки одного события
+participant SourceAdapter
+participant "video.raw" as VR
+participant "audio.raw" as AR
+participant VisualDetector
+participant AcousticDetector
+participant inference
+participant FusionEngine
+participant decisions
+participant MetricsSink
+SourceAdapter -> VR : publish(ts, frame)
+SourceAdapter -> AR : publish(ts, window)
+VR -> VisualDetector : consume(frame)
+AR -> AcousticDetector : consume(window)
+activate VisualDetector
+VisualDetector -> VisualDetector : детекция YOLOv8\n+ ассоциация ByteTrack
+deactivate VisualDetector
+activate AcousticDetector
+AcousticDetector -> AcousticDetector : спектрограмма/MFCC\n→ lwCNN/AST
+deactivate AcousticDetector
+VisualDetector -> inference : produce(ts, video, label, conf, bbox, track_id, latency)
+AcousticDetector -> inference : produce(ts, audio, label, conf, latency)
+inference -> FusionEngine : consume(inference)
+activate FusionEngine
+FusionEngine -> FusionEngine : alignment по окну ε\nlate/hybrid + gating
+FusionEngine -> decisions : produce(ts, decision, conf, contributions)
+deactivate FusionEngine
+decisions -> MetricsSink : consume(decision)
+MetricsSink -> MetricsSink : лог + метрики\nF1, FPS, latency, Δt
+@enduml

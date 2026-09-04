@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-source-simulator"
+version = "0.1.0"
+description = "Имитатор источников данных (replay из медиафайлов / синтетика, канал деградации) — gRPC-клиент ingest-gateway"
+requires-python = ">=3.10"
+dependencies = [
+    "uavdet-common",
+    "uavdet-proto",
+    "grpcio>=1.60",
+    "opencv-python-headless>=4.9",
+    "numpy>=1.26,<2",  # cv2/torch на многих образах ещё не готовы к NumPy 2.x
+    "soundfile>=0.12",          # чтение wav для аудиодорожки (MediaFileAdapter / MmaudReplayAdapter)
+    "librosa>=0.10",            # ресемпл аудио к целевому sample_rate (wav датасета часто 44.1/48 кГц)
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+uavdet-source-simulator = "source_simulator.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

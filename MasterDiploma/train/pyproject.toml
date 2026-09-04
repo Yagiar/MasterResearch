@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavtrain"
+version = "0.1.0"
+description = "Обучающий пайплайн: скачка датасетов -> подготовка -> обучение (YOLOv8 + lightweight CNN) -> eval -> export весов в ../models"
+requires-python = ">=3.10"
+dependencies = [
+    "ultralytics>=8.1",
+    "torch>=2.2",
+    "torchvision>=0.17",         # ResNet-18 для train-acoustic --arch resnet18
+    "torchaudio>=2.2",
+    "librosa>=0.10",
+    "opencv-python-headless>=4.9",
+    "numpy>=1.26,<2",  # cv2/torch на многих образах ещё не готовы к NumPy 2.x
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.4",
+    "tqdm>=4.66",
+    "requests>=2.31",
+    "gdown>=5.1",                # загрузка датасетов с Google Drive (DUT Anti-UAV)
+    "datasets>=2.18",            # загрузка датасетов с Hugging Face Hub (hf-drone-detection)
+    "huggingface_hub>=0.20",     # прямая скачка parquet датасета (dads-audio) без datasets/torchcodec
+    "pyarrow>=14.0",             # чтение parquet (dads-audio)
+    "pillow>=10.0",              # сохранение картинок при материализации HF-датасета
+    "soundfile>=0.12",           # запись wav при материализации аудио-HF-датасета (dads-audio)
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+notebook = ["jupyter>=1.0", "ipykernel>=6.29"]
+
+[project.scripts]
+uavtrain = "uavtrain.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-ingest-gateway"
+version = "0.1.0"
+description = "Приёмник потоков от источников (gRPC-сервер) -> публикация в Kafka video.raw/audio.raw"
+requires-python = ">=3.10"
+dependencies = [
+    "uavdet-common",
+    "uavdet-proto",
+    "grpcio>=1.60",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+uavdet-ingest-gateway = "ingest_gateway.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,6 @@
+metric,value,note
+lwcnn-MFCC accuracy,0.993,test-метрика на собственном домене
+lwcnn-MFCC F1_macro,0.98,test-метрика на собственном домене
+lwcnn-DADS accuracy,0.995,test-метрика на собственном домене
+lwcnn-DADS F1_macro,0.995,test-метрика на собственном домене
+AST окна p≥0.5,0.6875,99 из 144 окон целевого аудио с p(drone) >= 0.5

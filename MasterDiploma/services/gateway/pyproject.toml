@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-gateway"
+version = "0.1.0"
+description = "dashboard-bff: REST/WS поверх топика decisions + минимальный веб-дашборд"
+requires-python = ">=3.10"
+dependencies = [
+    "uavdet-common",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",   # [standard] тянет websockets + uvloop/httptools
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[project.scripts]
+uavdet-gateway = "gateway.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gateway = ["static/*"]

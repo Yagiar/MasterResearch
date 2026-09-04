@@ -1,0 +1,55 @@
+{
+  "yolov8": [
+    {
+      "metric": "Precision",
+      "vkr_baseline": 0.85,
+      "val_20_epochs": 0.988,
+      "test": 0.906
+    },
+    {
+      "metric": "Recall",
+      "vkr_baseline": 0.79,
+      "val_20_epochs": 0.97,
+      "test": 0.813
+    },
+    {
+      "metric": "mAP@0.5",
+      "vkr_baseline": 0.83,
+      "val_20_epochs": 0.986,
+      "test": 0.881
+    },
+    {
+      "metric": "mAP@0.5:0.95",
+      "vkr_baseline": 0.54,
+      "val_20_epochs": 0.762,
+      "test": 0.43
+    }
+  ],
+  "acoustic": [
+    {
+      "metric": "lwcnn-MFCC accuracy",
+      "value": 0.993,
+      "note": "test-метрика на собственном домене"
+    },
+    {
+      "metric": "lwcnn-MFCC F1_macro",
+      "value": 0.98,
+      "note": "test-метрика на собственном домене"
+    },
+    {
+      "metric": "lwcnn-DADS accuracy",
+      "value": 0.995,
+      "note": "test-метрика на собственном домене"
+    },
+    {
+      "metric": "lwcnn-DADS F1_macro",
+      "value": 0.995,
+      "note": "test-метрика на собственном домене"
+    },
+    {
+      "metric": "AST окна p≥0.5",
+      "value": 0.6875,
+      "note": "99 из 144 окон целевого аудио с p(drone) >= 0.5"
+    }
+  ]
+}

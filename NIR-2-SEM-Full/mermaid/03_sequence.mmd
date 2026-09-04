@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant SRC as Источник
+    participant RAW as topic: video.raw / audio.raw
+    participant V as Визуальный детектор
+    participant A as Акустический детектор
+    participant INF as topic: inference
+    participant F as Модуль слияния
+    participant DEC as topic: decisions
+    participant S as Sink / Dashboard
+    SRC->>RAW: publish кадр (ts, jpeg)
+    SRC->>RAW: publish окно (ts, pcm)
+    RAW->>V: consume(кадры)
+    V->>V: детекция YOLOv8 + ассоциация ByteTrack
+    RAW->>A: consume(аудио-окна)
+    A->>A: спектрограмма / MFCC → CNN / AST
+    V->>INF: produce(ts, video, label, conf, bbox, track_id, latency)
+    A->>INF: produce(ts, audio, label, conf, latency)
+    INF->>F: consume(inference)
+    F->>F: выравнивание по окну ε; late/hybrid + gating
+    F->>DEC: produce(ts, decision, conf, contributions)
+    DEC->>S: consume(decisions)
+    S->>S: лог + метрики F1/FPS/latency/Δt + визуализация

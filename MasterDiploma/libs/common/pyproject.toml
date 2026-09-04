@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-common"
+version = "0.1.0"
+description = "Общие абстракции, схемы сообщений, Kafka-обёртка, базовый consumer-сервис, конфиг и метрики (НИР-2)"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "confluent-kafka>=2.3",
+  "prometheus-client>=0.20",
+  "structlog>=24.1",
+  "PyYAML>=6.0",
+  "psycopg[binary]>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

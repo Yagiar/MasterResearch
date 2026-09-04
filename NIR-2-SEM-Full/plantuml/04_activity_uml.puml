@@ -1,0 +1,34 @@
+@startuml
+title Диаграмма деятельности обработки данных
+start
+:Получить кадр и аудио-окно с ts;
+if (Канал деградации включён?) then (да)
+  :Применить Δt / дроп / шум / dropout;
+else (нет)
+endif
+fork
+  if (Активен video-канал?) then (да)
+    :YOLOv8 + ByteTrack;
+    :p_v, bbox, track_id;
+  else (нет)
+    :video inactive;
+  endif
+fork again
+  if (Активен audio-канал?) then (да)
+    :Признаки + CNN/AST;
+    :p_a;
+  else (нет)
+    :audio inactive;
+  endif
+end fork
+if (Есть хотя бы одна активная модальность?) then (да)
+  :Выравнивание по окну ε;
+  :Рассчитать веса adaptive gating;
+  :Вычислить p_fused и пороговое решение;
+  :Опубликовать decisions и записать метрики;
+  stop
+else (нет)
+  :ждать новых данных;
+  repeat while (новое событие?) is (да)
+endif
+@enduml

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-visual-detector"
+version = "0.1.0"
+description = "Визуальный детектор БПЛА: video.raw -> YOLOv8 (+ByteTrack) -> inference"
+requires-python = ">=3.10"
+dependencies = [
+    "uavdet-common",
+    "numpy>=1.26,<2",  # cv2/torch на многих образах ещё не готовы к NumPy 2.x
+    "opencv-python-headless>=4.9",
+    "ultralytics>=8.1",
+    "supervision>=0.18",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+uavdet-visual-detector = "visual_detector.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

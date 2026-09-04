@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uavdet-acoustic-detector"
+version = "0.1.0"
+description = "Акустический детектор БПЛА: audio.raw -> MFCC/спектрограммы -> lightweight CNN -> inference (ЗАГОТОВКА)"
+requires-python = ">=3.10"
+dependencies = [
+    "uavdet-common",
+    "numpy>=1.26,<2",  # cv2/torch на многих образах ещё не готовы к NumPy 2.x
+    "librosa>=0.10",
+    "torch>=2.2",
+    "torchvision>=0.17",  # ResNet-18 для acoustic_detector.arch=resnet18
+    "transformers>=4.40", # AST (samid-drone-detector) для acoustic_detector.arch=ast
+    "safetensors>=0.4",   # формат весов AST-модели (.safetensors)
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+uavdet-acoustic-detector = "acoustic_detector.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

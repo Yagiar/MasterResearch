@@ -4,13 +4,16 @@
 
 **Язык работы: продолжать на русском** — все ответы, пояснения, вопросы пользователю, комментарии в коде и новые документы вести на русском (даже если запрос пришёл на английском).
 
-## Структура (корень НЕ git-репозиторий; внутри — 3 отдельных репо + 1 папка)
+## Структура (единый локальный git-репо в корне, без remote)
 
-- `MasterDiploma/` — **основной код** (git, remote github.com/Yagiar/MasterDiploma): монорепо микросервисного Kafka-пайплайна + train-приложение. **Сначала читать `MasterDiploma/CLAUDE.md` и `MasterDiploma/README.md`** — там runbook и архитектура.
-- `MasterDiplomaVaultObsidian/` — Obsidian-вольт, база знаний (git): заметки по главам, литкарточки, архитектура НИР-2. Конвенции заметок обязательны: YAML-frontmatter (`type`, `tags`, `source`, `status`, `aliases`, `related`), wikilinks `[[...]]`, `#теги`; номера источников `[N]` = нумерация Приложения 1 отчёта НИР.
-- `NIR-2-SEM-Full/` — исходники графиков/диаграмм отчёта НИР-2 (git). **Читать `HANDOFF.md` перед работой в этой папке** (план работ + правила). `data/*.csv` — единственный источник чисел для графиков; `scripts/render_charts.py` пересобирает PNG/SVG в `charts_png/`/`charts_svg/`.
+2026-09-04 вложенные `.git` удалены, всё версионирует корневой репо. Истории прежних репо — в `backups/*.bundle` (полные копии) и в архивах GitHub: `Yagiar/nir-2-sem-full`, `Yagiar/SendVideoByUdpOnIphone`, а также прежние `MasterDiploma`, `MasterDiplomaVaultObsidian`, `SORT-DeepSORT-Tracker` (архивы могут отставать от состояния на момент удаления — каноничны бандлы).
+
+- `MasterDiploma/` — **основной код**: монорепо микросервисного Kafka-пайплайна + train-приложение. **Сначала читать `MasterDiploma/CLAUDE.md` и `MasterDiploma/README.md`** — там runbook и архитектура.
+- `MasterDiplomaVaultObsidian/` — Obsidian-вольт, база знаний: заметки по главам, литкарточки, архитектура НИР-2. Конвенции заметок обязательны: YAML-frontmatter (`type`, `tags`, `source`, `status`, `aliases`, `related`), wikilinks `[[...]]`, `#теги`; номера источников `[N]` = нумерация Приложения 1 отчёта НИР.
+- `NIR-2-SEM-Full/` — исходники графиков/диаграмм отчёта НИР-2. **Читать `HANDOFF.md` перед работой в этой папке** (план работ + правила). `data/*.csv` — единственный источник чисел для графиков; `scripts/render_charts.py` пересобирает PNG/SVG в `charts_png/`/`charts_svg/`.
 - `.agents/skills/` (в корне workspace) — 24 навыка (yolo*, literature-review*, paper-review, tufte-viz, lab-notes и др.); перенесены сюда из `NIR-2-SEM-Full/.agents/skills/` 2026-09-04 — workspace-скиллы ZCode сканирует только от корня workspace вверх, из дочерних папок они не видны.
-- `Диплом-бака/` — документы бакалаврской ВКР (docx/pdf/pptx) + standalone OpenCV-скрипты (`server_bpla.py`, `02-04-2025-cams-sync.py`, `24-03-2025-diploma-video.py`). Не git-репо. Файлы `~$...` — временные lock-файлы MS Office, не трогать.
+- `Диплом-бака/` — документы бакалаврской ВКР (docx/pdf/pptx) + standalone OpenCV-скрипты (`server_bpla.py`, `02-04-2025-cams-sync.py`, `24-03-2025-diploma-video.py`). Файлы `~$...` — временные lock-файлы MS Office, не трогать.
+- `backups/*.bundle` — git-bundle снапшоты историй всех пяти прежних репо на момент консолидации; восстановление: `git clone <файл.bundle> <папка>`.
 
 ## Команды (в `MasterDiploma/`)
 
@@ -36,7 +39,7 @@ make run-pipeline[-mm|-gpu] / run-dashboard / pipeline-logs / pipeline-down / in
 ## Известные ловушки
 
 - **Пути в документах устарели**: `MasterDiploma/CLAUDE.md`, `README.md` и `NIR-2-SEM-Full/HANDOFF.md` ссылаются на macOS-пути (`/Users/otrix/...`). Фактически вольт лежит рядом: `../MasterDiplomaVaultObsidian/`.
-- В `MasterDiploma` **не коммитить**: `.docx` отчёта (генерируется `pandoc reports/НИР-2/otchet.md -o otchet.docx` из markdown), веса `models/`, медиа `sandboxDataForSimulator/`.
+- В `MasterDiploma` **не коммитить**: `.docx` отчёта (генерируется `pandoc reports/НИР-2/otchet.md -o otchet.docx` из markdown), веса `models/`, медиа `sandboxDataForSimulator/`, `venv/`, `train/data/` — это по-прежнему держит его локальный `.gitignore`, который действует и для корневого репо; глобально веса `*.pt/*.onnx/*.pb/*.safetensors` и `*.log` игнорирует корневой `.gitignore`.
 - На CPU `visual-detector` не держит реалтайм — лаг копится; для реальных прогонов `make run-pipeline-gpu` (нужен nvidia-container-toolkit). Реального Docker-прогона пайплайна до недавнего времени не было — проверяйте фактическое состояние.
 - `models/visual/` без весов: `visual-detector` требует `yolov8n.pt`; `acoustic-detector` без весов работает в режиме энергетического порога.
 - Git-коммиты — фактические, **без сторонних соавторов** (без Co-Authored-By).

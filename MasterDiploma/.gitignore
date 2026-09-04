@@ -1,0 +1,67 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- gRPC generated stubs (генерируются `make proto-gen`) ---
+libs/proto/src/uavdet_proto/*_pb2.py
+libs/proto/src/uavdet_proto/*_pb2.pyi
+libs/proto/src/uavdet_proto/*_pb2_grpc.py
+
+# --- датасеты, веса, выводы обучения (хранятся вне git) ---
+models/visual/*
+models/acoustic/*
+models/registry.csv
+!models/visual/.gitkeep
+!models/acoustic/.gitkeep
+train/data/
+train/runs/
+runs/
+*.pt
+*.onnx
+*.engine
+*.safetensors
+
+# --- артефакты сервисов на пилоте ---
+data/decisions/
+*.jsonl
+
+# --- логи запусков обучения/пайплайна в корне репо ---
+*.log
+
+# --- большие медиа-сэмплы имитатора (хранятся вне git; в репо — только README с инструкцией) ---
+sandboxDataForSimulator/*
+!sandboxDataForSimulator/.gitkeep
+!sandboxDataForSimulator/README.md
+
+# --- отчёты: .docx — артефакты сборки, в git не коммитим ---
+reports/**/*.docx
+reports/**/~$*
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+
+# --- Docker / env ---
+.env
+*.env.local
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- локальные настройки Claude Code ---
+.claude/

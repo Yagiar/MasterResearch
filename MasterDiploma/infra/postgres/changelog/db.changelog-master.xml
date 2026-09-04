@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Корневой changelog Liquibase для БД результатов пайплайна (НИР-2).
+  Применяется контейнером `liquibase` из infra/docker-compose.yml (см. infra/README.md).
+  Отдельные изменения — в файлах changes/*.sql (formatted SQL changelogs).
+-->
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <include file="changes/001_init_schema.sql" relativeToChangelogFile="true"/>
+    <include file="changes/002_inference.sql" relativeToChangelogFile="true"/>
+    <include file="changes/003_decisions.sql" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

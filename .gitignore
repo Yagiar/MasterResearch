@@ -1,20 +1,24 @@
-# Вложенные папки-репозитории: у каждой свой git и своя история (у MasterDiploma и
-# MasterDiplomaVaultObsidian — remote на GitHub), в корневой репо они не включаются.
-# Если их .git будут удалены — уберите строки, чтобы корневой репо трекал содержимое.
-/MasterDiploma/
-/MasterDiplomaVaultObsidian/
-/NIR-2-SEM-Full/
-
-# Вложенные git-репозитории внутри Диплом-бака (обнаружены 2026-09-04): клон
-# Koldim2001/SORT-DeepSORT-Tracker с локальным коммитом «рабочий байтрек» и
-# SendVideoByUdpOnIphone (Xcode-проект, локальный git без remote, исходники
-# частично только в истории). До решения о судьбе их .git — игнорируем, как и выше.
-/Диплом-бака/SORT-DeepSORT-Tracker/
-/Диплом-бака/iphone_sender_video/SendVideoByUdpOnIphone/
+# Единый корневой репо workspace. Вложенных git-репозиториев больше нет — их .git
+# удалены 2026-09-04, истории сохранены в backups/*.bundle и в архивах GitHub
+# (Yagiar/nir-2-sem-full, Yagiar/SendVideoByUdpOnIphone, а также прежние
+# MasterDiploma / MasterDiplomaVaultObsidian / SORT-DeepSORT-Tracker).
 
 # Мусор ОС и временные lock-файлы MS Office
 .DS_Store
 ~$*
 
-# Агрегированные логи/артефакты в корне, если появятся
+# Логи
 *.log
+
+# Веса моделей (torch/TF/onnx-экспорты) — живут на диске, в git не храним
+*.pt
+*.onnx
+*.engine
+*.safetensors
+*.pb
+
+# Python-мусор и окружения
+__pycache__/
+*.py[cod]
+.venv/
+venv/

@@ -1,0 +1,29 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+left to right direction
+package "<<subsystem>> Источники данных" {
+  [DatasetReplayAdapter]
+  [VideoFileAdapter]
+  [LiveSensorAdapter]
+  [SyntheticAdapter]
+}
+component "DegradationChannel\nΔt, p_drop, SNR, dropout" as DEG
+queue "Apache Kafka\nvideo.raw\naudio.raw\ninference\ndecisions" as KAFKA
+component "VisualDetector\nYOLOv8 + ByteTrack" as VIS
+component "AcousticDetector\nlwCNN / AST" as AUD
+component "FusionEngine\nalignment + late/hybrid + gating" as FUS
+component "MetricsSink / Dashboard\nлог + метрики" as SINK
+[DatasetReplayAdapter] --> DEG : raw stream
+[VideoFileAdapter] --> DEG : raw stream
+[LiveSensorAdapter] --> DEG : raw stream
+[SyntheticAdapter] --> DEG : raw stream
+DEG --> KAFKA : publish raw
+KAFKA --> VIS : consume video.raw
+KAFKA --> AUD : consume audio.raw
+VIS --> KAFKA : produce inference
+AUD --> KAFKA : produce inference
+KAFKA --> FUS : consume inference
+FUS --> KAFKA : produce decisions
+KAFKA --> SINK : consume decisions
+@enduml

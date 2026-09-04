@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UAVDet — дашборд решений</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 1.5rem; background: #0e1116; color: #e6e6e6; }
+    h1 { font-size: 1.25rem; margin: 0 0 1rem; font-weight: 600; }
+    .cards { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .card { background: #161b22; border: 1px solid #2a313a; border-radius: 10px; padding: 0.75rem 1rem; min-width: 140px; }
+    .card .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; }
+    .card .value { font-size: 1.4rem; font-weight: 600; margin-top: 0.2rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid #21262d; white-space: nowrap; }
+    th { color: #8b949e; font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    tr.drone td { background: rgba(248, 81, 73, 0.10); }
+    .pill { display: inline-block; padding: 0.05rem 0.5rem; border-radius: 999px; font-size: 0.72rem; border: 1px solid #2a313a; }
+    .pill.yes { background: rgba(248,81,73,0.18); border-color: #f85149; }
+    .pill.no  { background: rgba(63,185,80,0.14); border-color: #3fb950; }
+    .status { font-size: 0.75rem; color: #8b949e; margin-bottom: 1rem; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f85149; margin-right: 0.4rem; }
+    .dot.live { background: #3fb950; }
+    code { color: #8b949e; }
+  </style>
+</head>
+<body>
+  <h1>UAVDet — мультимодальное обнаружение БПЛА · поток решений</h1>
+  <div class="status"><span id="ws-dot" class="dot"></span><span id="ws-text">подключение…</span> · топик <code>decisions</code> · обновление <span id="upd">—</span></div>
+
+  <div class="cards" id="cards">
+    <div class="card"><div class="label">Всего решений</div><div class="value" id="m-total">—</div></div>
+    <div class="card"><div class="label">Доля «БПЛА»</div><div class="value" id="m-ratio">—</div></div>
+    <div class="card"><div class="label">Средн. p_fused</div><div class="value" id="m-pfused">—</div></div>
+    <div class="card"><div class="label">Средн. e2e, мс</div><div class="value" id="m-e2e">—</div></div>
+    <div class="card"><div class="label">Режимы fusion</div><div class="value" id="m-modes" style="font-size:0.9rem;">—</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>время</th><th>source_id</th><th>решение</th><th>p_fused</th><th>режим</th><th>p_v</th><th>p_a</th><th>w_v / w_a</th><th>Δ</th><th>e2e, мс</th><th>окно [t0,t1]</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <script>
+    const fmt = (x, d = 3) => (x === null || x === undefined) ? "—" : Number(x).toFixed(d);
+    const tsFmt = (t) => { if (!t) return "—"; const dt = new Date(t * 1000); return dt.toLocaleTimeString("ru-RU", { hour12: false }) + "." + String(dt.getMilliseconds()).padStart(3, "0"); };
+
+    function renderRow(d) {
+      const tr = document.createElement("tr");
+      if (d.decision) tr.className = "drone";
+      const c = d.contributions || {};
+      const w = (c.w_v !== null && c.w_v !== undefined) ? `${fmt(c.w_v,2)} / ${fmt(c.w_a,2)}` : "—";
+      const win = (d.ts_window && d.ts_window.length === 2) ? `${fmt(d.ts_window[0],2)}, ${fmt(d.ts_window[1],2)}` : "—";
+      tr.innerHTML = `
+        <td>${tsFmt(d.ts)}</td>
+        <td>${d.source_id ?? "—"}</td>
+        <td><span class="pill ${d.decision ? "yes" : "no"}">${d.decision ? "БПЛА" : "нет"}</span></td>
+        <td>${fmt(d.p_fused)}</td>
+        <td>${d.mode ?? "—"}</td>
+        <td>${fmt(c.p_v)}</td>
+        <td>${fmt(c.p_a)}</td>
+        <td>${w}</td>
+        <td>${fmt(c.delta)}</td>
+        <td>${fmt(d.e2e_latency_ms, 1)}</td>
+        <td><code>${win}</code></td>`;
+      return tr;
+    }
+
+    const rowsEl = document.getElementById("rows");
+    const MAX_ROWS = 60;
+    function prepend(d) {
+      rowsEl.prepend(renderRow(d));
+      while (rowsEl.children.length > MAX_ROWS) rowsEl.removeChild(rowsEl.lastChild);
+    }
+
+    async function refreshStats() {
+      try {
+        const s = await (await fetch("/stats")).json();
+        document.getElementById("m-total").textContent = s.total ?? "—";
+        document.getElementById("m-ratio").textContent = (s.drone_ratio !== undefined) ? (s.drone_ratio * 100).toFixed(1) + "%" : "—";
+        document.getElementById("m-pfused").textContent = fmt(s.avg_p_fused);
+        document.getElementById("m-e2e").textContent = fmt(s.avg_e2e_latency_ms, 1);
+        document.getElementById("m-modes").textContent = Object.entries(s.by_mode || {}).map(([k, v]) => `${k}: ${v}`).join("  ·  ") || "—";
+        document.getElementById("upd").textContent = new Date().toLocaleTimeString("ru-RU", { hour12: false });
+      } catch (e) { /* ignore */ }
+    }
+
+    async function loadInitial() {
+      try {
+        const r = await (await fetch("/decisions?limit=40")).json();
+        (r.items || []).slice().reverse().forEach(prepend);
+      } catch (e) { /* ignore */ }
+    }
+
+    function connectWS() {
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(`${proto}://${location.host}/ws/decisions`);
+      const dot = document.getElementById("ws-dot"), txt = document.getElementById("ws-text");
+      ws.onopen = () => { dot.className = "dot live"; txt.textContent = "поток в реальном времени"; };
+      ws.onclose = () => { dot.className = "dot"; txt.textContent = "переподключение…"; setTimeout(connectWS, 2000); };
+      ws.onerror = () => { dot.className = "dot"; txt.textContent = "ошибка соединения"; };
+      ws.onmessage = (ev) => { try { prepend(JSON.parse(ev.data)); } catch (e) {} };
+    }
+
+    loadInitial();
+    refreshStats();
+    setInterval(refreshStats, 3000);
+    connectWS();
+  </script>
+</body>
+</html>

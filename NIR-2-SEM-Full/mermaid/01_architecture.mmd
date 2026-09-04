@@ -1,0 +1,11 @@
+flowchart TD
+    A["Источник данных<br/>Data Source Adapter<br/>имитатор / replay / реальные сенсоры"] --> B{"Канал деградации<br/>Δt, дроп кадров, шум аудио, отказ канала"}
+    B -- publish --> V["topic: video.raw<br/>(ts, кадр, meta)"]
+    B -- publish --> AU["topic: audio.raw<br/>(ts, аудио-окно, meta)"]
+    V -- consume --> VD["Визуальный детектор<br/>YOLOv8 + ByteTrack"]
+    AU -- consume --> AD["Акустический детектор<br/>lightweight CNN / AST"]
+    VD -- produce --> I["topic: inference<br/>(ts, modality, label, confidence, bbox?, track_id?, latency)"]
+    AD -- produce --> I
+    I -- consume --> F["FusionEngine<br/>alignment + late/hybrid + adaptive gating<br/>video-only / audio-only / late / hybrid"]
+    F -- produce --> D["topic: decisions<br/>(ts, decision, confidence, contributions, метрики)"]
+    D -- consume --> S["Sink / Dashboard<br/>лог, авто-сбор метрик, визуализация"]

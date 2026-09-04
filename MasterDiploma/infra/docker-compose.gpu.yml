@@ -1,0 +1,53 @@
+# GPU-override для visual-detector + acoustic-detector: CUDA-образ + проброс NVIDIA GPU в контейнер.
+# Накладывается ПОВЕРХ docker-compose.yml + docker-compose.app.yml:
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml up ...
+#   (или: make run-pipeline-gpu)
+# Требования на хосте: NVIDIA-драйвер + nvidia-container-toolkit (для Docker на Linux).
+# device выставляется через env-override (UAVDET_VISUAL_DETECTOR__DEVICE / UAVDET_ACOUSTIC_DETECTOR__DEVICE)
+# — не трогая pilot.yaml, чтобы обычный (CPU) прогон оставался рабочим.
+
+name: uavdet-infra
+
+services:
+  visual-detector:
+    build:
+      context: ..
+      dockerfile: services/visual-detector/Dockerfile.cuda
+    environment:
+      UAVDET_CONFIG: /app/configs/pilot.yaml
+      UAVDET_VISUAL_DETECTOR__DEVICE: "cuda"     # перекрывает visual_detector.device из pilot.yaml
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # на GPU визуальный детектор успевает за реальным темпом — поднимаем FPS источника обратно к 25
+  # (в pilot.yaml для CPU стоит 5). Перекрывается env-override без правки конфига.
+  source-simulator:
+    environment:
+      UAVDET_CONFIG: /app/configs/pilot.yaml
+      UAVDET_SOURCE__MEDIA_FILE__FPS: "25"
+
+  # acoustic-detector на GPU: AST (samid-drone-detector, ~86M params) на CPU = ~80мс/окно;
+  # на GTX 1660 Ti ожидается ~5-10мс/окно — оставляет запас для real-time с hop_ms=500.
+  acoustic-detector:
+    build:
+      context: ..
+      dockerfile: services/acoustic-detector/Dockerfile.cuda
+    environment:
+      UAVDET_CONFIG: /app/configs/pilot.yaml
+      UAVDET_ACOUSTIC_DETECTOR__DEVICE: "cuda"   # перекрывает acoustic_detector.device из pilot.yaml
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

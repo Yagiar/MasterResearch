@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Sources["«subsystem» Источники данных"]
+      DRA["«component»<br/>DatasetReplayAdapter"]
+      VFA["«component»<br/>VideoFileAdapter"]
+      LSA["«component»<br/>LiveSensorAdapter"]
+      SYA["«component»<br/>SyntheticAdapter"]
+    end
+    DEG["«component»<br/>DegradationChannel<br/>Δt, p_drop, SNR, dropout"]
+    K["«component»<br/>Apache Kafka<br/>video.raw<br/>audio.raw<br/>inference<br/>decisions"]
+    VD["«component»<br/>VisualDetector<br/>YOLOv8 + ByteTrack"]
+    AD["«component»<br/>AcousticDetector<br/>lightweight CNN / AST"]
+    FE["«component»<br/>FusionEngine<br/>alignment + late/hybrid + gating"]
+    MS["«component»<br/>MetricsSink / Dashboard"]
+    DRA --> DEG
+    VFA --> DEG
+    LSA --> DEG
+    SYA --> DEG
+    DEG -- publish video.raw/audio.raw --> K
+    K -- consume video.raw --> VD
+    K -- consume audio.raw --> AD
+    VD -- produce inference --> K
+    AD -- produce inference --> K
+    K -- consume inference --> FE
+    FE -- produce decisions --> K
+    K -- consume decisions --> MS

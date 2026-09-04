@@ -1,0 +1,23 @@
+# Корневой pyproject — общие dev-инструменты для всего монорепо.
+# Каждый сервис / библиотека имеет свой pyproject.toml (см. libs/*, services/*, train/).
+[project]
+name = "uavdet-monorepo"
+version = "0.0.0"
+description = "Мультимодальная (визуальное + акустическое) система обнаружения БПЛА — монорепо (НИР-2)"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["**/_pb2.py", "**/_pb2_grpc.py", "**/*_pb2.pyi"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]  # длинные строки — допускаем (формулы, ссылки)
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["libs/common/tests", "services"]
+
+[tool.black]
+line-length = 100

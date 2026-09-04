@@ -1,0 +1,155 @@
+# Профиль "пилот" — конфигурация локального прогона на одной машине.
+# Подхватывается всеми сервисами (через uavdet_common.config: load_yaml_profile).
+# Переопределение значений — через переменные окружения (см. configs/example.env).
+
+# --- общие настройки шины сообщений ---
+kafka:
+  bootstrap_servers: "kafka:9092"        # внутри docker-сети; локально без Docker — "localhost:9092"
+  topics:
+    video_raw: "video.raw"
+    audio_raw: "audio.raw"
+    inference: "inference"
+    decisions: "decisions"
+
+# --- источник данных (имитатор) ---
+source:
+  source_id: "cam-01"
+  adapter: "media_file"                 # dataset_replay | media_file | mmaud_replay | video_file | synthetic
+  enable_audio: true                    # если адаптер отдаёт аудио — стримить и его (media_file / mmaud_replay)
+  # adapter: dataset_replay — только видео (replay видеофайла покадрово)
+  dataset_replay:
+    video_path: "/data/sample/sample.mp4"
+    loop: true
+    fps: 25
+    jpeg_quality: 75
+  # adapter: media_file — видео + (опц.) аудиодорожка из отдельного wav (синхронные потоки для fusion).
+  # «Тепличный» сценарий пилота: дрон в помещении, видео+звук синхронны.
+  # Файлы монтируются в контейнер из sandboxDataForSimulator/ (см. infra/docker-compose.app.yml -> /data/sandbox).
+  media_file:
+    video_path: "/data/sandbox/sandbox-video-for-simulator.mp4"
+    audio_path: "/data/sandbox/sandbox-audio-for-simulator.wav"   # null -> только видео
+    loop: true
+    fps: 5                                # темп воспроизведения; на CPU-инференсе 25 fps не успевает (растёт лаг) — для пилота 5 ок
+    jpeg_quality: 75
+  # adapter: mmaud_replay — replay секвенции из датасета MMAUD (реально синхронные видео+аудио; «полевой» сценарий)
+  mmaud_replay:
+    video_path: "/data/mmaud/V1/Mavic2/image"      # папка кадров секвенции (или mp4)
+    audio_path: null                                # wav секвенции (формат MMAUD уточняется)
+    annotations_path: null                          # ground_truth секвенции (для офлайн-оценки fusion)
+    loop: true
+    fps: 30
+    jpeg_quality: 80
+    audio_channel: 0
+  audio:                                 # параметры аудио-окон (для media_file и будущих аудио-источников)
+    sample_rate: 16000
+    win_ms: 1000                          # длина аудио-окна — AST (samid-drone-detector) обучен на длинных контекстах, 1с даёт стабильную классификацию
+    hop_ms: 500                           # шаг окна (= период отправки)
+  # канал деградации (на пилоте — выключен; включается для стресс-прогонов)
+  degradation:
+    enabled: false
+    seed: 1337
+    dt_shift_ms: 0                        # сдвиг ts одной модальности (рассинхрон Δt); >0 — отстаёт
+    dt_shift_target: "audio"              # video | audio
+    frame_drop_prob: 0.0                  # вероятность дропа видеокадра
+    window_drop_prob: 0.0                 # вероятность дропа аудио-окна
+    audio_noise_snr_db: null              # добавить шум в аудио до этого SNR (null — не добавлять)
+    modality_dropout: []                  # интервалы [[start_s, end_s], ...] полного отказа модальности
+    modality_dropout_target: "audio"      # какая модальность «отказывает»
+    confidence_jitter_prob: 0.0           # вероятность кратковременной потери резкости кадра
+    confidence_jitter_quality: 25         # JPEG-quality в момент «дрожания»
+
+# --- gRPC-канал source-simulator -> ingest-gateway ---
+ingest_grpc:
+  host: "ingest-gateway"                  # внутри docker-сети
+  port: 50051
+  max_message_mb: 16
+
+# --- визуальный детектор ---
+visual_detector:
+  # веса YOLO; если файла нет — detector сам берёт предобученные yolov8n.pt (COCO) как заглушку.
+  # Варианты:
+  #   /models/visual/yolov8s-uav.pt                              — наша модель (после обучения uavtrain)
+  #   /models/visual/VKR_united_datasets_airplane_birds_drone_11-03-2025.pt  — модель из ВКР (классы {0:Bird,1:drone,2:Airplane})
+  #   /models/visual/VKR_BPLA_model_10-11-2024.pt                — модель из ВКР (1 класс {0:drone})
+  weights_path: "/models/visual/yolov8s-uav.pt"
+  # какие id классов модели считать «дроном» (остальные -> non-drone). Если не задано —
+  # по имени класса (содержит "drone"/"uav"). Для VKR_united (Bird=0,drone=1,Airplane=2) -> [1].
+  # drone_class_ids: [1] -- в итой версии не используется
+  conf_threshold: 0.25
+  iou_threshold: 0.45
+  device: "cpu"                           # cpu | cuda:0
+  tracker_enabled: true                   # ByteTrack
+  batch_size: 1
+
+# --- акустический детектор ---
+acoustic_detector:
+  group_id: "acoustic-detector"
+  # AST (Audio Spectrogram Transformer, samid-drone-detector) — лучший на «грязном» звуке из видео;
+  # для lwcnn/resnet18: weights_path -> .pt со state_dict, arch -> 'lwcnn'/'resnet18'
+  weights_path: "/models/acoustic/samid-drone-detector"   # каталог с config.json+model.safetensors+preprocessor_config.json
+  arch: "ast"                             # lwcnn | resnet18 | ast — должна совпадать с тем, чем подготовлены веса
+  feature: "melspec"                      # mfcc | melspec — используется только при arch=lwcnn/resnet18 (AST игнорирует, у него свой ASTFeatureExtractor)
+  sample_rate: 16000
+  n_mfcc: 40
+  n_mels: 64
+  n_frames: 64                            # ширина спектрограммы по времени (паддинг/обрезка)
+  device: "cpu"                           # cpu | cuda
+  energy_threshold: 0.01                  # порог средней энергии окна для режима-заглушки
+  auto_offset_reset: "latest"
+
+# --- движок слияния ---
+fusion:
+  mode: "late"
+  # допуск временного выравнивания [t-ε, t+ε]. ε должен быть соизмерим с шагом аудио-окна
+  # (source.audio.hop_ms): при hop 500 мс и слишком малом ε видеокадры не попадают в одно окно
+  # с аудио → почти все окна моно-модальные. ~600 мс даёт пересечение модальностей.
+  window_epsilon_ms: 600
+  decision_threshold: 0.5
+  weights:                                # базовые веса модальностей (для late/hybrid и FixedGating)
+    w_v: 0.5
+    w_a: 0.5
+  late:
+    delta_conf: 0.1                       # бонус при согласованных детекциях обоих каналов
+    delta_unconf: 0.1                     # штраф при противоречии одного канала
+    # label_threshold: 0.5                # порог «канал сказал drone» (по умолчанию = decision_threshold)
+  hybrid:
+    delta_conf: 0.1
+    delta_unconf: 0.15
+  gating:
+    enabled: false  # GATING_ENABLED
+    q_floor: 0.2                          # нижняя граница фактора качества канала
+    sharpness_ref: 150.0                  # эталонная резкость кадра (дисперсия лапласиана)
+    snr_ref_db: 20.0                      # SNR аудио, выше которого q=1
+    snr_floor_db: 0.0                     # SNR аудио, ниже которого q=q_floor
+
+# --- PostgreSQL: хранилище результатов (inference + decisions) ---
+postgres:
+  enabled: true                           # false -> sink не пишет в БД (только jsonl/метрики)
+  host: "postgres"                         # внутри docker-сети; локально без Docker — "localhost"
+  port: 5432
+  dbname: "uavdet"
+  user: "uavdet"
+  password: "uavdet"                       # пилот: дефолтные креды; в проде — через секреты/env UAVDET_POSTGRES__PASSWORD
+  # dsn: "host=... port=... dbname=... user=... password=..."   # альтернатива — задать DSN целиком
+
+# --- sink / метрики ---
+sink:
+  group_id: "sink"
+  inference_group_id: "sink-inference"
+  metrics_port: 9108
+  decisions_log: "/data/decisions/decisions.jsonl"
+  also_consume_inference: true            # потреблять топик inference и писать его в PG (таблица uavdet.inference)
+  auto_offset_reset: "latest"
+
+# --- gateway (dashboard-bff: REST/WS поверх decisions + веб-дашборд) ---
+gateway:
+  bind_host: "0.0.0.0"
+  port: 8080
+  group_id: "gateway-dashboard"           # consumer-группа потребителя decisions (отдельная от sink)
+  buffer_size: 500                         # размер кольцевого буфера последних решений
+  auto_offset_reset: "latest"
+
+# --- логирование ---
+logging:
+  level: "INFO"
+  format: "console"                       # console | json

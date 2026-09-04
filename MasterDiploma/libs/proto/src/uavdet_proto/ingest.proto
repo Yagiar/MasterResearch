@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+// Контракт канала "источник данных -> ingest-gateway".
+// Реализуют его: source-simulator (replay/синтетика) и, в будущем, sensor-driver (реальные камера/микрофон).
+// ingest-gateway — gRPC-сервер; источники — gRPC-клиенты, стримящие кадры/аудио-окна.
+
+package uavdet.ingest.v1;
+
+// Сырой видеокадр от источника.
+message Frame {
+  bytes jpeg_bytes = 1;          // кадр в JPEG
+  double ts = 2;                 // момент захвата (unix-время, секунды)
+  uint64 seq = 3;                // порядковый номер кадра в потоке источника
+  string source_id = 4;          // идентификатор источника (камеры)
+  uint32 width = 5;
+  uint32 height = 6;
+  double fps_nominal = 7;        // номинальный FPS источника
+  map<string, string> meta = 8;  // прочие метаданные (напр. параметры деградации)
+}
+
+// Сырое аудио-окно от источника.
+message AudioWindow {
+  bytes pcm_bytes = 1;           // окно аудио (PCM)
+  double ts = 2;                 // момент начала окна (unix-время, секунды)
+  uint64 seq = 3;
+  string source_id = 4;
+  uint32 sample_rate = 5;
+  uint32 channels = 6;
+  uint32 len_ms = 7;             // длина окна, мс
+  uint32 hop_ms = 8;             // шаг окна, мс
+  map<string, string> meta = 9;
+}
+
+// Подтверждение приёма потока (по завершении стрима).
+message Ack {
+  bool accepted = 1;
+  uint64 received = 2;           // сколько сообщений принято
+  string message = 3;            // диагностика
+}
+
+service SourceStream {
+  // Источник стримит видеокадры в gateway; gateway возвращает Ack по завершении.
+  rpc StreamVideo(stream Frame) returns (Ack);
+  // Источник стримит аудио-окна в gateway; gateway возвращает Ack по завершении.
+  rpc StreamAudio(stream AudioWindow) returns (Ack);
+}
