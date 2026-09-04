@@ -30,6 +30,7 @@
 | [it-24-citation-verification-2](iterations/it-24-citation-verification-2.md) | 2026-09-04 | Верификация библиографии [26]–[36] | ✅ | 3 уточнения: ByteTrack → ECCV 2022, DUT Anti-UAV → IEEE T-ITS 23(12), Al-Emadi IWCMC 2019 (не 2021); библиография отчёта вся веб-верифицирована |
 | [it-25-yolo11-26-vs-v8](iterations/it-25-yolo11-26-vs-v8.md) | 2026-09-04 | YOLO11/YOLO26 vs YOLOv8 | ✅ | База остаётся v8; YOLO11n — дешёвый сравнительный эксперимент (+2.2 mAP nano, C2PSA); YOLO26 отложен — NMS-free конфликтует с ByteTrack |
 | [it-26-clean-consistency](iterations/it-26-clean-consistency.md) | 2026-09-04 | Консистентность otchet.md ↔ clean ↔ docx | ✅ | clean перегенерирован (раздел 7 + [37]–[39] на месте, маркеров нет), оба docx собраны, README-статус обновлён |
+| [it-27-gost-table-captions](iterations/it-27-gost-table-captions.md) | 2026-09-04 | ГОСТ-подписи таблиц раздела 7 | ✅ | Подписи 7.1–7.4 вставлены; найден дефект рендера (подпись вплотную роняет таблицу из docx) — исправлено пустой строкой, 8/8 таблиц + 4/4 подписи |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
