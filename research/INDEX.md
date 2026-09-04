@@ -34,7 +34,8 @@
 | [it-28-gost-captions-2](iterations/it-28-gost-captions-2.md) | 2026-09-04 | Подписи таблиц 1.1/4.1/4.2/5.1 | ✅ | Смещение подписи на строку роняло таблицы из docx — поймано подсчётом <w:tbl>, исправлено; итог 8/8 таблиц + 8/8 подписей |
 | [it-18-p-drone-contract](iterations/it-18-p-drone-contract.md) | 2026-09-04 | p_drone в контракте InferenceMsg | ✅ | Аддитивно, schema_ver=1 сохранён; lwcnn+AST отдают softmax; fusion использует; 22/22 теста |
 | [it-18-p-drone-contract](iterations/it-18-p-drone-contract.md) | 2026-09-04 | p_drone в контракте InferenceMsg | ✅ | Аддитивно, schema_ver=1; lwcnn+AST отдают softmax; 22/22 теста |
-| [it-29-citations-1-25](iterations/it-29-citations-1-25.md) | 2026-09-04 | Верификация источников 1–25 | 🔄 13/25 | TRIDENT/Aydın/Dafrallah/Jamil/Dumitrescu/Linn/Liu Z/Ren/AV-DTEC подтверждены; 12 остались (поиск таймаутит) |
+| [it-29-citations-1-25](iterations/it-29-citations-1-25.md) | 2026-09-04/05 | Верификация источников 1–25 | ✅ 25/25 | Все подтверждены; [21] Sun Y. — сверить авторство (поиск показывает Lan Xu) |
+| [it-30-gpu-ablation-v2](iterations/it-30-gpu-ablation-v2.md) | 2026-09-05 | Ablation v2 на живом GPU-стеке | ✅ | НЕГАТИВ: медиана/гейт онлайн не дали эффекта (F1 0.843/0.846/0.849 ~шум) — блокер: аудио доходит в 10% окон; починка доставки = приоритет №1 |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
