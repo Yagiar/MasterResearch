@@ -84,6 +84,14 @@ class TimeWindowBuffer:
         self._video: dict[str, deque[InferenceMsg]] = defaultdict(lambda: deque(maxlen=self._max_keep))
         self._audio: dict[str, deque[InferenceMsg]] = defaultdict(lambda: deque(maxlen=self._max_keep))
         self._latest: dict[str, float] = defaultdict(float)  # последний ts потока источника (обе модальности)
+        # последний ts ПО КАЖДОЙ модальности (it-44): модальность участвует в водяном знаке,
+        # только если уже появлялась — иначе стартовый бурст видео «прорезал» бы watermark
+        self._last_mod: dict[str, dict[str, float]] = defaultdict(dict)
+
+    @property
+    def epsilon_s(self) -> float:
+        """Полуширина окна выравнивания ε (сек) — для watermark-релиза (it-44)."""
+        return self._eps_s
 
     def _evict_older_than(self, dq: deque[InferenceMsg], cutoff: float) -> None:
         while dq and dq[0].ts < cutoff:
@@ -103,6 +111,7 @@ class TimeWindowBuffer:
         # «опоздало» = пришло заметно позади потока источника (за пределами ε + lateness)
         late = self._latest[sid] > 0.0 and t < self._latest[sid] - self._eps_s - self._lateness_s
         self._latest[sid] = max(self._latest[sid], t)
+        self._last_mod[sid][msg.modality] = t
 
         if msg.modality == "video":
             self._video[sid].append(msg)
@@ -123,5 +132,36 @@ class TimeWindowBuffer:
         win.audio = [m for m in self._audio[sid] if t0 <= _align_ts(m) <= t1] or (
             [msg] if msg.modality == "audio" else []
         )
+        win.joint = bool(win.video) and bool(win.audio)
+        return win
+
+    # --- watermark-режим (it-44, ревью §6.2: правило завершения окна должно быть явным) ---
+
+    def frontier(self, source_id: str) -> float:
+        """Медиа-водяной знак источника: min последних ts модальностей (шкала выравнивания).
+
+        Правило (it-44): пока у источника не appeared ОБЕ модальности, watermark = 0 —
+        стартовый бурст видео не должен выпускать mono-решения, пока аудио в принципе
+        не подтянулось (исследование it-42: иначе весь стартовый клип уходит в mono).
+        После появления обеих — min их последних ts: интервал до watermark закрыт ими обоими.
+        Если вторая модальность умерла, watermark замирает и окна уходят в явный
+        max_wait-fallback (mono), не в «вечное ожидание».
+        """
+        mods = self._last_mod.get(source_id)
+        if not mods or len(mods) < 2:
+            return 0.0
+        return min(mods.values())
+
+    def form_window(self, source_id: str, t: float) -> AlignedWindow:
+        """Сформировать окно [t-ε, t+ε] из УДЕРЖИВАЕМЫХ записей, не добавляя новых (watermark-режим).
+
+        Отличие от add(): не мутирует состояние, не триггерит evict; окно выпускается вызывающим
+        кодом, когда watermark прошёл t+ε (обе модальности успели) либо истёк max_wait
+        (явный mono-fallback, помечается late=True).
+        """
+        t0, t1 = t - self._eps_s, t + self._eps_s
+        win = AlignedWindow(source_id=source_id, t0=t0, t1=t1)
+        win.video = [m for m in self._video.get(source_id, ()) if t0 <= _align_ts(m) <= t1]
+        win.audio = [m for m in self._audio.get(source_id, ()) if t0 <= _align_ts(m) <= t1]
         win.joint = bool(win.video) and bool(win.audio)
         return win

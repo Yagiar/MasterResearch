@@ -40,6 +40,10 @@ LATE_MESSAGES_TOTAL = Counter(
 JOINT_WINDOWS_TOTAL = Counter(
     "uavdet_joint_windows_total", "Окон выравнивания с обеими модальностями", ["service"]
 )
+# it-44 (ревью §6.2): почему окно выпущено — watermark (обе модальности закрыли интервал) или max_wait (mono-fallback)
+WINDOW_RELEASES_TOTAL = Counter(
+    "uavdet_window_releases_total", "Выпусков окон (watermark | max_wait | per-message)", ["service", "reason"]
+)
 
 
 def start_metrics_server(port: int) -> None:
@@ -58,5 +62,6 @@ __all__ = [
     "DECISIONS_TOTAL",
     "LATE_MESSAGES_TOTAL",
     "JOINT_WINDOWS_TOTAL",
+    "WINDOW_RELEASES_TOTAL",
     "start_metrics_server",
 ]

@@ -76,6 +76,10 @@ def main(argv: list[str] | None = None) -> int:
         decision_threshold=float(fusion_cfg.get("decision_threshold", 0.5)),
         audio_smoother=audio_smoother,
         health_gate=health_gate,
+        # it-44 (ревью §6.2): per-message — прежнее поведение; watermark — окно выпускается,
+        # когда обе модальности закрыли медиа-интервал, либо по max_wait (явный mono-fallback)
+        window_release=str(fusion_cfg.get("window_release", "per-message")),
+        window_max_wait_ms=float(fusion_cfg.get("window_max_wait_ms", 2000.0)),
     )
     service.run()
     return 0
