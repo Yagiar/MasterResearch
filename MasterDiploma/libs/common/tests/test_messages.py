@@ -3,6 +3,7 @@
 from uavdet_common.messages import (
     SCHEMA_VER,
     TOPIC_MODELS,
+    AudioRawMsg,
     DecisionMsg,
     InferenceMsg,
     Topics,
@@ -59,3 +60,19 @@ def test_topic_models_map():
     assert TOPIC_MODELS[Topics.VIDEO_RAW] is VideoRawMsg
     assert TOPIC_MODELS[Topics.INFERENCE] is InferenceMsg
     assert TOPIC_MODELS[Topics.DECISIONS] is DecisionMsg
+
+
+def test_media_ts_contract_additive():
+    """it-34/35: media_ts аддитивен — старые сообщения (без поля) парсятся (None), новые сериализуются."""
+    old = VideoRawMsg(source_id="cam-01", ts=1.0)          # без media_ts (старый продюсер)
+    assert old.media_ts is None
+    v = VideoRawMsg(source_id="cam-01", ts=1.0, media_ts=12.5)
+    assert VideoRawMsg.model_validate_json(v.model_dump_json()).media_ts == 12.5
+    a = AudioRawMsg(source_id="cam-01", ts=1.0, media_ts=12.5)
+    assert AudioRawMsg.model_validate_json(a.model_dump_json()).media_ts == 12.5
+    inf = InferenceMsg(source_id="cam-01", ts=1.0, modality="video", label="drone",
+                       confidence=0.9, media_ts=12.5)
+    assert InferenceMsg.model_validate_json(inf.model_dump_json()).media_ts == 12.5
+    d = DecisionMsg(source_id="cam-01", ts=1.0, ts_window=[12.0, 13.0], media_ts=12.5,
+                    mode="late", decision=True, p_fused=0.9)
+    assert DecisionMsg.model_validate_json(d.model_dump_json()).media_ts == 12.5

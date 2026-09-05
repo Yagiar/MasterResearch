@@ -68,6 +68,7 @@ class AudioConsumer(KafkaConsumerService):
         inf = InferenceMsg(
             source_id=msg.source_id,
             ts=msg.ts,
+            media_ts=msg.media_ts,
             modality="audio",
             label=det.label,
             confidence=det.confidence,

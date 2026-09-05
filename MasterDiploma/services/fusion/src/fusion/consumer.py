@@ -26,7 +26,7 @@ from uavdet_common.metrics import (
 
 from .strategies.base import FusionStrategy
 from .temporal import ChannelHealthGate, MedianSmoother, apply_audio_smoothing
-from .window_buffer import AlignedWindow, TimeWindowBuffer
+from .window_buffer import AlignedWindow, TimeWindowBuffer, _align_ts
 
 _SERVICE = "fusion"
 
@@ -97,6 +97,8 @@ class InferenceConsumer(KafkaConsumerService):
             source_id=msg.source_id,
             ts=now,
             ts_window=window.ts_window,
+            # событийное время решения — для GT-скоринга; None, если источник не отдал media_ts
+            media_ts=window.media_ts,
             mode=getattr(self._strategy, "mode", "video-only"),
             decision=outcome.decision,
             p_fused=outcome.p_fused,
@@ -118,10 +120,13 @@ class InferenceConsumer(KafkaConsumerService):
             E2E_LATENCY.labels(service=_SERVICE).observe(e2e_ms / 1000.0)
 
     def _observe_delta_t(self, window: AlignedWindow) -> None:
-        """Записать метрику межмодальной задержки Δt (если в окне есть обе модальности)."""
+        """Записать метрику межмодальной задержки Δt (если в окне есть обе модальности).
+
+        Считается по шкале выравнивания (media_ts, иначе wall-clock ts) — it-35.
+        """
         bv, ba = window.best_video(), window.best_audio()
         if bv is not None and ba is not None:
-            DELTA_T_MS.labels(service=_SERVICE).observe(abs(bv.ts - ba.ts) * 1000.0)
+            DELTA_T_MS.labels(service=_SERVICE).observe(abs(_align_ts(bv) - _align_ts(ba)) * 1000.0)
 
     @staticmethod
     def _earliest_ingest_ts(window: AlignedWindow) -> float | None:

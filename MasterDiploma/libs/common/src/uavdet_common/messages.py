@@ -110,6 +110,7 @@ class InferenceMsg(_Base):
     label: Label
     confidence: float
     p_drone: float | None = None          # вероятность класса «drone» (softmax), если бэкенд отдаёт (research/it-15, it-18); None — совместимость со старыми сообщениями
+    media_ts: float | None = None         # it-34/35: событийное время на медиатаймлайне источника (с); None — источник не отдал (тогда ts = wall-clock доставки)
     bbox: list[float] | None = None       # [x, y, w, h] — только для modality=video
     track_id: int | None = None           # только для modality=video с трекером
     model: ModelRef = Field(default_factory=ModelRef)
@@ -133,7 +134,8 @@ class Gating(BaseModel):
 
 
 class DecisionMsg(_Base):
-    ts_window: list[float]                # [t0, t1] окна выравнивания
+    ts_window: list[float]                # [t0, t1] окна выравнивания (в шкале выравнивания: media_ts, иначе wall-clock)
+    media_ts: float | None = None         # it-35: событийное время триггер-сообщения на медиатаймлайне (GT-скоринг — по нему, не по ts)
     mode: FusionMode
     decision: bool                        # обнаружен БПЛА / нет
     p_fused: float

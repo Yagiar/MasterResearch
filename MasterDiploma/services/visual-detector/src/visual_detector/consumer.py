@@ -79,6 +79,7 @@ class VideoConsumer(KafkaConsumerService):
             inf = InferenceMsg(
                 source_id=msg.source_id,
                 ts=msg.ts,
+                media_ts=msg.media_ts,
                 modality="video",
                 label="drone",
                 confidence=best.confidence,
@@ -93,6 +94,7 @@ class VideoConsumer(KafkaConsumerService):
             inf = InferenceMsg(
                 source_id=msg.source_id,
                 ts=msg.ts,
+                media_ts=msg.media_ts,
                 modality="video",
                 label="non-drone",
                 confidence=0.0,

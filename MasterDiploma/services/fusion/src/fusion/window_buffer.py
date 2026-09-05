@@ -50,8 +50,11 @@ class AlignedWindow:
     t1: float
     video: list[InferenceMsg] = field(default_factory=list)
     audio: list[InferenceMsg] = field(default_factory=list)
-    late: bool = False   # добавленное сообщение опоздало за горизонт (ts < последнего − ε − lateness)
+    late: bool = False   # добавленное сообщение опоздало (ts < последнего − ε − lateness)
     joint: bool = False  # в окне есть детекции обеих модальностей
+    # it-35: событийное время триггер-сообщения на медиатаймлайне (None — не отдано источником;
+    # окна выравниваются по media_ts, если он есть, иначе по wall-clock ts)
+    media_ts: float | None = None
 
     @property
     def ts_window(self) -> list[float]:
@@ -62,6 +65,11 @@ class AlignedWindow:
 
     def best_audio(self) -> InferenceMsg | None:
         return _best_of(self.audio)
+
+
+def _align_ts(msg: InferenceMsg) -> float:
+    """Шкала выравнивания сообщения: медиа-время, если источник его отдал, иначе wall-clock (it-35)."""
+    return msg.media_ts if msg.media_ts is not None else msg.ts
 
 
 class TimeWindowBuffer:
@@ -84,12 +92,13 @@ class TimeWindowBuffer:
     def add(self, msg: InferenceMsg) -> AlignedWindow:
         """Добавить детекцию; вернуть окно выравнивания вокруг её момента.
 
-        Окно всегда содержит саму добавленную детекцию (в своей модальности) и все
-        детекции другой модальности, чьи `ts` лежат в [ts-ε, ts+ε]. История сверх ε
-        удерживается ещё `lateness_ms`, чтобы запаздывающая модальность могла образовать
-        совместное окно задним числом (ревью §6.2: порядок доставки ≠ семантика событий).
+        Выравнивание — по `media_ts` (событийное время), а при его отсутствии по wall-clock
+        `ts` (it-35: время доставки ≠ время события, ревью §5.2/§6.1). Окно всегда содержит
+        саму добавленную детекцию (в своей модальности) и все детекции другой модальности,
+        чьи `ts` лежат в [ts-ε, ts+ε]. История сверх ε удерживается ещё `lateness_ms`,
+        чтобы запаздывающая модальность могла образовать совместное окно задним числом.
         """
-        t = msg.ts
+        t = _align_ts(msg)
         sid = msg.source_id
         # «опоздало» = пришло заметно позади потока источника (за пределами ε + lateness)
         late = self._latest[sid] > 0.0 and t < self._latest[sid] - self._eps_s - self._lateness_s
@@ -106,11 +115,12 @@ class TimeWindowBuffer:
         self._evict_older_than(self._video[sid], cutoff)
         self._evict_older_than(self._audio[sid], cutoff)
 
-        win = AlignedWindow(source_id=sid, t0=t0, t1=t1, late=late)
-        win.video = [m for m in self._video[sid] if t0 <= m.ts <= t1] or (
+        win = AlignedWindow(source_id=sid, t0=t0, t1=t1, late=late,
+                            media_ts=msg.media_ts)
+        win.video = [m for m in self._video[sid] if t0 <= _align_ts(m) <= t1] or (
             [msg] if msg.modality == "video" else []
         )
-        win.audio = [m for m in self._audio[sid] if t0 <= m.ts <= t1] or (
+        win.audio = [m for m in self._audio[sid] if t0 <= _align_ts(m) <= t1] or (
             [msg] if msg.modality == "audio" else []
         )
         win.joint = bool(win.video) and bool(win.audio)

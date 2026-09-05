@@ -79,3 +79,33 @@ def test_negative_lateness_clamped_to_zero() -> None:
     assert win.joint                     # в пределах ε пара образуется и так
     win2 = buf.add(_msg("audio", 11.0))  # video@10 выселен сразу
     assert not win2.joint
+
+
+def _msg_media(modality: str, ts: float, media_ts: float) -> InferenceMsg:
+    return InferenceMsg(source_id="cam-01", modality=modality, label="drone", confidence=0.9,
+                        ts=ts, media_ts=media_ts, msg_id=f"{modality}-m{media_ts}")
+
+
+def test_alignment_prefers_media_ts_over_wall_clock() -> None:
+    """Инвариант (ревью §5.2): окна выравниваются по событийному времени, не по доставке.
+
+    Видео «застряло» на 10 с в доставке (wall-clock), аудио пришло вовремя — но media_ts
+    обоих 42.0/42.05 (одно событие): совместное окно образуется, t0/t1 в шкале media_ts.
+    """
+    buf = TimeWindowBuffer(epsilon_ms=600.0)
+    buf.add(_msg_media("video", ts=1000.0, media_ts=42.0))     # доставлено на 990 с позже
+    win = buf.add(_msg_media("audio", ts=1000.5, media_ts=42.05))
+    assert win.joint
+    assert win.t0 == pytest.approx(42.05 - 0.6)
+    assert win.t1 == pytest.approx(42.05 + 0.6)
+    assert win.media_ts == pytest.approx(42.05)
+
+
+def test_alignment_falls_back_to_wall_clock_without_media_ts() -> None:
+    """Сообщения без media_ts (старые продюсеры) — прежнее поведение по ts."""
+    buf = TimeWindowBuffer(epsilon_ms=600.0)
+    buf.add(_msg("video", 10.0))
+    win = buf.add(_msg("audio", 10.05))
+    assert win.joint
+    assert win.media_ts is None
+    assert win.t0 == pytest.approx(10.05 - 0.6)
