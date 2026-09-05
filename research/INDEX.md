@@ -51,6 +51,7 @@
 | [it-43-watermark-ablation-v4](iterations/it-43-watermark-ablation-v4.md) | 2026-09-05 | Ablation v4: Δ=0 + watermark-выпуск окон (it-44) | ✅ | **Онлайн F1=0.968 ≈ офлайн** (watermark+k=5+τ0.5); Δ=0 закрыло разрыв офлайн↔онлайн (0.872→0.968); компромисс «совместность↔задержка» измерен |
 | [it-45-time-normalized-scoring](iterations/it-45-time-normalized-scoring.md) | 2026-09-05 | NORM-скоринг: единица оценки = медиа-секунда (ревью §10) + burn-in | ✅ | RAW 0.96–0.97 завышал вес бурста; честный стационар 0.89–0.90 на 120-с этапах |
 | [it-46-ablation-v5-final-protocol](iterations/it-46-ablation-v5-final-protocol.md) | 2026-09-05 | Ablation v5 (240 с): финальный протокол, конфигурации сходятся | ✅ | Стационарный NORM F1 = **0.92–0.93**; per-message/watermark/k0/k5 — 96% общих паттернов; watermark — за явность политики, не метрику |
+| [it-47-e2e-decomposition](iterations/it-47-e2e-decomposition.md) | 2026-09-05 | Разложение e2e по стадиям (detect_start/done_ts + проба inference) | ✅ | Блокер закрыт: **e2e 1.5 с медиана (p99 3.6), 100% совместных окон**; причины 62 с — gpu-overlay 25 fps + ленивая загрузка wav (36 с сдвиг аудио) — устранены |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
