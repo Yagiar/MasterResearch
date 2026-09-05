@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Стресс-симуляция политик fusion на смешанных окнах (it-07).
+"""Стресс-симуляция политик fusion на смешанных окнах (it-07 → it-36).
 
 Стрессы (аналоги «канала деградации» пайплайна, офлайн):
-  - WindowDrop аудио: окно теряет аудио с вероятностью p_drop → решение по видео (перенормировка);
-  - NoiseDegradation аудио: p_a' = clip(p_a + N(0, sigma), 0, 1) — уверенность канала становится шумной;
+  - WindowDrop аудио: окно теряет аудио с вероятностью p_drop → для late — решение
+    по видео (перенормировка), для audio-only — НЕТ решения (не тревога);
+  - NoiseDegradation ОЦЕНОК аудио: p_a' = clip(p_a + N(0, sigma), 0, 1) — повреждается
+    ВЫХОД классификатора, а не акустический сигнал (ревью §7: это проверка правила
+    объединения, а не устойчивости модели к ветру/компрессии/SNR — не смешивать);
   - Outage: аудио полностью пропадает на последних X% клипа (отказ модальности).
 Каждая точка усреднена по N_SEEDS сидам (mean ± std). GT: airborne (majority секунды).
-Запуск: research/.venv/bin/python research/stress_sim.py
+it-36 (ревью §5.1/§7): медиана в late+median5 — КАУЗАЛЬНАЯ (последние k валидных окон);
+«audio-only» без аудио больше не отдаёт видео-решение (скрытый fallback маскировал
+несопоставимость baseline — ревью §7/§12). Запуск: research/.venv/bin/python research/stress_sim.py
 """
 import csv
 import math
@@ -33,23 +38,29 @@ def H(p):
     return -(p * math.log2(p) + (1 - p) * math.log2(1 - p))
 
 
-def median_smooth(vals, k=5):
-    out = []
-    for i in range(len(vals)):
-        lo, hi = max(0, i - k // 2), min(len(vals), i + k // 2 + 1)
-        seg = sorted(vals[lo:hi])
-        out.append(seg[len(seg) // 2])
-    return out
+def causal_median_valid(pas, i, k=5):
+    """Каузальная медиана последних k ВАЛИДНЫХ значений (текущее включается; пропуски ≠ ноль).
+
+    Отличие от прежней центрированной (±k//2): не заглядывает в будущие окна (ревью §5.1).
+    """
+    vals = [pas[j] for j in range(max(0, i - k + 1), i + 1) if pas[j] is not None]
+    return sorted(vals)[len(vals) // 2] if vals else None
 
 
 def decide(pol, pv, pa):
-    """pa=None → моно-видео (перенормировка, как в пайплайне)."""
+    """Возвращает 1/0; None = решения нет (audio-only при пропавшем аудио).
+
+    ВАЖНО (ревью §7): audio-only при pa=None НЕ имеет права на видео-fallback —
+    иначе это не одномодальный baseline. Для late пропуск аудио = перенормировка на
+    видео (заявленная политика fallback, после it-32 — честная маска каналов).
+    """
     if pol == "video-only":
         return int(pv >= 0.5)
-    if pa is None:
-        return int(pv >= 0.5)
     if pol == "audio-only":
-        return int(pa >= 0.5)
+        return None if pa is None else int(pa >= 0.5)
+    if pa is None:
+        # late/entropy/consensus: аудио отсутствует — решение по видео (перенормировка)
+        return int(pv >= 0.5)
     if pol.startswith("late"):
         wv = float(pol.split("w_v=")[1]) if "w_v=" in pol else 0.5
         s = wv * pv + (1 - wv) * pa
@@ -81,18 +92,20 @@ def run_trial(pol, drop_p=0.0, sigma=0.0, outage_frac=0.0, rng=None):
         else:
             pas.append(min(max(pa + rng.gauss(0, sigma), 0.0), 1.0))
     if pol == "late+median5":
-        # медиана только по ВАЛИДНЫМ окнам в радиусе k//2 (пропуски не кодируем нулями)
+        # КАУЗАЛЬНАЯ медиана по валидным окнам (it-36); семантика рантайма (fusion после
+        # it-31/32): окно БЕЗ аудио — моно-видео (состояние фильтра не читается без аудио),
+        # окно с аудио — медиана последних k валидных значений включая текущее.
         preds = []
         for i, (_, pv, _, gt) in enumerate(wins):
             if pas[i] is None:
                 preds.append((int(pv >= 0.5), gt))
                 continue
-            lo, hi = max(0, i - 2), min(N, i + 3)
-            valid = [pas[j] for j in range(lo, hi) if pas[j] is not None]
-            sm = sorted(valid)[len(valid) // 2] if valid else pas[i]
+            sm = causal_median_valid(pas, i, k=5)
             preds.append((int(0.5 * pv + 0.5 * sm >= 0.5), gt))
     else:
-        preds = [(decide(pol, pv, pa), gt) for (_, pv, _, gt), pa in zip(wins, pas)]
+        raw = [decide(pol, pv, pa) for (_, pv, _, gt), pa in zip(wins, pas, strict=True)]
+        # None = «нет тревоги»: считается как не-положительное (FN при положительном GT, иначе корректный отказ)
+        preds = [(int(bool(p)), gt) for p, (_, _, _, gt) in zip(raw, wins, strict=True)]
     tp = sum(1 for p, t in preds if p and t)
     fp = sum(1 for p, t in preds if p and not t)
     fn = sum(1 for p, t in preds if not p and t)
@@ -117,7 +130,7 @@ for drop_p in (0.0, 0.2, 0.4, 0.6, 0.8):
         csv_out.append(dict(stress=f"drop{drop_p}", policy=pol, F1_mean=round(m, 4), F1_std=round(sd, 4)))
     print(f"{drop_p:>7} | " + " | ".join(f"{c:>9}" for c in cells))
 
-print("\n=== 2. Шумовая деградация аудио sigma (F1 mean±std) ===")
+print("\n=== 2. Шумовая деградация ОЦЕНОК p_a (сигнал не повреждается!), sigma (F1 mean±std) ===")
 print(f"{'sigma':>7} | " + " | ".join(f"{p.replace('late ', 'l').replace('0.5/0.5+Δ','Δ').replace('0.5/0.5','05')[:9]:>9}" for p in POLICIES))
 for sigma in (0.0, 0.2, 0.4, 0.6):
     cells = []

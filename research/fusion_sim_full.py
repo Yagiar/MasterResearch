@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Симуляция политик fusion на ПОЛНОСТЬЮ смешанных окнах (YOLO×AST), it-06.
+"""Симуляция политик fusion на ПОЛНОСТЬЮ смешанных окнах (YOLO×AST), it-06 → it-36.
 
 В отличие от jsonl-прогонов (где аудио в fusion почти не доходило), здесь обе
 модальности доступны в каждом из 144 окон: p_v — YOLO max_conf по секундам
-(it-04, imgsz 480), p_a — AST p(drone) по окнам 1с/0.5с (it-05).
+(it-04, imgsz 480), p_a — AST p(drone) по окнам 1с/0.5с (it-05; с it-36 — ЧЕСТНАЯ
+вероятность, без обнуления non-drone предсказаний — ревью §4).
 GT: airborne (majority секунды окна).
+
+it-36 (ревью §2/§5.1): симметричная временнáя обработка для ОБОИХ методов —
+audio-only и late сравниваются при одинаковых фильтрах (k=1 контроль / каузальная
+медиана / центрированная медиана, явно помеченная «офлайн, видит будущее»).
 Запуск: research/.venv/bin/python research/fusion_sim_full.py
 """
 import csv
@@ -69,15 +74,30 @@ POLICIES = ["video-only", "audio-only", "late 0.5/0.5", "late 0.5/0.5+Δ",
 
 print(f"окон: {len(wins)} (все смешанные: YOLO×AST) | airborne окон: {sum(w[3] for w in wins)}\n")
 print(f"{'политика':<18} {'P':>6} {'R':>6} {'F1':>6}   FP   FN")
-for pol in POLICIES:
-    preds = [(int(fuse(pv, pa, pol) >= 0.5), gt) for _, pv, pa, gt in wins]
+
+def report_row(name, mk, pas=None):
+    """Строка метрик: preds по окнам; pas — сглаженный ряд p_a (иначе сырой)."""
+    seq = pas if pas is not None else [w[2] for w in wins]
+    preds = [(int(mk(w[1], pa, w) >= 0.5), w[3]) for w, pa in zip(wins, seq, strict=True)]
     P, R, F = prf(preds)
     fp = sum(1 for p, t in preds if p and not t)
     fn = sum(1 for p, t in preds if not p and t)
-    print(f"{pol:<18} {P:6.3f} {R:6.3f} {F:6.3f}  {fp:4d} {fn:4d}")
+    print(f"{name:<18} {P:6.3f} {R:6.3f} {F:6.3f}  {fp:4d} {fn:4d}")
+    return dict(policy=name, P=round(P, 3), R=round(R, 3), F1=round(F, 3), FP=fp, FN=fn)
 
-# --- временнАя консистентность аудио: медианный фильтр p_a (окна перекрываются) ---
-def median_smooth(vals: list[float], k: int) -> list[float]:
+results_csv = [report_row(pol, lambda pv, pa, w: fuse(pv, pa, pol)) for pol in POLICIES]
+
+# --- временнáя обработка: СИММЕТРИЧНО для audio-only и late ---
+def causal_median(vals: list[float], k: int) -> list[float]:
+    """Каузальная медиана последних k значений (текущее включается) — потоковый вариант."""
+    out = []
+    for i in range(len(vals)):
+        seg = sorted(vals[max(0, i - k + 1): i + 1])
+        out.append(seg[len(seg) // 2])
+    return out
+
+def centered_median(vals: list[float], k: int) -> list[float]:
+    """Центрированная медиана (±k//2) — ОФЛАЙН: использует будущие окна (ревью §5.1)."""
     out = []
     for i in range(len(vals)):
         lo, hi = max(0, i - k // 2), min(len(vals), i + k // 2 + 1)
@@ -85,29 +105,24 @@ def median_smooth(vals: list[float], k: int) -> list[float]:
         out.append(seg[len(seg) // 2])
     return out
 
-print("\n--- с медианным фильтром p_a (временная консистентность в fusion-слое) ---")
-results_csv = []
-for k in (3, 5, 7):
-    pas = median_smooth([w[2] for w in wins], k)
+print("\n--- временнáя обработка p_a (симметрично для обоих методов) ---")
+print("(k=1 — контроль: та же вероятность без сглаживания)")
+FILTERS = [("k=1", lambda v: list(v)),
+           ("causal median-5 (поток)", lambda v: causal_median(v, 5)),
+           ("centered median-5 (ОФЛАЙН, видит будущее)", lambda v: centered_median(v, 5)),
+           ("causal median-7 (поток)", lambda v: causal_median(v, 7)),
+           ("centered median-7 (ОФЛАЙН, видит будущее)", lambda v: centered_median(v, 7))]
+for fname, ffn in FILTERS:
+    pas = ffn([w[2] for w in wins])
     for name, mk in (("audio-only", lambda pv, pa, w: pa),
                      ("late 0.5/0.5", lambda pv, pa, w: 0.5 * pv + 0.5 * pa)):
-        preds = [(int(mk(w[1], pa, w) >= 0.5), w[3]) for w, pa in zip(wins, pas)]
-        P, R, F = prf(preds)
-        fp = sum(1 for p, t in preds if p and not t)
-        fn = sum(1 for p, t in preds if not p and t)
-        print(f"{name} + median{k:<2}      {P:6.3f} {R:6.3f} {F:6.3f}  {fp:4d} {fn:4d}")
-        results_csv.append(dict(policy=f"{name}+median{k}", P=round(P,3), R=round(R,3), F1=round(F,3), FP=fp, FN=fn))
+        results_csv.append(report_row(f"{name}+{fname}", mk, pas))
 
 with open(f"{ROOT}/research/fusion_sim_results.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["policy", "P", "R", "F1", "FP", "FN"])
     w.writeheader()
-    for pol in POLICIES:
-        preds = [(int(fuse(pv, pa, pol) >= 0.5), gt) for _, pv, pa, gt in wins]
-        P, R, F = prf(preds)
-        fp = sum(1 for p, t in preds if p and not t)
-        fn = sum(1 for p, t in preds if not p and t)
-        w.writerow(dict(policy=pol, P=round(P,3), R=round(R,3), F1=round(F,3), FP=fp, FN=fn))
     w.writerows(results_csv)
+print(f"\nCSV: research/fusion_sim_results.csv ({len(results_csv)} строк)")
 
 # профиль одной лучшей политики: где late ошибается
 print("\nlate 0.5/0.5+Δ: расхождения с GT (t0, p_v, p_a, pred, gt):")

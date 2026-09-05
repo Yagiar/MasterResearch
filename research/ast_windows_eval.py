@@ -40,7 +40,11 @@ for k in range(0, (len(pcm16k) - WIN) // HOP + 1):
     t0 = k * 0.5
     chunk = pcm16k[k * HOP : k * HOP + WIN]
     d = det.detect(base64.b64encode(chunk.tobytes()).decode(), src_sample_rate=16000, channels=1)
-    p_drone = float(d.confidence) if d.label == "drone" else 0.0
+    # it-36 (ревью §4): честная вероятность положительного класса, БЕЗ обнуления по label.
+    # Раньше: p_drone = confidence if label=='drone' else 0.0 — множество значений {0}∪[0.5;1],
+    # что делало калибровку порога ниже 0.5 невозможной и порождало ложный вывод о «бимодальности».
+    p_drone = d.p_drone if d.p_drone is not None else (
+        float(d.confidence) if d.label == "drone" else 0.0)
     # GT окна: доля airborne-секунд в [t0, t0+1) >= 0.5
     secs = [int(np.floor(t0 + x)) for x in np.arange(0, 1.0, 0.1)]
     frac_air = sum(GT.get(s, 0) for s in secs) / len(secs)
