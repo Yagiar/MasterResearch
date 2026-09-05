@@ -27,6 +27,8 @@ def frame_to_video_raw(frame: ingest_pb2.Frame) -> VideoRawMsg:
         source_id=frame.source_id or "unknown",
         ts=frame.ts,
         seq=int(frame.seq),
+        # it-34: позиция кадра на медиатаймлайне источника (0 = адаптер не отдал)
+        media_ts=frame.media_ts if frame.media_ts else None,
         payload_kind="jpeg",
         payload=b64encode_bytes(frame.jpeg_bytes),
         meta=VideoMeta(
@@ -43,6 +45,7 @@ def audio_to_audio_raw(window: ingest_pb2.AudioWindow) -> AudioRawMsg:
         source_id=window.source_id or "unknown",
         ts=window.ts,
         seq=int(window.seq),
+        media_ts=window.media_ts if window.media_ts else None,
         window=AudioWindowSpec(len_ms=int(window.len_ms), hop_ms=int(window.hop_ms)),
         payload_kind="pcm",
         payload=b64encode_bytes(window.pcm_bytes),

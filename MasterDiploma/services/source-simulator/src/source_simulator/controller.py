@@ -56,7 +56,7 @@ class SimulatorController:
                 next_emit = max(next_emit + self._video_period_s, time.monotonic())
             yield FrameItem(
                 jpeg_bytes=frame.jpeg_bytes, seq=frame.seq, width=frame.width, height=frame.height,
-                fps_nominal=frame.fps_nominal, ts=time.time(), meta=frame.meta,
+                fps_nominal=frame.fps_nominal, ts=time.time(), media_ts=frame.media_ts, meta=frame.meta,
             )
 
     def _paced_audio(self) -> Iterator[AudioItem]:
@@ -71,7 +71,7 @@ class SimulatorController:
                 next_emit = max(next_emit + self._audio_period_s, time.monotonic())
             yield AudioItem(
                 pcm_bytes=win.pcm_bytes, seq=win.seq, sample_rate=win.sample_rate, channels=win.channels,
-                len_ms=win.len_ms, hop_ms=win.hop_ms, ts=time.time(), meta=win.meta,
+                len_ms=win.len_ms, hop_ms=win.hop_ms, ts=time.time(), media_ts=win.media_ts, meta=win.meta,
             )
 
     # --- запуск ---

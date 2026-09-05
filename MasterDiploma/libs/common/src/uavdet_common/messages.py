@@ -57,6 +57,7 @@ class VideoMeta(BaseModel):
 
 class VideoRawMsg(_Base):
     seq: int = 0
+    media_ts: float | None = None      # it-34: позиция кадра на таймлайне исходного медиа (с); None — источник не отдал
     payload_kind: PayloadKind = "jpeg"
     payload: str | None = None        # base64 JPEG (если payload_kind в {jpeg})
     payload_uri: str | None = None    # ссылка на object storage (если payload_kind == "ref")
@@ -77,6 +78,7 @@ class AudioMeta(BaseModel):
 
 class AudioRawMsg(_Base):
     seq: int = 0
+    media_ts: float | None = None      # it-34: позиция НАЧАЛА окна на медиатаймлайне (с); конец = media_ts + len_ms/1000
     window: AudioWindowSpec = Field(default_factory=AudioWindowSpec)
     payload_kind: PayloadKind = "pcm"
     payload: str | None = None

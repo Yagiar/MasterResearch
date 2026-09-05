@@ -3,8 +3,14 @@
 Расширяет идею `DatasetReplayAdapter` второй модальностью: помимо покадрового видео
 отдаёт аудио-окна фиксированной длины с заданным шагом (sliding window) из отдельного
 wav-файла. Это даёт **синхронные** видео+аудио потоки для проверки мультимодального
-fusion без специализированного датасета (видео и аудио стартуют с общего момента;
-`ts` каждого события controller проставляет в момент отправки, fusion выравнивает по ±ε).
+fusion без специализированного датасета.
+
+Синхронизация (it-34, ревью §6.1): обе модальности несут `media_ts` — позицию на
+ОБЩЕМ таймлайне исходного медиа (с от старта источника, монотонно с учётом loop).
+Видео отдаётся с шагом-страйдом, чтобы содержание шло со скоростью запрошенного FPS
+(иначе файл 25 FPS при отдаче 5 FPS растягивался бы в 5 раз относительно аудио).
+`ts` остаётся wall-clock моментом отправки (controller); fusion-выравнивание и GT-скоринг
+должны опираться на `media_ts`, а не на wall-clock (it-35).
 
 Если `audio_path` не задан — ведёт себя как видео-только источник (`audio_windows()` пуст).
 """
@@ -90,27 +96,47 @@ class MediaFileAdapter:
         self._fps_nominal = file_fps if file_fps and file_fps > 0 else _DEFAULT_FPS
         return cap
 
+    def _frame_stride(self) -> int:
+        """Шаг чтения кадров, чтобы СОДЕРЖИМОЕ шло с запрошенной скоростью (it-34, ревью §6.1).
+
+        Раньше читался каждый кадр, а отправка шла по запрошенному FPS: файл 25 FPS при
+        отдаче 5 FPS растягивал видео в 5 раз, а аудио шло своим шагом — модальности
+        рассинхронизировались. Теперь отдаём каждый N-й кадр (N = file_fps / requested_fps):
+        медиа-время кадра advance = N/file_fps ≈ 1/requested_fps — общий таймлайн с аудио.
+        """
+        if self._requested_fps <= 0 or self._fps_nominal <= 0:
+            return 1
+        return max(1, round(self._fps_nominal / self._requested_fps))
+
     def frames(self) -> Iterator[FrameItem]:
         self._cap = self._open_video()
         seq = 0
+        fi = 0                # индекс кадра в текущем loop-проходе
+        media_base = 0.0      # накопленное медиа-время завершённых проходов (с)
+        stride = self._frame_stride()
         params = [int(cv2.IMWRITE_JPEG_QUALITY), self._jpeg_quality]
         try:
             while True:
                 ok, frame = self._cap.read()
                 if not ok:
                     if self._loop:
+                        media_base += fi / self._fps_nominal  # длительность прошедшего прохода
+                        fi = 0
                         self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                         continue
                     break
-                ok_enc, buf = cv2.imencode(".jpg", frame, params)
-                if not ok_enc:
-                    continue
-                h, w = frame.shape[:2]
-                seq += 1
-                yield FrameItem(
-                    jpeg_bytes=buf.tobytes(), seq=seq, width=int(w), height=int(h),
-                    fps_nominal=float(self._fps_nominal), meta={"source_kind": "media_file"},
-                )
+                if fi % stride == 0:
+                    ok_enc, buf = cv2.imencode(".jpg", frame, params)
+                    if ok_enc:
+                        h, w = frame.shape[:2]
+                        seq += 1
+                        yield FrameItem(
+                            jpeg_bytes=buf.tobytes(), seq=seq, width=int(w), height=int(h),
+                            fps_nominal=float(self._fps_nominal),
+                            media_ts=media_base + fi / self._fps_nominal,
+                            meta={"source_kind": "media_file"},
+                        )
+                fi += 1
         finally:
             self.close()
 
@@ -145,6 +171,7 @@ class MediaFileAdapter:
         win = max(1, int(self._sr * self._win_ms / 1000.0))
         hop = max(1, int(self._sr * self._hop_ms / 1000.0))
         seq = 0
+        media_base = 0.0   # накопленное медиа-время завершённых loop-проходов (с)
         while True:
             if signal.size < win:
                 # короткий файл — одно окно (паддинг нулями)
@@ -152,10 +179,12 @@ class MediaFileAdapter:
                 seq += 1
                 yield AudioItem(
                     pcm_bytes=self._float_to_pcm16(chunk), seq=seq, sample_rate=self._sr, channels=1,
-                    len_ms=self._win_ms, hop_ms=self._hop_ms, meta={"source_kind": "media_file"},
+                    len_ms=self._win_ms, hop_ms=self._hop_ms,
+                    media_ts=media_base, meta={"source_kind": "media_file"},
                 )
                 if not self._loop:
                     return
+                media_base += signal.size / self._sr
                 continue
             offset = 0
             while offset + win <= signal.size:
@@ -163,11 +192,13 @@ class MediaFileAdapter:
                 yield AudioItem(
                     pcm_bytes=self._float_to_pcm16(signal[offset : offset + win]),
                     seq=seq, sample_rate=self._sr, channels=1, len_ms=self._win_ms, hop_ms=self._hop_ms,
+                    media_ts=media_base + offset / self._sr,
                     meta={"source_kind": "media_file"},
                 )
                 offset += hop
             if not self._loop:
                 return
+            media_base += signal.size / self._sr
 
     def close(self) -> None:
         if self._cap is not None:

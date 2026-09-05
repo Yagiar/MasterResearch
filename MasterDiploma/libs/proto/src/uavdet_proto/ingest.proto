@@ -9,19 +9,20 @@ package uavdet.ingest.v1;
 // Сырой видеокадр от источника.
 message Frame {
   bytes jpeg_bytes = 1;          // кадр в JPEG
-  double ts = 2;                 // момент захвата (unix-время, секунды)
+  double ts = 2;                 // момент отправки (unix-время, секунды)
   uint64 seq = 3;                // порядковый номер кадра в потоке источника
   string source_id = 4;          // идентификатор источника (камеры)
   uint32 width = 5;
   uint32 height = 6;
   double fps_nominal = 7;        // номинальный FPS источника
   map<string, string> meta = 8;  // прочие метаданные (напр. параметры деградации)
+  double media_ts = 9;           // it-34: позиция кадра на таймлайне исходного медиа (с от старта источника); 0 = неизвестно (адаптер не отдал)
 }
 
 // Сырое аудио-окно от источника.
 message AudioWindow {
   bytes pcm_bytes = 1;           // окно аудио (PCM)
-  double ts = 2;                 // момент начала окна (unix-время, секунды)
+  double ts = 2;                 // момент отправки начала окна (unix-время, секунды)
   uint64 seq = 3;
   string source_id = 4;
   uint32 sample_rate = 5;
@@ -29,6 +30,7 @@ message AudioWindow {
   uint32 len_ms = 7;             // длина окна, мс
   uint32 hop_ms = 8;             // шаг окна, мс
   map<string, string> meta = 9;
+  double media_ts = 10;          // it-34: позиция НАЧАЛА окна на таймлайне исходного медиа (с); конец = media_ts + len_ms/1000
 }
 
 // Подтверждение приёма потока (по завершении стрима).

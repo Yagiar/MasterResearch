@@ -23,6 +23,10 @@ class FrameItem:
     fps_nominal: float
     # момент захвата; если None — controller проставит time.time() при отправке
     ts: float | None = None
+    # it-34: позиция кадра на таймлайне исходного медиа (с от старта источника, монотонная,
+    # с учётом loop-проходов); None — адаптер не знает (синтетика). Ревью §6.1: wall-clock
+    # ts не описывает содержимое — нужен общий медиатаймлайн для обеих модальностей.
+    media_ts: float | None = None
     meta: dict[str, str] = field(default_factory=dict)
 
 
@@ -37,6 +41,8 @@ class AudioItem:
     len_ms: int
     hop_ms: int
     ts: float | None = None
+    # it-34: позиция НАЧАЛА окна на таймлайне исходного медиа (с); конец = media_ts + len_ms/1000
+    media_ts: float | None = None
     meta: dict[str, str] = field(default_factory=dict)
 
 

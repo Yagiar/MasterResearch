@@ -46,6 +46,7 @@ class GrpcStreamClient:
             width=item.width,
             height=item.height,
             fps_nominal=item.fps_nominal,
+            media_ts=item.media_ts if item.media_ts is not None else 0.0,
             meta=dict(item.meta),
         )
 
@@ -60,6 +61,7 @@ class GrpcStreamClient:
             channels=item.channels,
             len_ms=item.len_ms,
             hop_ms=item.hop_ms,
+            media_ts=item.media_ts if item.media_ts is not None else 0.0,
             meta=dict(item.meta),
         )
 

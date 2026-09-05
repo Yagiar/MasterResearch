@@ -39,6 +39,7 @@
 | [it-31-review-fix-median-dedup](iterations/it-31-review-fix-median-dedup.md) | 2026-09-05 | Фикс по ревью GPT-6-Astra §6.3: дедуп аудио в медиане/гейте по msg_id | ✅ | Одно аудио-сообщение учитывается ровно один раз (кэш msg_id); 18/18 тестов; контрпример рецензента закрыт |
 | [it-32-review-fix-allowed-channels-mask](iterations/it-32-review-fix-allowed-channels-mask.md) | 2026-09-05 | Фикс по ревью §6.4: маска допущенных каналов в late/hybrid | ✅ | w=0 исключает канал из суммы, Δ и ИЛИ; «недостаточно данных» при нуле допущенных; 40/40 тестов |
 | [it-33-review-fix-window-lateness](iterations/it-33-review-fix-window-lateness.md) | 2026-09-05 | Фикс по ревью §6.2: горизонт опоздания в буфере + метрики late/joint | ✅ | Порядок доставки не меняет факт совместного окна (lateness 2 с); uavdet_late/joint счётчики; 46/46 тестов |
+| [it-34-review-fix-media-timeline](iterations/it-34-review-fix-media-timeline.md) | 2026-09-05 | Фикс по ревью §6.1: общий медиатаймлайн (proto+simulator+gateway) | ✅ | media_ts в Frame/AudioWindow→RawMsg; страйд кадров против растяжения видео ×5; 55/55 тестов |
 | it-05-ablation-audio | — | Разбор: куда исчезает аудио в №4 (7% vs 75% смешанных окон) | 📋 план | аномалия подтверждена и в журнале (161/2394), нужна instrumentation fusion (run_id, счётчики окон) |
 
 ## Главные результаты цикла (на 2026-09-04)
