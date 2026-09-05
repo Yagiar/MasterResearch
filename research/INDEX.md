@@ -45,6 +45,10 @@
 | [it-37-review-fix-train-data-integrity](iterations/it-37-review-fix-train-data-integrity.md) | 2026-09-05 | Фикс по ревью §8: классы в парсерах, групповой val, фоны, чекпойнт | ✅ | Не-дрон боксы отбрасываются явно (сводка); val целыми группами; фоны val/test исключены из миксов; test на лучшем чекпойнте |
 | [it-38-review-fix-docs-claims](iterations/it-38-review-fix-docs-claims.md) | 2026-09-05 | Фикс по ревью §2/3/9/11: дополнения it-06/08/12, поправка §7.7 (табл. 7.5), атрибуция samid-рецепта | ✅ | Сверх-утверждения сняты датированными дополнениями; docx пересобран; ревью-пакет закоммичен |
 | [it-39-review-fix-repro-paths](iterations/it-39-review-fix-repro-paths.md) | 2026-09-05 | Фикс по ревью §11: ROOT research-скриптов от `__file__` | ✅ | 9 скриптов без абсолютных путей; CSV детерминирован; полный комплект/evaluate_fusion_jsonl — P2 |
+| [it-40-threshold-calibration-honest](iterations/it-40-threshold-calibration-honest.md) | 2026-09-05 | Калибровка порога на честных p_drone (свип τ, свой порог каждому методу) | ✅ | audio-only τ=0.25 → **F1=0.978** — выше любого fusion; «бимодальность» снята; superiority fusion НЕ установлена |
+| [it-41-bootstrap-delta](iterations/it-41-bootstrap-delta.md) | 2026-09-05 | Парный блочный бутстрап + перебор Δ-правила | ✅ | Разница fusion vs калибр. audio-only незначима [−0.005;+0.040]; калибровка порога +0.119 [+0.060;+0.187] — сильнейший фактор; Δ не помогает нигде |
+| [it-42-live-ablation-v3](iterations/it-42-live-ablation-v3.md) | 2026-09-05 | Живой GPU ablation v3 (media_ts-скоринг без подгонки, сброс групп) | ✅ | Совместность 38–41% против 10–11% в it-30; joint-окна P=1.000 F1=0.959; провал precision — mono-video FP; корень — стартовый бурст YOLO |
+| [it-43-watermark-ablation-v4](iterations/it-43-watermark-ablation-v4.md) | 2026-09-05 | Ablation v4: Δ=0 + watermark-выпуск окон (it-44) | ✅ | **Онлайн F1=0.968 ≈ офлайн** (watermark+k=5+τ0.5); Δ=0 закрыло разрыв офлайн↔онлайн (0.872→0.968); компромисс «совместность↔задержка» измерен |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
