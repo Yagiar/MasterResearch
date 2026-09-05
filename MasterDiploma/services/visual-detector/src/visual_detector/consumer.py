@@ -122,9 +122,12 @@ class VideoConsumer(KafkaConsumerService):
                    frame_w: int) -> tuple[Detection, int | None, float | None]:
         """Выбрать самую уверенную детекцию; при включённом трекере — track_id и motion_score.
 
-        motion_score (it-52) = средняя скорость центра трека, нормированная на 0.25 ширины
-        кадра в секунду, клампится в [0, 1]: 0 — статичная цель (стоит), ~1 — быстро движется.
-        Признак состояния «стоит vs летит» для fusion.target=airborne.
+        motion_score (it-53) = средняя скорость центра, нормированная на ШИРИНУ БОКСА цели
+        (скоростей «боксов в секунду»), клампится в [0, 1]. Нормировка на bbox, а не на кадр:
+        джиттер детектора масштабируется с размером бокса (близкий план — большой бокс —
+        большой джиттер), а реальное перемещение дрона — нет; it-52 показала, что нормировка
+        на кадр не отделяет «стоит крупным планом» от «летит». 0 — статичная цель, ~1 —
+        цель пролетает собственную длину за секунду.
         """
         if self._tracker is None:
             best = max(dets, key=lambda d: d.confidence)
@@ -136,13 +139,14 @@ class VideoConsumer(KafkaConsumerService):
         if tid is not None and media_ts is not None:
             cx, cy = best.bbox[0] + best.bbox[2] / 2.0, best.bbox[1] + best.bbox[3] / 2.0
             hist = self._track_hist.setdefault((source_id, tid), [])
-            hist.append((media_ts, cx, cy))
+            hist.append((media_ts, cx, cy, max(1.0, best.bbox[2])))
             while len(hist) > 8:
                 hist.pop(0)
             if len(hist) >= 2:
-                (t0, x0, y0), (t1, x1, y1) = hist[0], hist[-1]
+                (t0, x0, y0, w0), (t1, x1, y1, w1) = hist[0], hist[-1]
                 dt = t1 - t0
                 if dt > 1e-6:
                     speed = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 / dt   # px/с
-                    motion = max(0.0, min(1.0, speed / (0.25 * max(1, frame_w))))
+                    bbox_w = max(w0, w1)                                     # масштаб цели
+                    motion = max(0.0, min(1.0, speed / max(1.0, bbox_w)))
         return best, tid, motion
