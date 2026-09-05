@@ -68,6 +68,10 @@
   "research/event_metrics.csv": {
    "sha256": "1d3090a2e4a6ca9090dcf6297fcefdeb226dc64f7cb2df3e1b6b6292c800b9c0",
    "bytes": 240
+  },
+  "research/confuser_eval.csv": {
+   "sha256": "7315c1ce4e7c25d4ab1e91caafc9f66cb9c65d0b4798805331c31f33cdb7ab12",
+   "bytes": 5276
   }
  }
 }

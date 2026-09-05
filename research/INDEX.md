@@ -53,6 +53,7 @@
 | [it-46-ablation-v5-final-protocol](iterations/it-46-ablation-v5-final-protocol.md) | 2026-09-05 | Ablation v5 (240 с): финальный протокол, конфигурации сходятся | ✅ | Стационарный NORM F1 = **0.92–0.93**; per-message/watermark/k0/k5 — 96% общих паттернов; watermark — за явность политики, не метрику |
 | [it-47-e2e-decomposition](iterations/it-47-e2e-decomposition.md) | 2026-09-05 | Разложение e2e по стадиям (detect_start/done_ts + проба inference) | ✅ | Блокер закрыт: **e2e 1.5 с медиана (p99 3.6), 100% совместных окон**; причины 62 с — gpu-overlay 25 fps + ленивая загрузка wav (36 с сдвиг аудио) — устранены |
 | [it-48-reproducible-kit](iterations/it-48-reproducible-kit.md) | 2026-09-05 | Воспроизводимый комплект (P2 §11): manifest.json, evaluate_fusion_jsonl, REPRODUCE.md | ✅ | sha256 14 артефактов + ревизия HF; uavtrain eval-fusion-jsonl (NORM/burn-in); команды пересчёта всех таблиц; 67/67 тестов |
+| [it-49-mmaud-blocker-confusers](iterations/it-49-mmaud-blocker-confusers.md) | 2026-09-05 | Блокер MMAUD зафиксирован; независимые конфьюзеры ESC-50 (airplane/helicopter/engine) | ✅ | **τ=0.25 → 21.7% FP на независимых негативах, τ=0.5 → 6.7%** — sandbox-калибровка порога не переносится; airplane p90=0.692 |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 

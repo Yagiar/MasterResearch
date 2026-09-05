@@ -33,6 +33,7 @@ FILES = {
     "research/bootstrap_pairs.csv": ROOT / "research/bootstrap_pairs.csv",
     "research/delta_sweep.csv": ROOT / "research/delta_sweep.csv",
     "research/event_metrics.csv": ROOT / "research/event_metrics.csv",
+    "research/confuser_eval.csv": ROOT / "research/confuser_eval.csv",
 }
 
 HF_MODELS = {
