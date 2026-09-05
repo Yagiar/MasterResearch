@@ -52,7 +52,7 @@ def clip_second(r, t0):
     return gt[int((event_ts(r) - t0) % CLIP)]
 
 for arg in args:
-    name, rng = arg.split("=")
+    name, rng = arg.split("=", 1)  # имя может содержать '=' (напр. "B прогрев AST k=0")
     a, b = (int(x) for x in rng.split(":"))
     seg = rows[a - 1:b]
     if not seg:
