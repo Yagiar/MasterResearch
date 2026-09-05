@@ -49,6 +49,8 @@
 | [it-41-bootstrap-delta](iterations/it-41-bootstrap-delta.md) | 2026-09-05 | Парный блочный бутстрап + перебор Δ-правила | ✅ | Разница fusion vs калибр. audio-only незначима [−0.005;+0.040]; калибровка порога +0.119 [+0.060;+0.187] — сильнейший фактор; Δ не помогает нигде |
 | [it-42-live-ablation-v3](iterations/it-42-live-ablation-v3.md) | 2026-09-05 | Живой GPU ablation v3 (media_ts-скоринг без подгонки, сброс групп) | ✅ | Совместность 38–41% против 10–11% в it-30; joint-окна P=1.000 F1=0.959; провал precision — mono-video FP; корень — стартовый бурст YOLO |
 | [it-43-watermark-ablation-v4](iterations/it-43-watermark-ablation-v4.md) | 2026-09-05 | Ablation v4: Δ=0 + watermark-выпуск окон (it-44) | ✅ | **Онлайн F1=0.968 ≈ офлайн** (watermark+k=5+τ0.5); Δ=0 закрыло разрыв офлайн↔онлайн (0.872→0.968); компромисс «совместность↔задержка» измерен |
+| [it-45-time-normalized-scoring](iterations/it-45-time-normalized-scoring.md) | 2026-09-05 | NORM-скоринг: единица оценки = медиа-секунда (ревью §10) + burn-in | ✅ | RAW 0.96–0.97 завышал вес бурста; честный стационар 0.89–0.90 на 120-с этапах |
+| [it-46-ablation-v5-final-protocol](iterations/it-46-ablation-v5-final-protocol.md) | 2026-09-05 | Ablation v5 (240 с): финальный протокол, конфигурации сходятся | ✅ | Стационарный NORM F1 = **0.92–0.93**; per-message/watermark/k0/k5 — 96% общих паттернов; watermark — за явность политики, не метрику |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
