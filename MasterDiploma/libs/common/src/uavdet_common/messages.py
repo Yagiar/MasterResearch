@@ -103,6 +103,7 @@ class QualityHint(BaseModel):
     img_brightness: float | None = None   # средняя яркость кадра, 0..1
     snr_db: float | None = None            # отношение сигнал/шум аудио-окна, дБ
     audio_rms: float | None = None         # RMS окна (0..1 float32) — признак «тишина vs глухота» (research/it-16, it-19)
+    motion_score: float | None = None      # it-52: нормированная скорость трека цели (0..1; 0 = статичен) — признак состояния «стоит vs летит» для fusion.target=airborne
 
 
 class InferenceMsg(_Base):

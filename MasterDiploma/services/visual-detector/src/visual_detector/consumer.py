@@ -51,6 +51,8 @@ class VideoConsumer(KafkaConsumerService):
         self._tracker = tracker
         self._decoder = decoder or FrameDecoder()
         self._preprocess = preprocess or PreprocessChain.identity()
+        # it-52: история центров треков для признака движения {(source_id, track_id): [(media_ts, cx, cy), …]}
+        self._track_hist: dict[tuple[str, int], list[tuple[float, float, float]]] = {}
 
     def on_start(self) -> None:
         self._log.info(
@@ -76,7 +78,9 @@ class VideoConsumer(KafkaConsumerService):
 
         drone_dets = [d for d in result.detections if d.label == "drone"]
         if drone_dets:
-            best, track_id = self._pick_best(msg.source_id, drone_dets)
+            best, track_id, motion_score = self._pick_best(msg.source_id, drone_dets, msg.media_ts, msg.meta.w)
+            if motion_score is not None:
+                quality.motion_score = motion_score
             inf = InferenceMsg(
                 source_id=msg.source_id,
                 ts=msg.ts,
@@ -114,12 +118,31 @@ class VideoConsumer(KafkaConsumerService):
         self.publish(Topics.INFERENCE, msg.source_id, inf)
         MESSAGES_TOTAL.labels(service=_SERVICE, topic=Topics.INFERENCE).inc()
 
-    def _pick_best(self, source_id: str, dets: list[Detection]) -> tuple[Detection, int | None]:
-        """Выбрать самую уверенную детекцию; при включённом трекере — добавить track_id."""
+    def _pick_best(self, source_id: str, dets: list[Detection], media_ts: float,
+                   frame_w: int) -> tuple[Detection, int | None, float | None]:
+        """Выбрать самую уверенную детекцию; при включённом трекере — track_id и motion_score.
+
+        motion_score (it-52) = средняя скорость центра трека, нормированная на 0.25 ширины
+        кадра в секунду, клампится в [0, 1]: 0 — статичная цель (стоит), ~1 — быстро движется.
+        Признак состояния «стоит vs летит» для fusion.target=airborne.
+        """
         if self._tracker is None:
             best = max(dets, key=lambda d: d.confidence)
-            return best, None
+            return best, None, None
         tracked = self._tracker.update(source_id, dets)
-        # самая уверенная среди (детекция, track_id)
         best_pair = max(tracked, key=lambda pair: pair[0].confidence)
-        return best_pair[0], best_pair[1]
+        best, tid = best_pair
+        motion: float | None = None
+        if tid is not None and media_ts is not None:
+            cx, cy = best.bbox[0] + best.bbox[2] / 2.0, best.bbox[1] + best.bbox[3] / 2.0
+            hist = self._track_hist.setdefault((source_id, tid), [])
+            hist.append((media_ts, cx, cy))
+            while len(hist) > 8:
+                hist.pop(0)
+            if len(hist) >= 2:
+                (t0, x0, y0), (t1, x1, y1) = hist[0], hist[-1]
+                dt = t1 - t0
+                if dt > 1e-6:
+                    speed = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 / dt   # px/с
+                    motion = max(0.0, min(1.0, speed / (0.25 * max(1, frame_w))))
+        return best, tid, motion

@@ -80,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
         # когда обе модальности закрыли медиа-интервал, либо по max_wait (явный mono-fallback)
         window_release=str(fusion_cfg.get("window_release", "per-message")),
         window_max_wait_ms=float(fusion_cfg.get("window_max_wait_ms", 2000.0)),
+        target=str(fusion_cfg.get("target", "presence")),
+        motion_floor=float(fusion_cfg.get("motion_floor", 0.15)),
     )
     service.run()
     return 0

@@ -37,6 +37,7 @@ from uavdet_common.metrics import (
 )
 
 from .strategies.base import FusionStrategy
+from .target import apply_target_filter, validate_target
 from .temporal import ChannelHealthGate, MedianSmoother, apply_audio_smoothing
 from .window_buffer import AlignedWindow, TimeWindowBuffer, _align_ts
 
@@ -62,10 +63,14 @@ class InferenceConsumer(KafkaConsumerService):
         health_gate: ChannelHealthGate | None = None,  # гейт «тишина vs глухота» (research/it-16, it-19)
         window_release: str = "per-message",           # per-message | watermark (it-44)
         window_max_wait_ms: float = 2000.0,            # watermark: максимум ожидания второй модальности
+        target: str = "presence",                      # presence | airborne (it-52, ревью §3)
+        motion_floor: float = 0.15,                    # airborne: порог движения, ниже которого видео «не активный БПЛА»
     ) -> None:
         super().__init__(bus)
         if window_release not in ("per-message", "watermark"):
             raise ValueError(f"неизвестный window_release: {window_release!r}")
+        self._target = validate_target(target)
+        self._motion_floor = max(0.0, motion_floor)
         self.group_id = group_id
         self._strategy = strategy
         self._gating = gating
@@ -88,6 +93,8 @@ class InferenceConsumer(KafkaConsumerService):
             audio_health_gate=self._health_gate is not None,
             window_release=self._release_mode,
             window_max_wait_ms=self._max_wait_s * 1000.0,
+            target=self._target,
+            motion_floor=self._motion_floor,
         )
 
     def process(self, key: str | None, msg: InferenceMsg) -> None:  # type: ignore[override]
@@ -138,6 +145,7 @@ class InferenceConsumer(KafkaConsumerService):
         WINDOW_RELEASES_TOTAL.labels(service=_SERVICE, reason=reason).inc()
         if window.joint:
             JOINT_WINDOWS_TOTAL.labels(service=_SERVICE).inc()
+        window = apply_target_filter(window, target=self._target, motion_floor=self._motion_floor)
         raw_a = window.best_audio()                      # до сглаживания: сырой p_a для гейта здоровья
         window = apply_audio_smoothing(window, self._audio_smoother)
         gr = self._gating.weights(window)
