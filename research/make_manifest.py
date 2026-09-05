@@ -34,6 +34,8 @@ FILES = {
     "research/delta_sweep.csv": ROOT / "research/delta_sweep.csv",
     "research/event_metrics.csv": ROOT / "research/event_metrics.csv",
     "research/confuser_eval.csv": ROOT / "research/confuser_eval.csv",
+    "research/confuser_eval_all.csv": ROOT / "research/confuser_eval_all.csv",
+    "research/confuser_eval_summary.csv": ROOT / "research/confuser_eval_summary.csv",
 }
 
 HF_MODELS = {

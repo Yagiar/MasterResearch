@@ -72,6 +72,14 @@
   "research/confuser_eval.csv": {
    "sha256": "7315c1ce4e7c25d4ab1e91caafc9f66cb9c65d0b4798805331c31f33cdb7ab12",
    "bytes": 5276
+  },
+  "research/confuser_eval_all.csv": {
+   "sha256": "9c499f950b6c2278386b5aef66c56d8447aca2ee775a13aa0e02a1b8bc898190",
+   "bytes": 116463
+  },
+  "research/confuser_eval_summary.csv": {
+   "sha256": "90d56f26e2c3d9afa58f657a716f5a0cbd4717047e978b54d45fcc033a709ade",
+   "bytes": 2616
   }
  }
 }
