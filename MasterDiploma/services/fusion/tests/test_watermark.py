@@ -100,7 +100,7 @@ def test_watermark_burst_does_not_release_mono_prematurely() -> None:
     dec = _decisions(c)
     assert len(dec) >= 6                      # окна t+ε ≤ 1.8 выпущены
     assert all(d["contributions"]["p_a"] is not None for d in dec)   # все СОВМЕСТНЫЕ
-    assert all(not d["contributions"]["p_v"] is None for d in dec)
+    assert all(d["contributions"]["p_v"] is not None for d in dec)
 
 
 def test_watermark_max_wait_releases_explicit_mono_fallback() -> None:
@@ -125,7 +125,6 @@ def test_watermark_releases_joint_after_audio_lag() -> None:
         c.process(None, _audio(i * 0.2))
     dec = _decisions(c)
     joint = [d for d in dec if d["contributions"]["p_a"] is not None]
-    mono = [d for d in dec if d["contributions"]["p_a"] is None]
     assert joint, "после подтяжки аудио должны появиться совместные окна"
     assert all(d["media_ts"] is not None for d in joint)
 
