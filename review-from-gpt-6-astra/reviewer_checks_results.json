@@ -1,0 +1,60 @@
+{
+  "scope": "Reviewer-authored isolated transcriptions; not repository execution",
+  "inspected_branch": "main (unpinned)",
+  "inspection_date": "2026-09-05",
+  "arrival_order_mixed_windows": {
+    "v10_a10_v12": 1,
+    "v10_v12_a10": 0,
+    "note": "Same event timestamps; late a10 cannot recover evicted v10."
+  },
+  "one_audio_message_counted_three_times": {
+    "audio_ids": [
+      "same-audio",
+      "same-audio",
+      "same-audio"
+    ],
+    "median_outputs": [
+      0.9,
+      0.9,
+      0.1
+    ],
+    "expected_if_update_once_per_unique_audio": [
+      0.9,
+      0.9,
+      0.9
+    ]
+  },
+  "zero_audio_weight_does_not_remove_audio_effect": {
+    "late_video_only": 0.55,
+    "late_audio_present_weight_zero": 0.45000000000000007,
+    "hybrid_video_only": 0.9,
+    "hybrid_audio_present_weight_zero": 0.30000000000000004,
+    "decision_threshold": 0.5
+  },
+  "causal_median_step_response": {
+    "outputs_after_step": [
+      0.1,
+      0.1,
+      0.9,
+      0.9,
+      0.9
+    ],
+    "delay_vs_raw_hops": 2,
+    "hop_seconds": 0.5,
+    "delay_vs_raw_seconds": 1.0
+  },
+  "stress_audio_only_depends_on_video_when_audio_missing": {
+    "video_scores": [
+      0.1,
+      0.9
+    ],
+    "audio_scores": [
+      null,
+      null
+    ],
+    "audio_only_outputs": [
+      0,
+      1
+    ]
+  }
+}
