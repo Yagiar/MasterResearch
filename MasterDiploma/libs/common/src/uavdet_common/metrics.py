@@ -33,6 +33,14 @@ DELTA_T_MS = Histogram("uavdet_delta_t_ms", "Межмодальная задер
 # счётчики качества (накапливаются sink-сервисом по ground truth, если он есть)
 DECISIONS_TOTAL = Counter("uavdet_decisions_total", "Решений по классам", ["service", "decision"])
 
+# it-33 (ревью §6.2): наблюдаемость политики опоздания/совместности окон
+LATE_MESSAGES_TOTAL = Counter(
+    "uavdet_late_messages_total", "Сообщений за горизонтом опоздания (порядок доставки)", ["service"]
+)
+JOINT_WINDOWS_TOTAL = Counter(
+    "uavdet_joint_windows_total", "Окон выравнивания с обеими модальностями", ["service"]
+)
+
 
 def start_metrics_server(port: int) -> None:
     """Запустить HTTP-сервер Prometheus на /metrics (порт — из конфига сервиса)."""
@@ -48,5 +56,7 @@ __all__ = [
     "CONSUMER_LAG",
     "DELTA_T_MS",
     "DECISIONS_TOTAL",
+    "LATE_MESSAGES_TOTAL",
+    "JOINT_WINDOWS_TOTAL",
     "start_metrics_server",
 ]

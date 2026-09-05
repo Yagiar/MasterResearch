@@ -15,7 +15,14 @@ import time
 
 from uavdet_common.consumer_service import KafkaConsumerService
 from uavdet_common.messages import Contributions, DecisionMsg, Gating, InferenceMsg, Topics
-from uavdet_common.metrics import DECISIONS_TOTAL, DELTA_T_MS, E2E_LATENCY, MESSAGES_TOTAL
+from uavdet_common.metrics import (
+    DECISIONS_TOTAL,
+    DELTA_T_MS,
+    E2E_LATENCY,
+    JOINT_WINDOWS_TOTAL,
+    LATE_MESSAGES_TOTAL,
+    MESSAGES_TOTAL,
+)
 
 from .strategies.base import FusionStrategy
 from .temporal import ChannelHealthGate, MedianSmoother, apply_audio_smoothing
@@ -63,6 +70,10 @@ class InferenceConsumer(KafkaConsumerService):
 
     def process(self, key: str | None, msg: InferenceMsg) -> None:  # type: ignore[override]
         window = self._buffer.add(msg)
+        if window.late:  # за горизонтом опоздания — наблюдаемость политики буфера (it-33)
+            LATE_MESSAGES_TOTAL.labels(service=_SERVICE).inc()
+        if window.joint:
+            JOINT_WINDOWS_TOTAL.labels(service=_SERVICE).inc()
         raw_a = window.best_audio()                      # до сглаживания: сырой p_a для гейта здоровья
         window = apply_audio_smoothing(window, self._audio_smoother)
         gr = self._gating.weights(window)

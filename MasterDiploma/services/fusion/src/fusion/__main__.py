@@ -51,7 +51,12 @@ def main(argv: list[str] | None = None) -> int:
 
     strategy = build_strategy(fusion_cfg)
     gating = build_gating(fusion_cfg)
-    buffer = TimeWindowBuffer(epsilon_ms=float(fusion_cfg.get("window_epsilon_ms", 80.0)))
+    buffer = TimeWindowBuffer(
+        epsilon_ms=float(fusion_cfg.get("window_epsilon_ms", 80.0)),
+        # горизонт опоздания: сколько истории удерживается для запаздывающей модальности
+        # (it-33, ревью §6.2: порядок доставки не должен менять факт совместного окна)
+        lateness_ms=float(fusion_cfg.get("window_lateness_ms", 2000.0)),
+    )
 
     # каузальная медиана p_a по последним k аудио-окнам (0 = выключено; рекомендация it-08: 5)
     temporal_k = int(fusion_cfg.get("audio_temporal_k", 0))

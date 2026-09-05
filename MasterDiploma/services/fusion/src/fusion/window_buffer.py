@@ -5,9 +5,18 @@ Stateful-компонент: накапливает последние дете�
 [t-ε, t+ε] вокруг момента события. На MVP (video-only) аудио-сторона пуста, окно
 содержит только видеодетекцию — этого достаточно для решения.
 
-Простая реализация: для каждой модальности храним deque последних детекций;
-при добавлении видеодетекции с меткой времени t — ищем аудиодетекции в [t-ε, t+ε].
-Старые записи (старше t - ε) удаляем.
+Реализация: для каждой модальности храним deque последних детекций; при добавлении
+детекции с меткой времени t — ищем детекции другой модальности в [t-ε, t+ε].
+
+Политика опоздания (it-33, ревью 2026-09-05 §6.2): записи обеих модальностей
+удаляются только старше `t − ε − lateness` (горизонт допустимого опоздания,
+`window_lateness_ms` в конфиге), а не `t − ε`. Иначе запаздывающая модальность
+(напр. аудио при медленном acoustic-detector) находила окно уже опустошённым:
+результат объединения зависел бы от ПОРЯДКА доставки, а не от времени событий.
+Порядок доставки теперь не меняет факт образования совместного окна (пока опоздание
+в пределах горизонта); превышение горизонта — явное «опоздало» (флаг `late` окна,
+метрика `uavdet_late_messages_total`), совместность окна — флаг `joint`
+(метрика `uavdet_joint_windows_total`).
 """
 
 from __future__ import annotations
@@ -41,6 +50,8 @@ class AlignedWindow:
     t1: float
     video: list[InferenceMsg] = field(default_factory=list)
     audio: list[InferenceMsg] = field(default_factory=list)
+    late: bool = False   # добавленное сообщение опоздало за горизонт (ts < последнего − ε − lateness)
+    joint: bool = False  # в окне есть детекции обеих модальностей
 
     @property
     def ts_window(self) -> list[float]:
@@ -54,13 +65,17 @@ class AlignedWindow:
 
 
 class TimeWindowBuffer:
-    """Буфер выравнивания с окном ±epsilon_ms (раздельно по source_id)."""
+    """Буфер выравнивания с окном ±epsilon_ms и горизонтом опоздания lateness_ms (per source_id)."""
 
-    def __init__(self, epsilon_ms: float = 80.0, max_keep: int = 256) -> None:
+    def __init__(self, epsilon_ms: float = 80.0, max_keep: int = 256,
+                 lateness_ms: float = 2000.0) -> None:
         self._eps_s = max(0.0, epsilon_ms / 1000.0)
+        # горизонт опоздания: сколько истории удерживается сверх ε для запаздывающей модальности
+        self._lateness_s = max(0.0, lateness_ms / 1000.0)
         self._max_keep = max_keep
         self._video: dict[str, deque[InferenceMsg]] = defaultdict(lambda: deque(maxlen=self._max_keep))
         self._audio: dict[str, deque[InferenceMsg]] = defaultdict(lambda: deque(maxlen=self._max_keep))
+        self._latest: dict[str, float] = defaultdict(float)  # последний ts потока источника (обе модальности)
 
     def _evict_older_than(self, dq: deque[InferenceMsg], cutoff: float) -> None:
         while dq and dq[0].ts < cutoff:
@@ -70,25 +85,33 @@ class TimeWindowBuffer:
         """Добавить детекцию; вернуть окно выравнивания вокруг её момента.
 
         Окно всегда содержит саму добавленную детекцию (в своей модальности) и все
-        детекции другой модальности, чьи `ts` лежат в [ts-ε, ts+ε].
+        детекции другой модальности, чьи `ts` лежат в [ts-ε, ts+ε]. История сверх ε
+        удерживается ещё `lateness_ms`, чтобы запаздывающая модальность могла образовать
+        совместное окно задним числом (ревью §6.2: порядок доставки ≠ семантика событий).
         """
         t = msg.ts
         sid = msg.source_id
+        # «опоздало» = пришло заметно позади потока источника (за пределами ε + lateness)
+        late = self._latest[sid] > 0.0 and t < self._latest[sid] - self._eps_s - self._lateness_s
+        self._latest[sid] = max(self._latest[sid], t)
+
         if msg.modality == "video":
             self._video[sid].append(msg)
         else:
             self._audio[sid].append(msg)
 
         t0, t1 = t - self._eps_s, t + self._eps_s
-        # подчистка слишком старых записей обеих модальностей
-        self._evict_older_than(self._video[sid], t0)
-        self._evict_older_than(self._audio[sid], t0)
+        # подчистка: старше окна выравнивания минус горизонт опоздания (обе модальности)
+        cutoff = t0 - self._lateness_s
+        self._evict_older_than(self._video[sid], cutoff)
+        self._evict_older_than(self._audio[sid], cutoff)
 
-        win = AlignedWindow(source_id=sid, t0=t0, t1=t1)
+        win = AlignedWindow(source_id=sid, t0=t0, t1=t1, late=late)
         win.video = [m for m in self._video[sid] if t0 <= m.ts <= t1] or (
             [msg] if msg.modality == "video" else []
         )
         win.audio = [m for m in self._audio[sid] if t0 <= m.ts <= t1] or (
             [msg] if msg.modality == "audio" else []
         )
+        win.joint = bool(win.video) and bool(win.audio)
         return win
