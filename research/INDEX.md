@@ -55,6 +55,7 @@
 | [it-48-reproducible-kit](iterations/it-48-reproducible-kit.md) | 2026-09-05 | Воспроизводимый комплект (P2 §11): manifest.json, evaluate_fusion_jsonl, REPRODUCE.md | ✅ | sha256 14 артефактов + ревизия HF; uavtrain eval-fusion-jsonl (NORM/burn-in); команды пересчёта всех таблиц; 67/67 тестов |
 | [it-49-mmaud-blocker-confusers](iterations/it-49-mmaud-blocker-confusers.md) | 2026-09-05 | Блокер MMAUD зафиксирован; независимые конфьюзеры ESC-50 (airplane/helicopter/engine) | ✅ | **τ=0.25 → 21.7% FP на независимых негативах, τ=0.5 → 6.7%** — sandbox-калибровка порога не переносится; airplane p90=0.692 |
 | [it-50-confuser-full-esc50](iterations/it-50-confuser-full-esc50.md) | 2026-09-05 | Конфьюзерный скоринг на всём ESC-50 (2000 клипов, 50 классов, GPU) | ✅ | τ=0.25 → тревога ~5.1 мин/час на независимых негативах, τ=0.5 → ~1.0 мин/час; топ-конфьюзеры — широкополосные механика/импульсы (chainsaw p90=0.823), не авиация |
+| [it-51-negative-session-fp](iterations/it-51-negative-session-fp.md) | 2026-09-05 | Негативная синхронная сессия (наземные сегменты 17 с): FP fusion для цели airborne | ✅ | per-message 8.5% vs watermark+k5 24.3% (медиана держит p_a); система отличает присутствие, но не «стоит vs летит» — подтверждение §3 ревью |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
