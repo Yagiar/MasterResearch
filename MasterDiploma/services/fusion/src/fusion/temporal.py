@@ -2,11 +2,16 @@
 
 Зачем: аудио-детекции AST имеют короткие провалы уверенности в полёте (it-05: R=0.766
 при P=0.977 на sandbox с GT); каузальная медиана p(drone) по последним k валидным
-аудио-окнам поднимает F1 решений против GT «БПЛА активен» с 0.859 до 0.913 без
-добавленной задержки (it-08; журналы — research/iterations/).
+аудио-окнам поднимает F1 решений против GT «БПЛА активен» с 0.859 до 0.913 (it-08;
+журналы — research/iterations/). Медиана переключается не мгновенно: после смены
+сигнала нужно ~k/2 новых окон (при k=5 и шаге 0.5 с — около 1 с задержки обнаружения),
+это честная цена сглаживания, а не ноль (ревью 2026-09-05, §5.1).
 
 Правило валидности (it-07): окно без аудио НЕ участвует в фильтрации (пропуск ≠ ноль)
 и остаётся моно-видео — стратегия получает его без изменений.
+Состояние фильтра пополняется РОВНО ОДИН РАЗ на уникальное аудио-сообщение (msg_id):
+fusion-окна триггерятся и видеосообщениями, и одно и то же best_audio попадает в
+несколько окон подряд — повторные попадания читают кэшированное значение (ревью §6.3).
 """
 
 from __future__ import annotations
@@ -21,12 +26,42 @@ from .window_buffer import AlignedWindow
 _LABEL_DRONE = "drone"
 
 
+class _MsgOnceCache:
+    """Кэш «msg_id уже учтён» (per source_id, bounded): первое вхождение — False, повторы — True.
+
+    Один аудио-коннект (один InferenceMsg) попадает в несколько fusion-окон подряд
+    (окна триггерятся и видеосообщениями) — временнóе состояние (медиана, гейт) должно
+    учитывать его один раз. Кэш ограничен по размеру (FIFO-вытеснение).
+    """
+
+    def __init__(self, cap: int = 256) -> None:
+        self._cap = max(16, cap)
+        self._seen: dict[str, dict[str, None]] = defaultdict(dict)
+        self._order: dict[str, deque[str]] = defaultdict(deque)
+
+    def is_repeat(self, source_id: str, msg_id: str | None) -> bool:
+        """True — msg_id уже встречался у этого source_id (или None → не отслеживаем)."""
+        if msg_id is None:
+            return False
+        seen, order = self._seen[source_id], self._order[source_id]
+        if msg_id in seen:
+            return True
+        seen[msg_id] = None
+        order.append(msg_id)
+        while len(order) > self._cap:
+            seen.pop(order.popleft(), None)
+        return False
+
+
 class MedianSmoother:
-    """Каузальная медиана p(drone) по последним k аудио-решениям (per source_id).
+    """Каузальная медиана p(drone) по последним k УНИКАЛЬНЫМ аудио-сообщениям (per source_id).
 
     В историю попадают только окна, где аудио присутствовало; медиана считается
-    по накопленным значениям (текущее включается). Отдельная сущность на сервис,
-    состояние — deque(maxlen=k) на source_id.
+    по накопленным значениям (текущее включается). Одно аудио-сообщение (msg_id)
+    учитывается ровно один раз: повторный вызов с тем же msg_id возвращает кэшированное
+    сглаженное значение и состояние не меняет — иначе медиана «съедала» бы одно аудио
+    k раз через видео-триггеры и её эффект зависел бы от частоты видеопотока (ревью §6.3).
+    Отдельная сущность на сервис, состояние — deque(maxlen=k) + кэш msg_id на source_id.
     """
 
     def __init__(self, k: int = 5) -> None:
@@ -34,12 +69,32 @@ class MedianSmoother:
             raise ValueError("k должен быть >= 1")
         self._k = k
         self._hist: dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=k))
+        # кэш «уже учтённых» msg_id (bounded): msg_id -> сглаженное значение на момент учёта
+        self._cache_cap = max(64, 4 * k)
+        self._seen: dict[str, dict[str, float]] = defaultdict(dict)
+        self._seen_order: dict[str, deque[str]] = defaultdict(deque)
 
-    def smoothed(self, source_id: str, p_drone: float) -> float:
-        """Добавить p(drone) текущего окна (валидного) → медиана последних k значений."""
+    def smoothed(self, source_id: str, p_drone: float, msg_id: str | None = None) -> float:
+        """Учесть p(drone) аудио-сообщения → медиана последних k значений.
+
+        msg_id передаётся всегда, когда известен (из InferenceMsg.msg_id): повторный
+        вызов с тем же msg_id отдаёт кэшированный результат без пополнения истории.
+        msg_id=None — легаси-поведение (пополнить всегда; для тестов/офлайна).
+        """
+        if msg_id is not None:
+            cached = self._seen[source_id].get(msg_id)
+            if cached is not None:
+                return cached
         self._hist[source_id].append(float(p_drone))
         vals = sorted(self._hist[source_id])
-        return vals[len(vals) // 2]
+        out = vals[len(vals) // 2]
+        if msg_id is not None:
+            seen, order = self._seen[source_id], self._seen_order[source_id]
+            seen[msg_id] = out
+            order.append(msg_id)
+            while len(order) > self._cache_cap:
+                seen.pop(order.popleft(), None)
+        return out
 
 
 def apply_audio_smoothing(window: AlignedWindow, smoother: MedianSmoother | None) -> AlignedWindow:
@@ -50,6 +105,9 @@ def apply_audio_smoothing(window: AlignedWindow, smoother: MedianSmoother | None
     вычисляют p_a = confidence при label='drone', т.е. получают сглаженное значение,
     а Δ-правило и порог 0.5 работают по сглаженной величине. Остальные поля
     (msg_id, ts, quality) сохраняются — трассировка source_msg_ids и метрики Δt не меняются.
+
+    Состояние фильтра пополняется только если этот msg_id ещё не учтён (ревью §6.3):
+    окно, триггеренное видеосообщением, обычно несёт то же best_audio, что и предыдущее.
     """
     if smoother is None:
         return window
@@ -60,7 +118,7 @@ def apply_audio_smoothing(window: AlignedWindow, smoother: MedianSmoother | None
     # fallback — старый маппинг для сообщений без поля
     p_drone = best_a.p_drone if best_a.p_drone is not None else (
         best_a.confidence if best_a.label == _LABEL_DRONE else 0.0)
-    smoothed = smoother.smoothed(window.source_id, p_drone)
+    smoothed = smoother.smoothed(window.source_id, p_drone, msg_id=best_a.msg_id)
     new_a: InferenceMsg = best_a.model_copy(update={"label": _LABEL_DRONE, "confidence": smoothed})
     audio = [new_a if m.msg_id == best_a.msg_id else m for m in window.audio]
     return AlignedWindow(source_id=window.source_id, t0=window.t0, t1=window.t1,
@@ -105,13 +163,20 @@ class ChannelHealthGate:
         self._rms_long: dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=hist_long))
         self._gate_open: dict[str, bool] = defaultdict(lambda: True)
         self._suspect: dict[str, int] = defaultdict(int)
+        self._once = _MsgOnceCache()
 
-    def scale(self, source_id: str, rms: float | None, p_drone: float | None) -> float:
+    def scale(self, source_id: str, rms: float | None, p_drone: float | None,
+              msg_id: str | None = None) -> float:
         """Множитель w_a (1.0 = аудио допущено; 0.0 = гейт закрыл).
 
         Окно без аудио (rms/p_drone = None) историю не пополняет и состояние не меняет.
+        Повторное вхождение того же аудио-msg_id (через видео-триггеры) историю не пополняет —
+        иначе w-окно гейта было бы заполнено дублями одного наблюдения и зависел бы от
+        частоты видеопотока (тот же класс бага, что дубли в медиане, ревью §6.3).
         """
         if rms is None or p_drone is None:
+            return 1.0 if self._gate_open[source_id] else 0.0
+        if self._once.is_repeat(source_id, msg_id):
             return 1.0 if self._gate_open[source_id] else 0.0
         self._hist[source_id].append((float(rms), float(p_drone)))
         self._rms_long[source_id].append(float(rms))

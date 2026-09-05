@@ -74,3 +74,16 @@ def test_separates_sources() -> None:
     g.scale("cam-02", RMS_LOUD, 0.7)                # cam-02 здоровый
     assert g.scale("cam-01", RMS_LOUD, 0.0) == 0.0
     assert g.scale("cam-02", RMS_LOUD, 0.7) == 1.0
+
+
+def test_repeat_msg_id_does_not_count_as_new_observation() -> None:
+    """Инвариант (it-31, ревью §6.3): одно аудио-сообщение, протащенное через несколько
+    видео-триггеров, заполняет окно гейта один раз — подозрения копятся только от новых msg_id."""
+    g = ChannelHealthGate(w=12, suspect_needed=6)
+    # 5 новых наблюдений «громко и глухо» + 30 повторов одного msg_id
+    for i in range(5):
+        assert g.scale("cam", RMS_LOUD, 0.0, msg_id=f"a-{i}") == 1.0
+    repeats = [g.scale("cam", RMS_LOUD, 0.0, msg_id="a-4") for _ in range(30)]
+    assert all(s == 1.0 for s in repeats)           # гейт НЕ закрылся: реальных наблюдений < suspect_needed
+    assert g.scale("cam", RMS_LOUD, 0.0, msg_id="a-5") == 1.0    # 6-е новое → подозрений 6, ещё открыт
+    assert g.scale("cam", RMS_LOUD, 0.0, msg_id="a-6") == 0.0    # 7-е новое → закрыт

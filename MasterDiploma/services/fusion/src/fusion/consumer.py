@@ -70,7 +70,9 @@ class InferenceConsumer(KafkaConsumerService):
         if self._health_gate is not None:
             p_a_raw = (raw_a.confidence if raw_a.label == "drone" else 0.0) if raw_a is not None else None
             rms = raw_a.quality.audio_rms if raw_a is not None else None
-            w_a *= self._health_gate.scale(msg.source_id, rms, p_a_raw)
+            # msg_id — против повторного учёта одного аудио-сообщения через видео-триггеры (it-31)
+            w_a *= self._health_gate.scale(msg.source_id, rms, p_a_raw,
+                                           msg_id=raw_a.msg_id if raw_a is not None else None)
         outcome = self._strategy.fuse(window, w_v=gr.w_v, w_a=w_a, threshold=self._threshold)
         if outcome is None:
             return
