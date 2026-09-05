@@ -43,6 +43,7 @@ class AudioConsumer(KafkaConsumerService):
         )
 
     def process(self, key: str | None, msg: AudioRawMsg) -> None:  # type: ignore[override]
+        detect_start = time.time()  # it-47: разложение e2e — начало обработки детектором
         if msg.payload_kind != "pcm" or not msg.payload:
             self._log.warning("acoustic-detector: пропуск сообщения без inline PCM", payload_kind=msg.payload_kind)
             return
@@ -78,6 +79,8 @@ class AudioConsumer(KafkaConsumerService):
             model=ModelRef(name=self._detector.model_name, ver=self._detector.model_ver),
             det_latency_ms=latency_ms,
             ingest_ts=msg.ts,
+            detect_start_ts=detect_start,
+            detect_done_ts=time.time(),
             quality=QualityHint(snr_db=snr, audio_rms=rms),
         )
         self.publish(Topics.INFERENCE, msg.source_id, inf)

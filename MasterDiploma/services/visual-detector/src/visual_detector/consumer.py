@@ -61,6 +61,7 @@ class VideoConsumer(KafkaConsumerService):
         )
 
     def process(self, key: str | None, msg: VideoRawMsg) -> None:  # type: ignore[override]
+        detect_start = time.time()  # it-47: разложение e2e — начало обработки детектором
         if msg.payload_kind != "jpeg" or not msg.payload:
             # claim-check (payload по ссылке) на MVP не поддержан — пропускаем
             self._log.warning("visual-detector: пропуск сообщения без inline JPEG", payload_kind=msg.payload_kind)
@@ -88,6 +89,8 @@ class VideoConsumer(KafkaConsumerService):
                 model=ModelRef(name=result.model_name, ver=result.model_ver),
                 det_latency_ms=result.latency_ms,
                 ingest_ts=msg.ts,
+                detect_start_ts=detect_start,
+                detect_done_ts=time.time(),
                 quality=quality,
             )
         else:
@@ -103,6 +106,8 @@ class VideoConsumer(KafkaConsumerService):
                 model=ModelRef(name=result.model_name, ver=result.model_ver),
                 det_latency_ms=result.latency_ms,
                 ingest_ts=msg.ts,
+                detect_start_ts=detect_start,
+                detect_done_ts=time.time(),
                 quality=quality,
             )
 

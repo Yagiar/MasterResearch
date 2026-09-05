@@ -66,6 +66,12 @@ class MediaFileAdapter:
         self._sr = int(audio_sample_rate)
         self._win_ms = int(audio_win_ms)
         self._hop_ms = int(audio_hop_ms)
+        # it-47: аудио грузится В КОНСТРУКТОРЕ, а не лениво в аудио-потоке — иначе видео
+        # стримит, пока librosa ресемплирует wav (~36 с на sandbox), и медиа-часы аудио
+        # отстают от видео на время загрузки (постоянный сдвиг модальностей)
+        self._signal = None
+        if self._audio_path:
+            self._signal = self._load_audio_mono()
 
     @property
     def source_id(self) -> str:
@@ -142,8 +148,10 @@ class MediaFileAdapter:
 
     # --- аудио ---
     def _load_audio_mono(self) -> np.ndarray:
-        """Загрузить wav как float32 моно на целевой sample_rate."""
-        try:
+        """Загрузить wav как float32 моно на целевой sample_rate (вызывается из __init__, it-47)."""
+        if self._signal is not None:  # уже предзагружено в конструкторе
+            return self._signal
+        try:  # noqa: SIM105
             import soundfile as sf  # noqa: PLC0415
 
             data, sr = sf.read(self._audio_path, dtype="float32", always_2d=False)
@@ -167,7 +175,7 @@ class MediaFileAdapter:
     def audio_windows(self) -> Iterator[AudioItem]:
         if self._audio_path is None:
             return
-        signal = self._load_audio_mono()
+        signal = self._signal  # предзагружено в __init__ (it-47)
         win = max(1, int(self._sr * self._win_ms / 1000.0))
         hop = max(1, int(self._sr * self._hop_ms / 1000.0))
         seq = 0

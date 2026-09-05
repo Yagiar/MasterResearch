@@ -26,12 +26,14 @@ services:
               count: 1
               capabilities: [gpu]
 
-  # на GPU визуальный детектор успевает за реальным темпом — поднимаем FPS источника обратно к 25
-  # (в pilot.yaml для CPU стоит 5). Перекрывается env-override без правки конфига.
+  # FPS источника: по замерам it-47 при совместной работе YOLO+AST на одной GPU
+  # визуальный детектор обрабатывает ~11.8 кадр/с < 25/с — override «25» давал
+  # неограниченный бэклог video.raw (raw_queue рос ~0.7 с/с, e2e 62 с и выше).
+  # 5 fps из pilot.yaml — авторитетные; при необходимости поднимать только вместе
+  # с замером пропускной способности детектора (research/e2e_decompose.py).
   source-simulator:
     environment:
       UAVDET_CONFIG: /app/configs/pilot.yaml
-      UAVDET_SOURCE__MEDIA_FILE__FPS: "25"
 
   # acoustic-detector на GPU: AST (samid-drone-detector, ~86M params) на CPU = ~80мс/окно;
   # на GTX 1660 Ti ожидается ~5-10мс/окно — оставляет запас для real-time с hop_ms=500.

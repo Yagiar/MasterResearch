@@ -116,6 +116,8 @@ class InferenceMsg(_Base):
     model: ModelRef = Field(default_factory=ModelRef)
     det_latency_ms: float = 0.0
     ingest_ts: float | None = None        # когда сообщение появилось в video.raw/audio.raw — для e2e latency
+    detect_start_ts: float | None = None  # it-47: когда детектор начал обрабатывать сообщение (wall-clock) — разложение e2e: очередь до детектора
+    detect_done_ts: float | None = None   # it-47: когда детектор опубликовал inference (wall-clock) — разложение e2e: очередь до fusion + ожидание окна/второй модальности
     quality: QualityHint = Field(default_factory=QualityHint)  # подсказки качества для adaptive gating
 
 
