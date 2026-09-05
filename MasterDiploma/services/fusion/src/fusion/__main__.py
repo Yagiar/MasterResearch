@@ -82,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
         window_max_wait_ms=float(fusion_cfg.get("window_max_wait_ms", 2000.0)),
         target=str(fusion_cfg.get("target", "presence")),
         motion_floor=float(fusion_cfg.get("motion_floor", 0.15)),
+        audio_confirm_floor=float(fusion_cfg.get("audio_confirm_floor", 0.3)),
     )
     service.run()
     return 0

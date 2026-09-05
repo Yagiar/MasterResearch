@@ -37,7 +37,7 @@ from uavdet_common.metrics import (
 )
 
 from .strategies.base import FusionStrategy
-from .target import apply_target_filter, validate_target
+from .target import apply_audio_confirmation, apply_target_filter, validate_target
 from .temporal import ChannelHealthGate, MedianSmoother, apply_audio_smoothing
 from .window_buffer import AlignedWindow, TimeWindowBuffer, _align_ts
 
@@ -65,12 +65,14 @@ class InferenceConsumer(KafkaConsumerService):
         window_max_wait_ms: float = 2000.0,            # watermark: максимум ожидания второй модальности
         target: str = "presence",                      # presence | airborne (it-52, ревью §3)
         motion_floor: float = 0.15,                    # airborne: порог движения, ниже которого видео «не активный БПЛА»
+        audio_confirm_floor: float = 0.3,              # airborne: p_a, ниже которого положительное решение отменяется (it-54, P1)
     ) -> None:
         super().__init__(bus)
         if window_release not in ("per-message", "watermark"):
             raise ValueError(f"неизвестный window_release: {window_release!r}")
         self._target = validate_target(target)
         self._motion_floor = max(0.0, motion_floor)
+        self._audio_confirm_floor = max(0.0, audio_confirm_floor)
         self.group_id = group_id
         self._strategy = strategy
         self._gating = gating
@@ -95,6 +97,7 @@ class InferenceConsumer(KafkaConsumerService):
             window_max_wait_ms=self._max_wait_s * 1000.0,
             target=self._target,
             motion_floor=self._motion_floor,
+            audio_confirm_floor=self._audio_confirm_floor,
         )
 
     def process(self, key: str | None, msg: InferenceMsg) -> None:  # type: ignore[override]
@@ -159,6 +162,9 @@ class InferenceConsumer(KafkaConsumerService):
         outcome = self._strategy.fuse(window, w_v=gr.w_v, w_a=w_a, threshold=self._threshold)
         if outcome is None:
             return
+        if self._target == "airborne":
+            # политика P1 (it-54): «активен» требует аудио-подтверждения (p_a ≥ floor)
+            outcome = apply_audio_confirmation(outcome, floor=self._audio_confirm_floor)
 
         now = time.time()
         ingest_ts = self._earliest_ingest_ts(window)
