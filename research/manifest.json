@@ -1,0 +1,73 @@
+{
+ "schema": "uavdet-repro-manifest/1",
+ "hf_revisions": {
+  "Rashidbm/samid-drone-detector": "3a12f618dd8aebf180945bf04ebfeef262d65795"
+ },
+ "versions": {
+  "python": "3.12.3",
+  "torch": "2.14.0+cu130",
+  "transformers": "5.16.1",
+  "librosa": "1.0.0",
+  "ultralytics": "8.4.139",
+  "numpy": "2.5.2",
+  "huggingface_hub": "1.30.0"
+ },
+ "files": {
+  "models/visual/yolov8s-uav.pt": {
+   "sha256": "41f3fd5593f41f6c18b13316ca48ac05e7a88ed14d4804428fb92035f8cda262",
+   "bytes": 6215274
+  },
+  "models/acoustic/lwcnn.pt": {
+   "sha256": "f35beacbb120834451c708f8760ef1ce7b98710f59bccf869732d80fd4822287",
+   "bytes": 102372
+  },
+  "models/acoustic/samid-drone-detector/model.safetensors": {
+   "sha256": "10455420f5af15a7287be1d32d37ad6b681f74e3c152fe3bf386fdb0a0427489",
+   "bytes": 344790040
+  },
+  "models/acoustic/samid-drone-detector/config.json": {
+   "sha256": "274a4b0a0d51922b879668de5105db1c29ee0494f9a8e1f8170512149851574c",
+   "bytes": 669
+  },
+  "models/acoustic/samid-drone-detector/preprocessor_config.json": {
+   "sha256": "8d04ba5a9c6fca5d39d0de2b1fd05ecf79deb589fbba279728bbebac39934231",
+   "bytes": 297
+  },
+  "research/gt_sandbox_video.csv": {
+   "sha256": "9cdf78755b153bae5b6a600e551bb65e127bcead19c9111fdc35c0444c09ff0a",
+   "bytes": 605
+  },
+  "research/ast_windows.csv": {
+   "sha256": "41193ff81a563abdf1cf22ddde02576e89422a4f21460adb53973ec3037c8991",
+   "bytes": 3244
+  },
+  "research/yolo_sandbox_frames.csv": {
+   "sha256": "5ed0f4a6eb01a9809c2b19d64de4966fb9e3fe4751de7237a0c18a5893f7c122",
+   "bytes": 4828
+  },
+  "research/fusion_sim_results.csv": {
+   "sha256": "077ecbae8ac6705363e5bf6823eb9bddb95e04ce5d1ceace7ffd61b9743e55de",
+   "bytes": 1058
+  },
+  "research/stress_sim_results.csv": {
+   "sha256": "6adac9b047af369d8da14077e066b9d10e328d3fb4aa75a380c93467fca9a950",
+   "bytes": 3749
+  },
+  "research/threshold_calibration_v2.csv": {
+   "sha256": "3f7596993e6a5cc43347057a459e66437b06e21786beef97be6470a2f3410166",
+   "bytes": 2901
+  },
+  "research/bootstrap_pairs.csv": {
+   "sha256": "bf73ce5c744e1d2f5a4b578e67e43fdec433cb2848b096cabb1cf6aff618604a",
+   "bytes": 386
+  },
+  "research/delta_sweep.csv": {
+   "sha256": "efba5b011c34ad119311b89086aed52ca213a035f6ff759792386d748b30407c",
+   "bytes": 284
+  },
+  "research/event_metrics.csv": {
+   "sha256": "1d3090a2e4a6ca9090dcf6297fcefdeb226dc64f7cb2df3e1b6b6292c800b9c0",
+   "bytes": 240
+  }
+ }
+}

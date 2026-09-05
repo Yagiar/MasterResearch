@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -261,7 +262,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--out-name", default="lwcnn.pt")
     s.set_defaults(func=_cmd_export_acoustic)
 
+    s = sub.add_parser("eval-fusion-jsonl",
+                       help="скоринг decisions.jsonl против GT (media_ts, NORM; протокол it-45/46)")
+    s.add_argument("--decisions", required=True, help="путь к decisions.jsonl (из sink)")
+    s.add_argument("--gt", required=True, help="GT CSV: second,drone_visible,airborne")
+    s.add_argument("--burn-in-s", type=float, default=0.0, help="исключить первые N секунд этапа")
+    s.add_argument("--clip-len-s", type=float, default=72.609, help="длина клипа для media_ts %% CLIP")
+    s.add_argument("--name", default="fusion-pilot")
+    s.set_defaults(func=_cmd_eval_fusion_jsonl)
+
     return p
+
+
+def _cmd_eval_fusion_jsonl(args) -> int:
+    from .evaluate import evaluate_fusion_jsonl as _eval
+
+    report = _eval(Path(args.decisions), Path(args.gt), name=args.name,
+                   burn_in_s=float(args.burn_in_s), clip_len_s=float(args.clip_len_s))
+    print(json.dumps(report.metrics, ensure_ascii=False, indent=1))
+    print(f"отчёт: {report.artifacts_dir / 'metrics.json'}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:

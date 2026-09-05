@@ -57,7 +57,6 @@ def evaluate_acoustic(weights: Path, features_npz: Path, *, device: str = "cpu",
 
     Веса — `state_dict` модели `audio_models.build_audio_model(arch)` (= архитектура acoustic-detector).
     """
-    import numpy as np  # noqa: PLC0415
     import torch  # noqa: PLC0415
     from sklearn.metrics import (  # noqa: PLC0415
         ConfusionMatrixDisplay,
@@ -88,7 +87,9 @@ def evaluate_acoustic(weights: Path, features_npz: Path, *, device: str = "cpu",
     model = build_audio_model(arch, feature_dim=fd, n_frames=nf, n_classes=len(AUDIO_CLASSES), pretrained=False)
     model.load_state_dict(torch.load(str(weights), map_location=device))
     model.eval().to(device)
-    from .train_acoustic import _predict  # noqa: PLC0415 — батчевый инференс (целый test на GPU может не влезть)
+    from .train_acoustic import (
+        _predict,  # noqa: PLC0415 — батчевый инференс (целый test на GPU может не влезть)
+    )
 
     pred = _predict(model, Xte, device)
 
@@ -114,12 +115,100 @@ def evaluate_acoustic(weights: Path, features_npz: Path, *, device: str = "cpu",
     return EvalReport(metrics=metrics, artifacts_dir=out_dir)
 
 
-def evaluate_fusion_jsonl(decisions_jsonl: Path, ground_truth_csv: Path, *, name: str = "fusion-pilot") -> EvalReport:
-    """Оценить слой fusion офлайн: сопоставить decisions.jsonl (из sink) с ground truth.
+def _fusion_prf(preds: list[tuple[int, int]], weights: list[float] | None = None) -> dict[str, float]:
+    """P/R/F1 по парам (предсказание, GT); weights=None — каждое решение весит 1 (RAW, it-45)."""
+    if weights is None:
+        weights = [1.0] * len(preds)
+    tp = sum(w for w, (p, t) in zip(weights, preds, strict=True) if p and t)
+    fp = sum(w for w, (p, t) in zip(weights, preds, strict=True) if p and not t)
+    fn = sum(w for w, (p, t) in zip(weights, preds, strict=True) if not p and t)
+    P = tp / (tp + fp) if tp + fp else 0.0
+    R = tp / (tp + fn) if tp + fn else 0.0
+    return {"precision": round(P, 4), "recall": round(R, 4), "f1": round(2 * P * R / (P + R), 4) if P + R else 0.0}
 
-    Считает precision/recall/F1 и долю срабатываний по окнам. Заготовка — формат
-    ground_truth уточняется по выбранному fusion-датасету (MMAUD / синтетика).
+
+def _fusion_prf(preds: list[tuple[int, int]], weights: list[float] | None = None) -> dict[str, float]:
+    """P/R/F1 по парам (предсказание, GT); weights=None — каждое решение весит 1 (RAW, it-45)."""
+    if weights is None:
+        weights = [1.0] * len(preds)
+    tp = sum(w for w, (p, t) in zip(weights, preds, strict=True) if p and t)
+    fp = sum(w for w, (p, t) in zip(weights, preds, strict=True) if p and not t)
+    fn = sum(w for w, (p, t) in zip(weights, preds, strict=True) if not p and t)
+    P = tp / (tp + fp) if tp + fp else 0.0
+    R = tp / (tp + fn) if tp + fn else 0.0
+    return {"precision": round(P, 4), "recall": round(R, 4), "f1": round(2 * P * R / (P + R), 4) if P + R else 0.0}
+
+
+def evaluate_fusion_jsonl(
+    decisions_jsonl: Path,
+    ground_truth_csv: Path,
+    *,
+    name: str = "fusion-pilot",
+    burn_in_s: float = 0.0,
+    clip_len_s: float = 72.609,
+    gt_column: str = "airborne",
+) -> EvalReport:
+    """Оценить слой fusion офлайн: decisions.jsonl (из sink) против GT-разметки по секундам.
+
+    Протокол it-45/46 (ревью §10/§12): выравнивание по событийному времени `media_ts`
+    (clip_second = media_ts % clip_len_s; фаза НЕ подбирается по GT); вес решения = 1/(число
+    решений в его медиа-секунде) — единица оценки = медиа-секунда (NORM), параллельно отдаётся
+    RAW; `burn_in_s` исключает переходный режим старта (бурст/догоняние аудио, it-42/43).
+    Решения без media_ts (прогоны до it-35) пропускаются со счётчиком.
+    GT: CSV со столбцами second,drone_visible,airborne (research/gt_sandbox_video.csv).
     """
-    raise NotImplementedError(
-        "офлайн-оценка fusion по jsonl — реализуется на этапе пилотных исследований (этап 6)"
-    )
+    import csv
+    from collections import Counter
+
+    with open(ground_truth_csv, encoding="utf-8") as fh:
+        gt = {int(r["second"]): int(r[gt_column]) for r in csv.DictReader(fh)}
+
+    rows: list[dict] = []
+    skipped_no_media = 0
+    t_min: float | None = None
+    with open(decisions_jsonl, encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            d = json.loads(line)
+            if d.get("media_ts") is None:
+                skipped_no_media += 1
+                continue
+            t_min = d["ts"] if t_min is None else min(t_min, d["ts"])
+            rows.append(dict(
+                ts=d["ts"],
+                media_second=int(d["media_ts"] % clip_len_s),
+                mode=d.get("mode", "?"),
+                decision=int(bool(d["decision"])),
+                gt=gt[int(d["media_ts"] % clip_len_s)],
+                joint=d.get("contributions", {}).get("p_v") is not None
+                and d.get("contributions", {}).get("p_a") is not None,
+            ))
+    if not rows:
+        raise ValueError(f"в {decisions_jsonl} нет решений с media_ts — прогон до it-35? Скоринг невозможен")
+    if burn_in_s > 0:
+        rows = [r for r in rows if r["ts"] - t_min >= burn_in_s]
+        if not rows:
+            raise ValueError(f"после burn-in {burn_in_s} с не осталось решений")
+
+    ms_cnt = Counter(r["media_second"] for r in rows)
+    metrics: dict[str, float] = {
+        "n_decisions": len(rows),
+        "n_skipped_no_media": skipped_no_media,
+        "n_media_seconds": len(ms_cnt),
+    }
+    for mode in sorted({r["mode"] for r in rows}) + ["__all__"]:
+        rs = rows if mode == "__all__" else [r for r in rows if r["mode"] == mode]
+        if not rs:
+            continue
+        key = "all" if mode == "__all__" else mode
+        metrics[f"{key}_n"] = len(rs)
+        metrics[f"{key}_joint_share"] = round(sum(1 for r in rs if r["joint"]) / len(rs), 4)
+        metrics[f"{key}_raw"] = _fusion_prf([(r["decision"], r["gt"]) for r in rs])
+        metrics[f"{key}_norm"] = _fusion_prf(
+            [(r["decision"], r["gt"]) for r in rs],
+            [1.0 / ms_cnt[r["media_second"]] for r in rs],
+        )
+
+    out_dir = _save_report(f"fusion-{name}", metrics)
+    return EvalReport(metrics=metrics, artifacts_dir=out_dir)

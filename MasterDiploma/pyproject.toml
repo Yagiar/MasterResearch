@@ -17,7 +17,7 @@ ignore = ["E501"]  # длинные строки — допускаем (фор�
 
 [tool.pytest.ini_options]
 addopts = "-q"
-testpaths = ["libs/common/tests", "services"]
+testpaths = ["libs/common/tests", "services", "train/tests"]
 
 [tool.black]
 line-length = 100
