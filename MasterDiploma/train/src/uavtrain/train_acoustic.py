@@ -56,6 +56,16 @@ def _load_splits(features_path: Path):
 
 def _read_index_train_rows(features_path: Path):
     """Прочитать строки index.csv для train-сплита: список (source_wav, offset_s, dur_s, label_idx)."""
+    rows = _read_index_rows(features_path, split="train")
+    if rows is None:
+        return None
+    drone_idx = AUDIO_CLASSES.index("drone")
+    nondrone_idx = AUDIO_CLASSES.index("non-drone")
+    return [(src, off, dur, li) for src, off, dur, li in rows]
+
+
+def _read_index_rows(features_path: Path, *, split: str) -> list[tuple[str, float, float, int]] | None:
+    """Прочитать строки index.csv одного сплита: (source_wav, offset_s, dur_s, label_idx). None — нет index.csv."""
     from .prepare_audio import resolve_features_dir  # noqa: PLC0415
 
     idx_path = resolve_features_dir(features_path) / "index.csv"
@@ -66,11 +76,21 @@ def _read_index_train_rows(features_path: Path):
     rows: list[tuple[str, float, float, int]] = []
     with idx_path.open(encoding="utf-8") as fh:
         for r in csv.DictReader(fh):
-            if r.get("split") != "train":
+            if r.get("split") != split:
                 continue
             li = drone_idx if r.get("label") == "drone" else nondrone_idx
             rows.append((r["source_wav"], float(r["offset_s"] or 0.0), float(r["dur_s"] or 0.0), li))
     return rows
+
+
+def _held_out_source_wavs(features_path: Path) -> set[str]:
+    """Исходные wav из val/test сплитов — чтобы ИСКЛЮЧИТЬ их из пула фоновых миксов (it-37, ревью §8:
+    фоновая запись из отложенной выборки, подмешанная в train, — утечка)."""
+    out: set[str] = set()
+    for split in ("val", "test"):
+        rows = _read_index_rows(features_path, split=split) or []
+        out.update(src for src, _, _, _ in rows)
+    return out
 
 
 class _AugmentedAudioDataset:
@@ -162,6 +182,13 @@ def _make_train_loader(cfg: AcousticTrainConfig, Xtr: np.ndarray, ytr: np.ndarra
         from .audio_augment import AugmentConfig, collect_background_wavs  # noqa: PLC0415
 
         bg = collect_background_wavs(cfg.bg_noise, dataset_dir_fn=dataset_dir_fn) if cfg.bg_noise else []
+        # it-37: фоны, совпадающие с исходными записями val/test, из пула миксов исключаются
+        held_out = _held_out_source_wavs(cfg.features_npz)
+        if held_out:
+            before = len(bg)
+            bg = [p for p in bg if str(p) not in held_out]
+            if before - len(bg):
+                print(f"[acoustic] фоновые wav: исключено {before - len(bg)} из {before} (пересечение с val/test — защита от утечки)")
         aug_cfg = AugmentConfig(enabled=True, bg_wavs=bg)
         print(f"[acoustic] аугментации ВКЛ: {len(rows)} train-окон из index.csv, фоновых wav для миксов: {len(bg)}")
         ds = _AugmentedAudioDataset(rows, cfg.feature_params or {}, aug_cfg)
@@ -237,9 +264,13 @@ def train(cfg: AcousticTrainConfig) -> Path:
         print(f"[acoustic] epoch {epoch}/{cfg.epochs}  val_acc={m['accuracy']:.4f}  val_balanced_acc={m['balanced_acc']:.4f}  "
               f"(recall: drone={m.get('recall_drone', 0):.3f}, non-drone={m.get('recall_non-drone', 0):.3f})  best_bal={best_score:.4f}")
 
+    # it-37 (ревью §8): test оценивается на ЛУЧШЕМ чекпойнте по val, а не на последней эпохе —
+    # раньше printed-метрика могла относиться к другой модели, чем сохранённый файл весов.
+    model.load_state_dict(torch.load(str(best_path), map_location=device, weights_only=True))
     if len(Xte):
         mt = _metrics(yte, _predict(model, Xte, device), n_cls)
-        print(f"[acoustic] обучение завершено ({cfg.arch}). test: acc={mt['accuracy']:.4f} balanced_acc={mt['balanced_acc']:.4f} "
+        print(f"[acoustic] обучение завершено ({cfg.arch}, checkpoint={best_path.name}, "
+              f"best_val_balanced_acc={best_score:.4f}). test: acc={mt['accuracy']:.4f} balanced_acc={mt['balanced_acc']:.4f} "
               f"recall(drone)={mt.get('recall_drone', 0):.3f} recall(non-drone)={mt.get('recall_non-drone', 0):.3f}  -> {best_path}")
     else:
         print(f"[acoustic] обучение завершено ({cfg.arch}): best_val_balanced_acc={best_score:.4f}  -> {best_path}")

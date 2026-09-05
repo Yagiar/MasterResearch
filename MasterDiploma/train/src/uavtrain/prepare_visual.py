@@ -8,9 +8,11 @@
         data.yaml                            # path/train/val/test/names
 
 Шаги: парсинг исходной разметки каждого датасета -> приведение классов к единой таксономии
-(`VISUAL_CLASSES` — на пилоте бинарно «дрон»; кадры без дрон-боксов = негативы, в т.ч. кадры с
-птицами/самолётами) -> детерминированный split по сцене/видео (кадры одной сцены не утекают между
-сплитами) -> запись data.yaml.
+(`VISUAL_CLASSES` — на пилоте бинарно «дрон»; кадры без дрон-боксов = негативы). it-37 (ревью §8):
+боксы НЕ-дроновых классов (птицы, самолёты, ...) ЯВНО отбрасываются по id (YOLO-txt) или имени
+(VOC) — старое поведение «всё → дрон» подменяло классы; сводка отброшенного печатается в конце.
+Дальше — детерминированный split по сцене/видео (кадры одной сцены не утекают между сплитами,
+включая выделение val из train) -> запись data.yaml.
 
 Парсеры терпимы к разным раскладкам архивов: ищут изображения + аннотации по распространённым
 схемам; если структура не распознана — поднимают понятную ошибку с описанием того, что ожидалось.
@@ -113,18 +115,49 @@ def _xyxy_to_yolo(x1: float, y1: float, x2: float, y2: float, w: int, h: int) ->
     return ((x1 + bw / 2) / w, (y1 + bh / 2) / h, bw / w, bh / h)
 
 
-def _parse_yolo_txt(txt: Path) -> list[tuple[int, float, float, float, float]]:
+# it-37 (ревью §8): фильтрация классов ЯВНО, а не «всё → дрон».
+# Мультиклассовый датасет, прошедший через старый парсер, превращал птиц/самолёты
+# в положительные примеры дрона (тихая подмена классов).
+DEFAULT_DRONE_CLASS_IDS = frozenset({0})          # id класса «дрон» в YOLO-разметке источника
+DEFAULT_DRONE_VOC_NAMES = frozenset({"drone", "uav", "uas", "quadcopter", "quadcopter", "uav-drone"})
+_dropped_boxes: dict[str, int] = {}               # имя класса/id → сколько боксов отброшено
+
+
+def _note_dropped(key: str, n: int = 1) -> None:
+    _dropped_boxes[key] = _dropped_boxes.get(key, 0) + n
+
+
+def dropped_boxes_report() -> str:
+    """Сводка отброшенных боксов (печатается по завершении парсинга)."""
+    if not _dropped_boxes:
+        return "отброшенных боксов нет"
+    return "; ".join(f"{k}: {v}" for k, v in sorted(_dropped_boxes.items()))
+
+
+def _parse_yolo_txt(txt: Path, drone_cls_ids: frozenset[int] = DEFAULT_DRONE_CLASS_IDS) -> list[tuple[int, float, float, float, float]]:
+    """YOLO-txt -> боксы ТОЛЬКО классов-дронов (id из `drone_cls_ids`), нормированные (xc, yc, w, h).
+
+    Боксы других классов ОТБРАСЫВАЮТСЯ (и учитываются в сводке) — кадр с птицей/самолётом
+    остаётся негативом, а не превращается в позитив дрона.
+    """
     boxes = []
     for line in txt.read_text(encoding="utf-8", errors="ignore").splitlines():
         parts = line.split()
         if len(parts) >= 5:
-            _, xc, yc, w, h = parts[:5]
+            cls_raw, xc, yc, w, h = parts[:5]
+            cls = int(cls_raw)
+            if cls not in drone_cls_ids:
+                _note_dropped(f"yolo-cls-{cls}")
+                continue
             boxes.append((_DRONE_CLS, float(xc), float(yc), float(w), float(h)))
     return boxes
 
 
-def _parse_voc_xml(xml_path: Path) -> tuple[Path | None, list[tuple[float, float, float, float]], tuple[int, int] | None]:
-    """VOC XML -> (путь к картинке если указан, список xyxy-боксов, (w,h) если указан)."""
+def _parse_voc_xml(
+    xml_path: Path,
+    drone_names: frozenset[str] = DEFAULT_DRONE_VOC_NAMES,
+) -> tuple[Path | None, list[tuple[float, float, float, float]], tuple[int, int] | None]:
+    """VOC XML -> (путь к картинке если указан, список xyxy-боксов ТОЛЬКО классов-дронов, (w,h))."""
     root = ET.parse(xml_path).getroot()
     fname = root.findtext("filename")
     size_el = root.find("size")
@@ -136,6 +169,10 @@ def _parse_voc_xml(xml_path: Path) -> tuple[Path | None, list[tuple[float, float
             size = None
     boxes = []
     for obj in root.findall("object"):
+        name = (obj.findtext("name") or "").strip().lower()
+        if name not in drone_names:
+            _note_dropped(f"voc-{name or 'unnamed'}")
+            continue
         bb = obj.find("bndbox")
         if bb is None:
             continue
@@ -144,10 +181,12 @@ def _parse_voc_xml(xml_path: Path) -> tuple[Path | None, list[tuple[float, float
     return img_path, boxes, size
 
 
-def _parse_flat_txt(txt: Path) -> list[tuple[float, float, float, float]]:
-    """Текст с боксами по строкам. Эвристика: 4 числа = либо x1 y1 x2 y2, либо x y w h.
+def _parse_flat_txt(txt: Path, box_format: str = "auto") -> list[tuple[float, float, float, float]]:
+    """Текст с боксами по строкам. Формат: `auto` (эвристика), либо явно `xyxy` / `xywh`.
 
-    Различаем по тому, монотонны ли первые две и вторые две координаты (xyxy) или нет.
+    Эвристика auto: 4 числа = либо x1 y1 x2 y2, либо x y w h — различаем по тому,
+    монотонны ли первые две и вторые две координаты (ревью §8: неоднозначность должна
+    разрешаться схемой датасета — передавайте box_format явно для известного набора).
     Возвращаем в формате xyxy (для xywh: x2=x+w, y2=y+h).
     """
     out = []
@@ -156,9 +195,9 @@ def _parse_flat_txt(txt: Path) -> list[tuple[float, float, float, float]]:
         if len(nums) < 4:
             continue
         a, b, c, d = nums[-4:]  # последние 4 числа строки (могут быть frame_id, conf и т.п. впереди)
-        if c > a and d > b and (c - a) < 1e4:  # похоже на x1 y1 x2 y2
+        if box_format == "xyxy" or (box_format == "auto" and c > a and d > b and (c - a) < 1e4):
             out.append((a, b, c, d))
-        else:  # трактуем как x y w h
+        else:  # "auto" (не похоже на xyxy) или явный "xywh"
             out.append((a, b, a + c, b + d))
     return out
 
@@ -335,19 +374,35 @@ def _carve_val_from_train(samples: list[YoloSample], frac: float, seed: int) -> 
     """Если нет ни одного сэмпла со split=='val' — выделить долю `frac` из train под val (детерм.).
 
     Нужно, когда исходный датасет имеет только train/test (как hf-drone-detection): YOLOv8 требует
-    непустой val. Перекладываем часть train-сэмплов в val (с сохранением их group).
+    непустой val. it-37 (ревью §8): val выделяется ЦЕЛЫМИ ГРУППАМИ (сцена/видео), а не отдельными
+    кадрами — соседние кадры одной записи не должны оказаться по разные стороны train/val.
+    Группа уходит в val, когда накопленная доля образцов достигает `frac`.
     """
     has_val = any(s.split == "val" for s in samples)
     if has_val or frac <= 0:
         return samples
-    rng = random.Random(seed)
-    out: list[YoloSample] = []
-    for s in samples:
-        if s.split == "train" and rng.random() < frac:
-            out.append(YoloSample(image_path=s.image_path, boxes=s.boxes, group=s.group, split="val"))
-        else:
-            out.append(s)
-    return out
+    train = [s for s in samples if s.split == "train"]
+    n_train = len(train)
+    if n_train == 0:
+        return samples
+    # группируем по group; сортировка + shuffle с сидом = детерминизм
+    groups: dict[str, list[YoloSample]] = {}
+    for s in train:
+        groups.setdefault(s.group, []).append(s)
+    group_keys = sorted(groups)
+    random.Random(seed).shuffle(group_keys)
+    val_groups: set[str] = set()
+    taken = 0
+    for g in group_keys:  # целые группы, пока не наберём долю frac
+        if taken / n_train >= frac:
+            break
+        val_groups.add(g)
+        taken += len(groups[g])
+    return [
+        YoloSample(image_path=s.image_path, boxes=s.boxes, group=s.group,
+                   split="val" if s.group in val_groups else s.split)
+        for s in samples
+    ]
 
 
 def convert(*, datasets: list[str] | None = None, splits: dict[str, float] | None = None, seed: int = RANDOM_SEED) -> Path:
@@ -373,7 +428,8 @@ def convert(*, datasets: list[str] | None = None, splits: dict[str, float] | Non
     # split-по-группам — только для сэмплов без явного split
     groups_to_split = [s.group for s in all_samples if s.split not in ("train", "val", "test")]
     split_map = _split_groups(groups_to_split, splits, seed) if groups_to_split else {"train": set(), "val": set(), "test": set()}
-    # для сэмплов с явным split: если val-а нет — отрезать его от train
+    # для сэмплов с явным split: если val-а нет — отрезать его от train (ЦЕЛЫМИ группами, it-37)
     all_samples = _carve_val_from_train(all_samples, float(splits.get("val", 0.1)), seed)
+    print(f"[prepare-visual] фильтр классов (дрон-only): {dropped_boxes_report()}")
     _write_yolo(all_samples, split_map)
     return _write_data_yaml()
