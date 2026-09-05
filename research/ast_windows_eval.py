@@ -7,7 +7,7 @@
 import csv
 import sys
 
-ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
+ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 WAV = f"{ROOT}/MasterDiploma/sandboxDataForSimulator/sandbox-audio-for-simulator.wav"
 AST_DIR = f"{ROOT}/MasterDiploma/models/acoustic/samid-drone-detector"
 GT = {int(r["second"]): int(r["airborne"])

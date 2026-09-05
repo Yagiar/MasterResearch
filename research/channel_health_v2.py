@@ -12,7 +12,7 @@ import numpy as np
 import soundfile as sf
 import librosa
 
-ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
+ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 WAV = f"{ROOT}/MasterDiploma/sandboxDataForSimulator/sandbox-audio-for-simulator.wav"
 W, FLOOR_STD, HYST = 12, 0.05, 0.15  # скользящее окно, порог std_pa, гистерезис
 

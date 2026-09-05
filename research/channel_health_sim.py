@@ -8,7 +8,7 @@ GT: airborne. Детерминировано (без сидов).
 """
 import csv
 
-ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
+ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 ast = {r["t0"]: r for r in csv.DictReader(open(f"{ROOT}/research/ast_windows.csv"))}
 yolo = {r["second"]: r for r in csv.DictReader(open(f"{ROOT}/research/yolo_sandbox_frames.csv"))
         if r["imgsz"] == "480"}

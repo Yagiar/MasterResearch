@@ -4,7 +4,7 @@
 Запуск: research/.venv/bin/python research/yolo_frames_eval.py
 """
 import csv, os
-ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
+ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 FRAMES = f"{ROOT}/research/sandbox_frames/full"
 WEIGHTS = f"{ROOT}/MasterDiploma/models/visual/yolov8s-uav.pt"
 GT = {int(r["second"]): (int(r["drone_visible"]), int(r["airborne"]))

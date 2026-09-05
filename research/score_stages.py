@@ -23,7 +23,7 @@ import csv
 import json
 import sys
 
-ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
+ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 JSONL = f"{ROOT}/MasterDiploma/data/decisions/decisions.jsonl"
 CLIP = 72.609
 
