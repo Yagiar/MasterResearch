@@ -53,10 +53,6 @@
    "sha256": "6adac9b047af369d8da14077e066b9d10e328d3fb4aa75a380c93467fca9a950",
    "bytes": 3749
   },
-  "research/threshold_calibration_v2.csv": {
-   "sha256": "3f7596993e6a5cc43347057a459e66437b06e21786beef97be6470a2f3410166",
-   "bytes": 2901
-  },
   "research/bootstrap_pairs.csv": {
    "sha256": "bf73ce5c744e1d2f5a4b578e67e43fdec433cb2848b096cabb1cf6aff618604a",
    "bytes": 386
@@ -80,6 +76,38 @@
   "research/confuser_eval_summary.csv": {
    "sha256": "90d56f26e2c3d9afa58f657a716f5a0cbd4717047e978b54d45fcc033a709ade",
    "bytes": 2616
+  },
+  "research/mmaud_visual_eval.csv": {
+   "sha256": "c68d1e86966869f87bc60634462825e0a917952f351a85050e1d2c87c2cb47fd",
+   "bytes": 197330
+  },
+  "research/mmaud_imgsz1920.csv": {
+   "sha256": "ee430905233731ed03a5775e62734b99ecf5f951a062ba491bd25c8716461f76",
+   "bytes": 163724
+  },
+  "research/mmaud_sahi_eval.csv": {
+   "sha256": "979f188bb5619796826256efbbcd4087c57414e8ebf97c84a6ec6d6c4460c695",
+   "bytes": 16746
+  },
+  "research/mmaud_sahi_motion.csv": {
+   "sha256": "4112852df825730c827bb787d9f6bec8ddb72b90989bb868f7b76aa2f3d79ac9",
+   "bytes": 17946
+  },
+  "research/mmaud_acoustic_eval.csv": {
+   "sha256": "392f4130d2432e5646b76de428f0abf554565f986ea58e7c9adf8a25d7de9df6",
+   "bytes": 11619
+  },
+  "research/gt_negative_session.csv": {
+   "sha256": "cc06692bcc7093069da4b669b281cd65fbb8d9dc958fb2d4e7b21d2955f53f55",
+   "bytes": 146
+  },
+  "research/airborne_policy_sim.csv": {
+   "sha256": "2344aa35709937f1d3c9f60823c84e974bdaff8f38818f03fe89a2b9650c3cab",
+   "bytes": 713
+  },
+  "research/threshold_calibration_v2.csv": {
+   "sha256": "3f7596993e6a5cc43347057a459e66437b06e21786beef97be6470a2f3410166",
+   "bytes": 2901
   }
  }
 }

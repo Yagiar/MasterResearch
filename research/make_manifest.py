@@ -29,13 +29,21 @@ FILES = {
     # --- результатные таблицы ---
     "research/fusion_sim_results.csv": ROOT / "research/fusion_sim_results.csv",
     "research/stress_sim_results.csv": ROOT / "research/stress_sim_results.csv",
-    "research/threshold_calibration_v2.csv": ROOT / "research/threshold_calibration_v2.csv",
     "research/bootstrap_pairs.csv": ROOT / "research/bootstrap_pairs.csv",
     "research/delta_sweep.csv": ROOT / "research/delta_sweep.csv",
     "research/event_metrics.csv": ROOT / "research/event_metrics.csv",
     "research/confuser_eval.csv": ROOT / "research/confuser_eval.csv",
     "research/confuser_eval_all.csv": ROOT / "research/confuser_eval_all.csv",
     "research/confuser_eval_summary.csv": ROOT / "research/confuser_eval_summary.csv",
+    # --- независимая валидация MMAUD (it-56..60) ---
+    "research/mmaud_visual_eval.csv": ROOT / "research/mmaud_visual_eval.csv",
+    "research/mmaud_imgsz1920.csv": ROOT / "research/mmaud_imgsz1920.csv",
+    "research/mmaud_sahi_eval.csv": ROOT / "research/mmaud_sahi_eval.csv",
+    "research/mmaud_sahi_motion.csv": ROOT / "research/mmaud_sahi_motion.csv",
+    "research/mmaud_acoustic_eval.csv": ROOT / "research/mmaud_acoustic_eval.csv",
+    "research/gt_negative_session.csv": ROOT / "research/gt_negative_session.csv",
+    "research/airborne_policy_sim.csv": ROOT / "research/airborne_policy_sim.csv",
+    "research/threshold_calibration_v2.csv": ROOT / "research/threshold_calibration_v2.csv",
 }
 
 HF_MODELS = {
