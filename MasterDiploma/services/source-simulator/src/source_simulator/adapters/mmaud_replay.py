@@ -104,6 +104,8 @@ class MmaudReplayAdapter:
             if not files:
                 raise RuntimeError(f"в папке кадров MMAUD нет изображений: {self._video_path}")
             seq = 0
+            fi = 0            # индекс кадра в текущем loop-проходе (it-60: медиа-время)
+            media_base = 0.0  # накопленное медиа-время завершённых проходов (с)
             while True:
                 for f in files:
                     img = cv2.imread(str(f))
@@ -115,7 +117,12 @@ class MmaudReplayAdapter:
                     h, w = img.shape[:2]
                     seq += 1
                     yield FrameItem(jpeg_bytes=buf.tobytes(), seq=seq, width=int(w), height=int(h),
-                                    fps_nominal=float(self._fps_nominal), meta={"source_kind": "mmaud", "src": f.name})
+                                    fps_nominal=float(self._fps_nominal),
+                                    media_ts=media_base + fi / max(1.0, self._fps_nominal),
+                                    meta={"source_kind": "mmaud", "src": f.name})
+                    fi += 1
+                media_base += len(files) / max(1.0, self._fps_nominal)
+                fi = 0
                 if not self._loop:
                     return
         else:

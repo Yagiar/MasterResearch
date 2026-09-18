@@ -64,6 +64,7 @@
 | [it-57-mmaud-acoustic-gap](iterations/it-57-mmaud-acoustic-gap.md) | 2026-09-06 | ROSBag получен, аудио извлечено (6 кГц); независимая акустическая калибровка | ✅ | **AST не переносится: p_drone ≈ 0.075 везде (recall 0%, FP 0%)** — 6 кГц полоса + перегруз мика + дистанция; it-55 политика ведёт себя корректно (0 FP от аудио) |
 | [it-58-imgsz1920-sahi](iterations/it-58-imgsz1920-sahi.md) | 2026-09-06 | Полный прогон MMAUD @imgsz1920 + SAHI-проба | ✅ | **Recall полёта 64.5% (полный корпус), SAHI восстанавливает 85.5% пропущенных → суммарно ~95%**; доменный разрыв устраним конфигурацией без переобучения |
 | [it-59-sahi-integration](iterations/it-59-sahi-integration.md) | 2026-09-06 | SAHI-нарезка внедрена в visual-detector; живой прогон MMAUD через mmaud_replay | ✅ | **Live: recall присутствия 100% (857/857), e2e 1.1 с**; офлайн SAHI 82.7% > full@1920 64.1%; ловушка env-префикса (UAVDET_VISUAL_DETECTOR__*) задокументирована |
+| [it-60-motion-sahi-retest](iterations/it-60-motion-sahi-retest.md) | 2026-09-06 | Re-test motion в SAHI-режиме (офлайн argmax + live per-track) | ✅ | НЕГАТИВ: speed_rel насыщается (полёт 1.0), статичная фаза 1.6 с без треков — motion_floor без изменения, дискриминатор «активен» = аудио (it-55); mmaud_replay получил media_ts |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
