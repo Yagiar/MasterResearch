@@ -77,6 +77,11 @@ visual_detector:
   # drone_class_ids: [1] -- в итой версии не используется
   conf_threshold: 0.25
   iou_threshold: 0.45
+  # SAHI-нарезка (it-58/59): детекция по срезам slice×slice с перекрытием, мердж NMS.
+  # Восстанавливает малые цели на панорамных кадрах (MMAUD: recall 64.5% @1920 -> ~95%
+  # с нарезкой). 0 = выключено. Цена — латентность пропорциональна числу срезов.
+  sahi_slice: 0
+  sahi_overlap: 0.2
   device: "cpu"                           # cpu | cuda:0
   tracker_enabled: true                   # ByteTrack
   batch_size: 1

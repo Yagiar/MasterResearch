@@ -19,6 +19,8 @@ def build_detector(vd_cfg: dict[str, Any]) -> YoloDetector:
         iou_threshold=float(vd_cfg.get("iou_threshold", 0.45)),
         device=str(vd_cfg.get("device", "cpu")),
         imgsz=int(vd_cfg.get("imgsz", 640)),
+        sahi_slice=int(vd_cfg.get("sahi_slice", 0)),
+        sahi_overlap=float(vd_cfg.get("sahi_overlap", 0.2)),
         drone_class_ids=(list(drone_ids) if drone_ids else None),
     )
 

@@ -56,6 +56,8 @@ class YoloDetector:
         device: str = "cpu",
         imgsz: int = 640,
         drone_class_ids: list[int] | None = None,  # явный список id классов = «дрон» (если None — по имени класса)
+        sahi_slice: int = 0,        # it-59: размер среза SAHI (0 = выключено); напр. 640
+        sahi_overlap: float = 0.2,  # it-59: перекрытие срезов (доля)
     ) -> None:
         from ultralytics import YOLO  # noqa: PLC0415
 
@@ -79,6 +81,8 @@ class YoloDetector:
         self._iou = float(iou_threshold)
         self._device = device
         self._imgsz = int(imgsz)
+        self._sahi_slice = max(0, int(sahi_slice))
+        self._sahi_overlap = min(0.9, max(0.0, float(sahi_overlap)))
         self._names: dict[int, str] = dict(getattr(self._model, "names", {}) or {})
         self._drone_ids: set[int] | None = set(int(i) for i in drone_class_ids) if drone_class_ids else None
         log.info(
@@ -109,7 +113,8 @@ class YoloDetector:
         low = self._names.get(cls_id, "").lower()
         return "drone" if ("drone" in low or "uav" in low) else "non-drone"
 
-    def detect(self, frame: np.ndarray) -> DetectResult:
+    def _detect_frame(self, frame: np.ndarray) -> tuple[list[Detection], float]:
+        """Один прогон детектора на кадре (или срезе); возвращает детекции в координатах входа."""
         t0 = time.perf_counter()
         results = self._model.predict(
             frame,
@@ -120,8 +125,93 @@ class YoloDetector:
             verbose=False,
         )
         latency_ms = (time.perf_counter() - t0) * 1000.0
-
         detections: list[Detection] = []
+        for res in results:
+            boxes = getattr(res, "boxes", None)
+            if boxes is None:
+                continue
+            xyxy = boxes.xyxy.cpu().numpy() if hasattr(boxes.xyxy, "cpu") else np.asarray(boxes.xyxy)
+            confs = boxes.conf.cpu().numpy() if hasattr(boxes.conf, "cpu") else np.asarray(boxes.conf)
+            clss = boxes.cls.cpu().numpy() if hasattr(boxes.cls, "cpu") else np.asarray(boxes.cls)
+            for (x1, y1, x2, y2), conf, cls_id in zip(xyxy, confs, clss):
+                label = self._label_for(int(cls_id))
+                if label is None:
+                    continue
+                detections.append(
+                    Detection(
+                        label=label,
+                        confidence=float(conf),
+                        bbox=[float(x1), float(y1), float(x2 - x1), float(y2 - y1)],
+                    )
+                )
+        return detections, latency_ms
+
+    def _sahi_slices(self, w: int, h: int) -> list[tuple[int, int, int, int]]:
+        """Сетка срезов (x, y, w, h) размера slice с перекрытием (it-59).
+
+        Крайний срез прижимается к правому/нижнему краю, чтобы покрыть кадр целиком.
+        """
+        step = max(1, int(self._sahi_slice * (1.0 - self._sahi_overlap)))
+
+        def starts(total: int) -> list[int]:
+            if total <= self._sahi_slice:
+                return [0]
+            pts = list(range(0, total - self._sahi_slice + 1, step))
+            if pts[-1] != total - self._sahi_slice:
+                pts.append(total - self._sahi_slice)
+            return pts
+
+        return [(x, y, min(self._sahi_slice, w - x), min(self._sahi_slice, h - y))
+                for y in starts(h) for x in starts(w)]
+
+    @staticmethod
+    def _nms_merge(dets: list[Detection], iou_thr: float) -> list[Detection]:
+        """NMS-мердж детекций со всех срезов (координаты уже глобальные)."""
+        keep: list[Detection] = []
+        for d in sorted(dets, key=lambda d: -d.confidence):
+            x1, y1, w, h = d.bbox
+            x2, y2 = x1 + w, y1 + h
+            dup = False
+            for k in keep:
+                kx1, ky1, kw, kh = k.bbox
+                kx2, ky2 = kx1 + kw, ky1 + kh
+                ix1, iy1 = max(x1, kx1), max(y1, ky1)
+                ix2, iy2 = min(x2, kx2), min(y2, ky2)
+                inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+                union = w * h + kw * kh - inter
+                if union > 0 and inter / union >= iou_thr:
+                    dup = True
+                    break
+            if not dup:
+                keep.append(d)
+        return keep
+
+    def detect(self, frame: np.ndarray) -> DetectResult:
+        if self._sahi_slice > 0:
+            H, W = frame.shape[:2]
+            all_dets: list[Detection] = []
+            t0 = time.perf_counter()
+            for x, y, sw, sh in self._sahi_slices(W, H):
+                tile = frame[y:y + sh, x:x + sw]
+                dets, _ = self._detect_frame(tile)
+                for d in dets:
+                    # координаты среза -> глобальные
+                    all_dets.append(Detection(label=d.label, confidence=d.confidence,
+                                              bbox=[d.bbox[0] + x, d.bbox[1] + y, d.bbox[2], d.bbox[3]]))
+            latency_ms = (time.perf_counter() - t0) * 1000.0
+            return DetectResult(
+                detections=self._nms_merge(all_dets, self._iou),
+                latency_ms=latency_ms,
+                model_name=self._model_name,
+                model_ver=self.model_ver,
+            )
+        dets, latency_ms = self._detect_frame(frame)
+        return DetectResult(
+            detections=dets,
+            latency_ms=latency_ms,
+            model_name=self._model_name,
+            model_ver=self.model_ver,
+        )
         for res in results:
             boxes = getattr(res, "boxes", None)
             if boxes is None:
