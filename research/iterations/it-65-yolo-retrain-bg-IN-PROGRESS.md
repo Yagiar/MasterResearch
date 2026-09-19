@@ -15,7 +15,7 @@
 - Отвязанный процесс (nohup, PID 1929404, переживает сессию): `train-visual --data _prepared/visual/data.yaml --base-weights yolov8s.pt --epochs 30 --patience 10 --batch 8 --workers 2 --name uav-yolov8s-bg`
 - Лог: `/tmp/yolo_bg_train.log`; прогресс: `train/runs/visual/uav-yolov8s-bg/results.csv`
 - Первый запуск (batch 16) упал по CUDA OOM (6 ГБ) → batch 8.
-- Оценка длительности: ~40 мин/эпоха × 30 (early stop раньше) ≈ 15-20 ч.
+- Реальная скорость (замер): 1,1 it/s → **~1,8 ч/эпоха**; полные 30 эпох ≈ 54 ч, с early stopping реально ~25-30 ч. Процесс отвязан — переживает сессию; проверка прогресса: `wc -l train/runs/visual/uav-yolov8s-bg/results.csv` (строки = завершённые эпохи).
 
 ## По завершении (продолжение цикла)
 
