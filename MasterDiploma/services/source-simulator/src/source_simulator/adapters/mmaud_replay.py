@@ -174,12 +174,14 @@ class MmaudReplayAdapter:
         win = max(1, int(self._sr * self._win_ms / 1000.0))
         hop = max(1, int(self._sr * self._hop_ms / 1000.0))
         seq = 0
+        media_base = 0.0  # накопленное медиа-время завершённых loop-проходов (it-60)
         while True:
             if sig.size < win:
                 chunk = np.pad(sig, (0, win - sig.size), mode="constant")
                 seq += 1
                 yield AudioItem(pcm_bytes=self._float_to_pcm16(chunk), seq=seq, sample_rate=self._sr, channels=1,
-                                len_ms=self._win_ms, hop_ms=self._hop_ms, meta={"source_kind": "mmaud"})
+                                len_ms=self._win_ms, hop_ms=self._hop_ms, media_ts=media_base,
+                                meta={"source_kind": "mmaud"})
                 if not self._loop:
                     return
                 continue
@@ -187,10 +189,13 @@ class MmaudReplayAdapter:
             while offset + win <= sig.size:
                 seq += 1
                 yield AudioItem(pcm_bytes=self._float_to_pcm16(sig[offset:offset + win]), seq=seq, sample_rate=self._sr,
-                                channels=1, len_ms=self._win_ms, hop_ms=self._hop_ms, meta={"source_kind": "mmaud"})
+                                channels=1, len_ms=self._win_ms, hop_ms=self._hop_ms,
+                                media_ts=media_base + offset / self._sr,
+                                meta={"source_kind": "mmaud"})
                 offset += hop
             if not self._loop:
                 return
+            media_base += sig.size / self._sr
 
     # --- ground truth (TODO: реализовать под фактический формат разметки MMAUD) ---
     def load_ground_truth(self) -> list[dict]:
