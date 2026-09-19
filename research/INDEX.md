@@ -66,6 +66,7 @@
 | [it-59-sahi-integration](iterations/it-59-sahi-integration.md) | 2026-09-06 | SAHI-нарезка внедрена в visual-detector; живой прогон MMAUD через mmaud_replay | ✅ | **Live: recall присутствия 100% (857/857), e2e 1.1 с**; офлайн SAHI 82.7% > full@1920 64.1%; ловушка env-префикса (UAVDET_VISUAL_DETECTOR__*) задокументирована |
 | [it-60-motion-sahi-retest](iterations/it-60-motion-sahi-retest.md) | 2026-09-06 | Re-test motion в SAHI-режиме (офлайн argmax + live per-track) | ✅ | НЕГАТИВ: speed_rel насыщается (полёт 1.0), статичная фаза 1.6 с без треков — motion_floor без изменения, дискриминатор «активен» = аудио (it-55); mmaud_replay получил media_ts |
 | [it-61-acoustic-signal-absent](iterations/it-61-acoustic-signal-absent.md) | 2026-09-06 | Спектральная проверка MMAUD-аудио: есть ли сигнатура винтов | ✅ | **Сигнала нет**: контраст полёт/статик 1.0x во всех полосах (sandbox-контроль 11x) — дообучение AST на материале бесперспективно, дефект записи |
+| [it-62-multichannel-verdict](iterations/it-62-multichannel-verdict.md) | 2026-09-06 | 4-канальная решётка: корреляции, усреднение, финальный вердикт по акустике V1 | ✅ | **Каналы взаимно некоррелированы (r≈0.005), усреднение RMS ровно /2 — аудиоузел писал только шум предусилителя**; акустика V1 закрыта на уровне железа |
 
 ## Цикл фиксов по внешнему ревью GPT-6-Astra (2026-09-05, it-31…39)
 
