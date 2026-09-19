@@ -4,17 +4,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pytest
 import soundfile as sf
-
 from source_simulator.adapters.mmaud_replay import MmaudReplayAdapter
 
 
 @pytest.fixture()
 def seq(tmp_path: Path) -> tuple[Path, Path]:
     """Папка из 6 PNG-кадров + wav 1 с."""
-    import cv2
 
     img_dir = tmp_path / "image"
     img_dir.mkdir()
