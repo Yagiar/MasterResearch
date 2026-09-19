@@ -71,7 +71,26 @@ MasterDiploma/venv/bin/uavtrain eval-fusion-jsonl \
 #   (RAW и NORM P/R/F1 по модам + __all__, доля совместных окон, счётчики пропусков)
 ```
 
-## 5. Известные границы воспроизводимости
+## 5. Независимая валидация на MMAUD V1 Mavic3 (it-56..61)
+
+Материал: `MasterDiploma/train/data/mmaud/Mavic3/` (Folder Data: 5091 PNG 2560×960 + лидарный GT)
+и `Mavic3.bag` (ROSBag: аудио /audio1..4, 6 кГц/канал). Не версионируются — загрузка OneDrive (капча).
+
+```bash
+# видео: recall присутствия по состояниям (стоит/летит по GT-высоте) + SAHI-сравнение
+research/.venv/bin/python research/mmaud_visual_eval.py        # полный корпус @960
+research/.venv/bin/python research/mmaud_imgsz1920_eval.py     # полный корпус @1920 + SAHI-проба
+research/.venv/bin/python research/mmaud_sahi_eval.py 10       # SAHI 640/0.2 vs full @1920 (510 кадров)
+# аудио: извлечение каналов из bag + спектральная проверка + AST
+research/.venv/bin/python research/mmaud_multichannel.py       # корреляционная проверка каналов (ДЕРЖАТЬ ПЕРВЫМ ШАГОМ — it-62)
+research/.venv/bin/python research/mmaud_acoustic_eval.py      # AST на /audio1 против GT-высоты
+# live: mmaud_replay + SAHI (override-файл по образцу it-59: env UAVDET_VISUAL_DETECTOR__*)
+```
+
+Ожидаемые результаты: SAHI recall 82.7% (full @1920 — 64.1%); live presence recall 100% (857/857);
+аудио — корреляция каналов ≈ 0.005 (узел неисправен), AST p_drone ≈ 0.075 везде.
+
+## 6. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;
   контроль — media-длина 72.609 с, 144 окна.
