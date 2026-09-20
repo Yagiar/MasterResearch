@@ -84,3 +84,16 @@
 3,1 it/s против 1,4 до (прежний темп, вероятно, съедало давление памяти: journald
 «Under memory pressure» в 17:50). Следов OOPS/Xid/MCE в журнале перед обрывом нет; pstore пуст —
 причину по дисковым логам установить не удалось (обрыв лога характерен для паники без флеша в journald).
+
+## Подготовка follow-up (it-66): пересчёт fusion-таблиц новыми весами
+
+`yolo_frames_eval.py` параметризован `--weights/--out` (по умолчанию — прежнее поведение:
+экспортированные веса → `yolo_sandbox_frames.csv`). Если экспорт E1–E5 состоится, sandbox-домен
+нужно перескорить новой моделью и перегнать fusion-симуляции — это первый шаг it-66:
+
+```bash
+research/.venv/bin/python research/yolo_frames_eval.py \
+  --weights MasterDiploma/models/visual/yolov8s-uav.pt \
+  --out research/yolo_sandbox_frames_new.csv
+# далее — parametrized-источники в fusion_sim_full.py / stress_sim.py / event_metrics.py (it-66)
+```

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """YOLO-инференс на 73 кадрах sandbox-клипа против GT (it-04).
 Оценка «видео domain gap»: детектирует ли обученная YOLOv8n дрон в целевом домене.
-Запуск: research/.venv/bin/python research/yolo_frames_eval.py
+Запуск: research/.venv/bin/python research/yolo_frames_eval.py [--weights ФАЙЛ.pt] [--out ФАЙЛ.csv]
+По умолчанию — прежнее поведение (экспортированные веса → yolo_sandbox_frames.csv).
 """
-import csv, os
+import argparse, csv, os
 ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 FRAMES = f"{ROOT}/research/sandbox_frames/full"
-WEIGHTS = f"{ROOT}/MasterDiploma/models/visual/yolov8s-uav.pt"
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--weights", default=f"{ROOT}/MasterDiploma/models/visual/yolov8s-uav.pt")
+_ap.add_argument("--out", default=f"{ROOT}/research/yolo_sandbox_frames.csv")
+_args = _ap.parse_args()
+WEIGHTS = _args.weights
 GT = {int(r["second"]): (int(r["drone_visible"]), int(r["airborne"]))
       for r in csv.DictReader(open(f"{ROOT}/research/gt_sandbox_video.csv"))}
 
@@ -22,7 +27,7 @@ for thr_imgsz in (480, 640):
         rows.append(dict(imgsz=thr_imgsz, second=sec, visible=GT[sec][0], airborne=GT[sec][1],
                          n_det=len(confs), max_conf=max(confs) if confs else 0.0))
 
-with open(f"{ROOT}/research/yolo_sandbox_frames.csv", "w", newline="") as fo:
+with open(_args.out, "w", newline="") as fo:
     w = csv.DictWriter(fo, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 
 def prf(rs, thr, gix):

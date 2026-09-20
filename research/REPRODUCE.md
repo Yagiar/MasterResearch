@@ -118,6 +118,10 @@ cd MasterDiploma && OMP_NUM_THREADS=4 ./venv/bin/python -m uavtrain.cli eval-vis
 research/.venv/bin/python research/coco_bg_fp_eval.py --weights <pt> --name <метка>   # FP на 90 COCO-фонах test
 research/.venv/bin/python research/session_vis_probe.py --weights <pt> --name <метка> # «стоящий дрон» (presence-TP)
 # полной цепочки (eval test → COCO-FP → SAHI MMAUD новыми весами) — bash research/it65_chain.sh
+# вторая цепочка (eval новыми весами DUT600/HF600 → session probe → перегенерация манифеста):
+bash research/it65_chain2.sh
+# пересчёт sandbox-домена новыми весами (pre-follow-up it-66):
+research/.venv/bin/python research/yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv
 ```
 
 ## 7. Известные границы воспроизводимости
