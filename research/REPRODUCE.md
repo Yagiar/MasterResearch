@@ -122,6 +122,8 @@ research/.venv/bin/python research/session_vis_probe.py --weights <pt> --name <�
 bash research/it65_chain2.sh
 # пересчёт sandbox-домена новыми весами (pre-follow-up it-66):
 research/.venv/bin/python research/yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv
+# вердикт по предрегистрированным критериям E1–E5 (из артефактов цепочек):
+research/.venv/bin/python research/it65_verdict.py
 ```
 
 ## 7. Известные границы воспроизводимости
