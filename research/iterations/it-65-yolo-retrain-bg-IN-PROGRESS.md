@@ -110,12 +110,15 @@ metrics.json доменных eval'ов, session probe, SAHI-full с перес�
    **Контроль перезаписи (зарегистрирован 2026-09-20 до экспорта)**: sha256 текущих весов
    `yolov8s-uav.pt` = `41f3fd5593f41f6c18b13316ca48ac05e7a88ed14d4804428fb92035f8cda262` (6 215 274 Б,
    от 12.05) — после `cp` в `yolov8s-uav-old-neg0.pt` хэш backup обязан совпасть, а основной файл — измениться.
-   Команда экспорта (код сверен 2026-09-20, `uavtrain/export.py`): `MasterDiploma/venv/bin/uavtrain
+   Команда экспорта (код сверен 2026-09-20, повторно 21:52; `uavtrain/export.py`): `MasterDiploma/venv/bin/uavtrain
    export-visual --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt
-   --metrics train/runs/eval/visual-bg-new/metrics.json` — копирует в `models/visual/yolov8s-uav.pt`
-   (молча перезаписывает — отсюда backup выше) и дописывает строку в реестр `models/README.md`;
+   --metrics train/runs/eval/visual-bg-new/metrics.json` — копирует (`shutil.copy2`, простой .pt,
+   без ONNX) в `models/visual/yolov8s-uav.pt` (молча перезаписывает — отсюда backup выше);
+   в **README ничего не дописывает**: append-only реестр ведётся в `models/registry.csv`, а md-строка
+   только печатается в stdout — её вставлять в `models/README.md` вручную (README курируется руками);
    --out-name не нужен (дефолт — нужное имя). Минус CLI: строка датасета в реестре зашита
-   «hf-drone-detection…» — для нового корпуса поправим вручную.
+   «hf-drone-detection…» — для нового корпуса датасет-поле в `registry.csv` поправим вручную
+   (или допишем вторую, честную строку — append-only формат это допускает).
    **Заготовка md-строки для реестра (ход 36, 2026-09-20)** — заменить датасет-и-метрики части
    сгенерированной экспортом строки; числа метрик подставить из `visual-bg-new/metrics.json`:
    `| YOLOv8s → UAV-bg (visual) | visual/yolov8s-uav.pt | hf-drone-detection + DUT Anti-UAV + COCO-фоны
