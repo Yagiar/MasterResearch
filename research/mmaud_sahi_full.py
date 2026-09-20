@@ -5,6 +5,11 @@
 на ВСЕХ кадрах + мерж с уже измеренным full@1920 (mmaud_imgsz1920.csv) → точные
 recall/union на независимом материале.
 Запуск: research/.venv/bin/python research/mmaud_sahi_full.py
+
+ОСТОРОЖНО (it-65): mmaud_imgsz1920.csv измерен СТАРЫМИ весами (it-58). При других --weights
+колонки conf_full1920/conf_union в выходе — смесь моделей, для old↔new сравнений непригодны
+(сравнивать только conf_sahi). Для прогона другими весами передавать `--full1920-csv none`
+(или файл full@1920, измеренный теми же весами).
 """
 import argparse
 import csv
@@ -21,10 +26,13 @@ IMGS = sorted(glob.glob(str(MD / "train/data/mmaud/Mavic3/image/*.png")))
 ap = argparse.ArgumentParser()
 ap.add_argument("--weights", default=str(MD / "models/visual/yolov8s-uav.pt"))
 ap.add_argument("--out", default=str(ROOT / "research/mmaud_sahi_full.csv"))
+ap.add_argument("--full1920-csv", default=str(ROOT / "research/mmaud_imgsz1920.csv"),
+                help="предыдущий замер full@1920 ТЕМИ ЖЕ весами; 'none' — отключить мерж (честный conf_union)")
 args = ap.parse_args()
 
-# уже измеренный full@1920 (it-58)
-full1920 = {r["img"]: float(r["conf"]) for r in csv.DictReader(open(ROOT / "research/mmaud_imgsz1920.csv", encoding="utf-8"))}
+# уже измеренный full@1920 (it-58) — только если он относится к тем же весам
+full1920 = ({} if args.full1920_csv == "none" else
+            {r["img"]: float(r["conf"]) for r in csv.DictReader(open(args.full1920_csv, encoding="utf-8"))})
 
 from ultralytics import YOLO  # noqa: E402
 import cv2  # noqa: E402

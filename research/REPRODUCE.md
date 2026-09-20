@@ -82,6 +82,8 @@ research/.venv/bin/python research/mmaud_visual_eval.py        # полный к
 research/.venv/bin/python research/mmaud_imgsz1920_eval.py     # полный корпус @1920 + SAHI-проба
 research/.venv/bin/python research/mmaud_sahi_eval.py 10       # SAHI 640/0.2 vs full @1920 (510 кадров)
 research/.venv/bin/python research/mmaud_sahi_full.py          # ПОЛНЫЙ корпус: SAHI recall 94.5% (полёт) / 100% (статика)
+#   (it-65: у скрипта появился флаг --full1920-csv — мерж full@1920 из mmaud_imgsz1920.csv относится
+#    к СТАРЫМ весам; при других весах передавать 'none', иначе conf_union смешивает две модели)
 # аудио: извлечение каналов из bag + спектральная проверка + AST
 research/.venv/bin/python research/mmaud_multichannel.py       # корреляционная проверка каналов (ДЕРЖАТЬ ПЕРВЫМ ШАГОМ — it-62)
 research/.venv/bin/python research/mmaud_acoustic_eval.py      # AST на /audio1 против GT-высоты
