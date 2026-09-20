@@ -108,6 +108,14 @@
   "research/threshold_calibration_v2.csv": {
    "sha256": "3f7596993e6a5cc43347057a459e66437b06e21786beef97be6470a2f3410166",
    "bytes": 2901
+  },
+  "research/coco_bg_fp_old-yolov8s-uav.csv": {
+   "sha256": "ba7cd6de813f5092f30b874b1d71d2d44989664aa72192faccf02059e4bd37e0",
+   "bytes": 6767
+  },
+  "research/mmaud_sahi_full.csv": {
+   "sha256": "93b78bf3fe7bed393e7aa2b375a031e6d687651d00af96d5428ac7f3262e1700",
+   "bytes": 207109
   }
  }
 }

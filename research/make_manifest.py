@@ -44,6 +44,11 @@ FILES = {
     "research/gt_negative_session.csv": ROOT / "research/gt_negative_session.csv",
     "research/airborne_policy_sim.csv": ROOT / "research/airborne_policy_sim.csv",
     "research/threshold_calibration_v2.csv": ROOT / "research/threshold_calibration_v2.csv",
+    # --- it-65: базовые замеры старой модели и результаты новой (по мере появления) ---
+    "research/coco_bg_fp_old-yolov8s-uav.csv": ROOT / "research/coco_bg_fp_old-yolov8s-uav.csv",
+    "research/coco_bg_fp_new-yolov8s-bg.csv": ROOT / "research/coco_bg_fp_new-yolov8s-bg.csv",
+    "research/mmaud_sahi_full.csv": ROOT / "research/mmaud_sahi_full.csv",
+    "research/mmaud_sahi_full_new.csv": ROOT / "research/mmaud_sahi_full_new.csv",
 }
 
 HF_MODELS = {
