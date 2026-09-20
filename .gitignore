@@ -43,3 +43,4 @@ research/mmaud_audio*.wav
 
 # артефакты ultralytics при запуске eval из корня workspace (it-65)
 runs/
+vitals.csv
