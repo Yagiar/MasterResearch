@@ -49,6 +49,11 @@ metrics.json доменных eval'ов, session probe, SAHI-full с перес�
 `session_share` = 18/18 (E4), `sahi_flight_recall` = 94,520% (E5; сегментация полёт/стоит —
 тот же bisect по лидарному GT, z>1 м, что в `mmaud_sahi_full.py`). Несопоставимости чисел
 «вердикт vs baseline» в E1/E4/E5 нет; E2/E3 берутся из metrics.json тех же eval-прогонов.
+**Сквозная сверка имён артефактов (2026-09-20)**: `it65_chain.sh` → `coco_bg_fp_new-yolov8s-bg.csv`,
+`mmaud_sahi_full_new.csv`; `it65_chain2.sh` → `--name new-dut600/new-hf600`, а `eval-visual` добавляет
+префикс `visual-` (доказано каталогами `visual-old-dut600/hf600`) → вердикт читает `visual-new-dut600/hf600`;
+шаг 1 (`--name bg-new`) даёт `visual-bg-new/metrics.json` — путь аргумента `--metrics` команды экспорта.
+Рассогласований, оставивших бы вердикт в «ЖДЁТ», нет.
 
 1. `eval-visual` нового корпуса (test: 4915 кадров, 1,8% негативов) — сравнить mAP со старой моделью (baseline: по доменам — таблица «Подготовка»; старая на всём test не гонялась из-за объёма, сравнение по 600-кадровым подвыборкам HF/DUT: 0,867/0,720 mAP50).
 2. Офлайн-оценка на MMAUD (`mmaud_sahi_full.py --weights <новые> --out research/mmaud_sahi_full_new.csv`) — сравнить SAHI-recall с 94,5% (it-63).
