@@ -124,7 +124,7 @@ metrics.json доменных eval'ов, session probe, SAHI-full с перес�
    Команда экспорта (код сверен 2026-09-20, повторно 21:52 и 22:12; `uavtrain/export.py`): `MasterDiploma/venv/bin/uavtrain
    export-visual --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt
    --metrics train/runs/eval/visual-bg-new/metrics.json
-   --dataset "hf-drone-detection (train) + DUT Anti-UAV (train) + COCO-фоны как негативы; it-65, seed 1337"` —
+   --dataset "hf-drone-detection + DUT Anti-UAV + COCO-фоны (негативы 1,3 % train / 3,3 % val / 1,8 % test), 1 класс drone, it-65, seed 1337"` —
    копирует (`shutil.copy2`, простой .pt,
    без ONNX) в `models/visual/yolov8s-uav.pt` (молча перезаписывает — отсюда backup выше);
    в **README ничего не дописывает**: append-only реестр ведётся в `models/registry.csv`, а md-строка
