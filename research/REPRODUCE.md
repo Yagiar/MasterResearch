@@ -151,6 +151,15 @@ research/.venv/bin/python research/it65_verdict.py
 Манифест (`make_manifest.py`) с хода 35 покрывает также кривую тренировки
 `train/runs/visual/uav-yolov8s-bg/results.csv` и все `metrics.json` eval-прогонов E2/E3.
 
+```bash
+# E2/E3 контроль устройством (baseline старой модели — CPU, chain2 — GPU; порог E2 узкий):
+# если mAP50 visual-new-dut600 попал в [0,715; 0,725] — пересчитать те же веса на CPU:
+cd MasterDiploma && ./venv/bin/python -m uavtrain.cli eval-visual \
+  --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt \
+  --data train/data/_prepared/visual-dut-test600/data.yaml \
+  --imgsz 640 --device cpu --name new-dut600-cpu   # отдельный каталог visual-new-dut600-cpu, вердикт не трогает
+```
+
 ## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;

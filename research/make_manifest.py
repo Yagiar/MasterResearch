@@ -67,6 +67,7 @@ FILES = {
     "train/runs/eval/visual-old-hf600/metrics.json": MD / "train/runs/eval/visual-old-hf600/metrics.json",
     "train/runs/eval/visual-bg-new/metrics.json": MD / "train/runs/eval/visual-bg-new/metrics.json",
     "train/runs/eval/visual-new-dut600/metrics.json": MD / "train/runs/eval/visual-new-dut600/metrics.json",
+    "train/runs/eval/visual-new-dut600-cpu/metrics.json": MD / "train/runs/eval/visual-new-dut600-cpu/metrics.json",
     "train/runs/eval/visual-new-hf600/metrics.json": MD / "train/runs/eval/visual-new-hf600/metrics.json",
 }
 
