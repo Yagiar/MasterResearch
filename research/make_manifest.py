@@ -64,6 +64,15 @@ HF_MODELS = {
     "Rashidbm/samid-drone-detector": "акустический AST-детектор (research/it-05, 15, 18)",
 }
 
+# Входы, которые по политике не попадают в git (см. AGENTS.md / .gitignore). Отдельным блоком:
+# их нельзя проверить по репозиторию, но можно — по целостности локальной копии (it-66 упирается
+# именно в них: sandbox-клип отсутствует, пересчёт идёт по извлечённым кадрам).
+GITIGNORED = {
+    "research/sandbox_frames/full/": (ROOT / "research/sandbox_frames/full", "dir"),
+    "MasterDiploma/sandboxDataForSimulator/negative-session.mp4": (MD / "sandboxDataForSimulator/negative-session.mp4", "file"),
+    "MasterDiploma/sandboxDataForSimulator/negative-session.wav": (MD / "sandboxDataForSimulator/negative-session.wav", "file"),
+}
+
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -71,6 +80,15 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def tree_digest(directory: Path) -> tuple[str, int]:
+    """Сводный sha256 каталога: по отсортированным «имя:sha256» файлов (детерминирован)."""
+    files = sorted(p for p in directory.rglob("*") if p.is_file())
+    agg = hashlib.sha256()
+    for p in files:
+        agg.update(f"{p.relative_to(directory)}:{sha256(p)}\n".encode())
+    return agg.hexdigest(), len(files)
 
 
 def hf_revisions() -> dict[str, str]:
@@ -83,7 +101,8 @@ def hf_revisions() -> dict[str, str]:
             out[repo] = api.model_info(repo).sha or "unknown"
     except Exception as exc:  # noqa: BLE001 - офлайн: ревизии фиксируются вручную
         print(f"предупреждение: HF недоступен ({type(exc).__name__}); подставьте ревизии вручную", file=sys.stderr)
-        out[repo] = "unknown"
+        for repo in HF_MODELS:
+            out.setdefault(repo, "unknown")
     return out
 
 
@@ -111,6 +130,15 @@ def main() -> int:
         else:
             missing.append(key)
     out = ROOT / "research/manifest.json"
+    manifest["gitignored_inputs"] = {}
+    for key, (path, kind) in GITIGNORED.items():
+        if kind == "dir" and path.is_dir():
+            dig, n = tree_digest(path)
+            manifest["gitignored_inputs"][key] = {"tree_sha256": dig, "files": n}
+        elif kind == "file" and path.is_file():
+            manifest["gitignored_inputs"][key] = {"sha256": sha256(path), "bytes": path.stat().st_size}
+        else:
+            manifest["gitignored_inputs"][key] = {"state": "absent"}
     out.write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"manifest: {out} ({len(manifest['files'])} файлов)")
     if missing:
