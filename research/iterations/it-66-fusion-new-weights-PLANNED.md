@@ -47,3 +47,23 @@
 - Манифест: при запуске добавить 7 файлов `*-new` в `make_manifest.py` (иначе артефакты итерации без sha256).
 - CPU-прогон 146 предсказаний — память под контролем (после kernel panic тяжёлые CPU-прогоны не запускать
   параллельно с цепочками; только после `цепочка 2 завершена`).
+
+## Смежный аудит (2026-09-20, автономный ход): research ↔ продакшн-конфиг
+
+Проверено чтением `MasterDiploma/services/fusion/**` и `configs/pilot.yaml` (значения сверены построчно);
+числа research — из `threshold_calibration_v2.csv`, `fusion_sim_results.csv`, отчётов it-40/43. Расхождения:
+
+| # | факт | где | чем подтверждено в research |
+|---|---|---|---|
+| 1 | `audio_temporal_k: 0` — медианное сглаживание аудио-канала **выключено** | `configs/pilot.yaml:145` | causal median-5 даёт +0,004…0,05 F1 (`fusion_sim_results.csv`, it-43 лучший онлайн k=5) |
+| 2 | `window_release: "per-message"` при лучшем живом конфиге watermark | `configs/pilot.yaml:124` | it-43: watermark+k=5+τ=0,5 → F1 0,968; режим окна в симуляциях не моделируется вовсе |
+| 3 | Порог late+медиана оптимизирован при τ=0,55, в пилоте стоит 0,5 | `configs/pilot.yaml:141` | `threshold_calibration_v2.csv`: late+median-5 τ=0,55 F1 0,965 > τ=0,5 |
+| 4 | `motion_floor`: default кода 0,15 против 0,3 в пилоте; симуляции — только 0,3 | `consumer.py:67` vs `pilot.yaml:135` | `airborne_policy_sim.py:88` |
+| 5 | `window_epsilon_ms`: default 80 против 600 в пилоте; hop в research — 500 мс | `__main__.py:55` vs `pilot.yaml:111` | ε ничем не калибровался |
+| 6 | Adaptive gating и health-gate выключены (`false`), пороги гейта (`std_floor=0.05`, `mean_pa_floor=0.2`) подбирались «под материал» | `pilot.yaml:149`, `temporal.py:144-151` | grid-поиска по ним нет ни в одном research-скрипте |
+| 7 | Fusion-сервис не читает версию/имя весов: путь только у visual-detector (`yolov8n.pt` fallback) | `visual-detector/…/detector.py:29`, `pilot.yaml:74` | замена весов it-65 код fusion не трогает → **калибровка видео-порога после замены обязательна** (это T3/it-66) |
+
+Вывод для работы: правки 1–3 — кандидат на отдельную итерацию (проверка в симуляции + живом прогоне),
+пункт 7 — прямое обоснование того, что it-66 (пересчёт порогов новыми весами) обязателен, а не факультативен.
+Расхождений по каузальности медианы нет: `MedianSmoother` в продакшне каузальный, «centered» из research
+(видит будущее) там не применяется.
