@@ -13,15 +13,15 @@
 ## Запущенная тренировка
 
 - Отвязанный процесс (nohup, PID 1929404, переживает сессию): `train-visual --data _prepared/visual/data.yaml --base-weights yolov8s.pt --epochs 30 --patience 10 --batch 8 --workers 2 --name uav-yolov8s-bg`
-- Лог: `/tmp/yolo_bg_train.log`; прогресс: `train/runs/visual/uav-yolov8s-bg/results.csv`
+- Лог: `/tmp/yolo_bg_train.log`; прогресс: `train/runs/visual/uav-yolov8s-bg/results.csv` (после паники 2026-09-20 — PID 5208, лог `train/runs/visual/uav-yolov8s-bg/resume.log`, см. «Инцидент»).
 - Первый запуск (batch 16) упал по CUDA OOM (6 ГБ) → batch 8.
 - Реальная скорость (замер): 1,1 it/s → **~1,8 ч/эпоха**; полные 30 эпох ≈ 54 ч, с early stopping реально ~25-30 ч. Процесс отвязан — переживает сессию; проверка прогресса: `wc -l train/runs/visual/uav-yolov8s-bg/results.csv` (строки = завершённые эпохи).
 
 ## По завершении (продолжение цикла)
 
-1. `eval-visual` нового корпуса (test: 4915 кадров, 1,8% негативов) — сравнить mAP со старой моделью.
+1. `eval-visual` нового корпуса (test: 4915 кадров, 1,8% негативов) — сравнить mAP со старой моделью (baseline: по доменам — таблица «Подготовка»; старая на всём test не гонялась из-за объёма, сравнение по 600-кадровым подвыборкам HF/DUT: 0,867/0,720 mAP50).
 2. Офлайн-оценка на MMAUD (`mmaud_sahi_full.py --weights <новые> --out research/mmaud_sahi_full_new.csv`) — сравнить SAHI-recall с 94,5% (it-63).
-3. Замер FP на фонах COCO-test (`coco_bg_fp_eval.py --weights <новые> --name new`) и негативной сессии.
+3. Замер FP на фонах COCO-test (`coco_bg_fp_eval.py --weights <новые> --name new`). Уточнение по «негативной сессии» из п.3 прежнего плана: она негативна только для цели «airborne» (дрон стоит в кадре; it-51), для цели «присутствие» — позитивна, поэтому визуальный FP-замер на пустых сценах корректно делает только COCO-фон; для сессии остаётся контроль, что новая модель не потеряла стоящий дрон (p_v на кадрах с visible=1, airborne=0 — ожидаемо TP по «presence»).
 4. Если качество не упало, а FP на фонах снизился — экспорт в `models/visual/` и live-прогон.
 5. Отчёт it-65 финальный + INDEX + коммит весов (models/ не в git — только метрики).
 
