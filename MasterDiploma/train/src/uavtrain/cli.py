@@ -154,7 +154,9 @@ def _cmd_eval_acoustic(args: argparse.Namespace) -> int:
 def _cmd_export_visual(args: argparse.Namespace) -> int:
     from .export import export_visual  # noqa: PLC0415
 
-    dst = export_visual(Path(args.weights), metrics_json=Path(args.metrics) if args.metrics else None, out_name=args.out_name)
+    dst = export_visual(Path(args.weights), metrics_json=Path(args.metrics) if args.metrics else None,
+                        out_name=args.out_name,
+                        **({"dataset": args.dataset} if getattr(args, "dataset", None) else {}))
     print(f"экспортировано: {dst}")
     return 0
 
@@ -254,6 +256,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--weights", required=True)
     s.add_argument("--metrics", default=None, help="путь к metrics.json (опц.)")
     s.add_argument("--out-name", default="yolov8s-uav.pt")
+    s.add_argument("--dataset", default=None,
+                   help="описание корпуса для models/registry.csv (по умолчанию — дефолт export_visual)")
     s.set_defaults(func=_cmd_export_visual)
 
     s = sub.add_parser("export-acoustic", help="экспорт весов в ../models/acoustic")
