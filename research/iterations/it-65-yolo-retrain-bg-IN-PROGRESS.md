@@ -48,6 +48,12 @@
    (`cp models/visual/yolov8s-uav.pt models/visual/yolov8s-uav-old-neg0.pt` — models/ вне git,
    перезапись необратима); live-прогону ничего не мешает: compose монтирует `models/:/models:ro`,
    pilot.yaml ждёт `/models/visual/yolov8s-uav.pt`, gpu-override правит только device — ребилд не нужен.
+   Команда экспорта (код сверен 2026-09-20, `uavtrain/export.py`): `MasterDiploma/venv/bin/uavtrain
+   export-visual --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt
+   --metrics train/runs/eval/visual-bg-new/metrics.json` — копирует в `models/visual/yolov8s-uav.pt`
+   (молча перезаписывает — отсюда backup выше) и дописывает строку в реестр `models/README.md`;
+   --out-name не нужен (дефолт — нужное имя). Минус CLI: строка датасета в реестре зашита
+   «hf-drone-detection…» — для нового корпуса поправим вручную.
 5. Отчёт it-65 финальный + INDEX + коммит весов (models/ не в git — только метрики).
 
 ## Подготовка (2026-09-20, пока тренировка идёт)
