@@ -34,3 +34,9 @@ research/sandbox_frames/
 /MasterDiplomaVaultObsidian/
 /backups/
 /MasterDiploma/reports/
+
+# Производные аудио из MMAUD ROSBag (CC BY-NC-SA, пересоздаются mmaud_acoustic_eval.py) — не публикуем
+research/mmaud_audio*.wav
+
+# Локальное состояние планировщика сессий
+.qoder/

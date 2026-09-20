@@ -1,0 +1,23 @@
+services:
+  source-simulator:
+    environment:
+      UAVDET_CONFIG: /app/configs/pilot.yaml
+      UAVDET_SOURCE__ADAPTER: "mmaud_replay"
+      UAVDET_SOURCE__ENABLE_AUDIO: "false"
+      UAVDET_SOURCE__MMAUD_REPLAY__VIDEO_PATH: "/data/mmaud/Mavic3/image"
+      UAVDET_SOURCE__MMAUD_REPLAY__AUDIO_PATH: ""
+      UAVDET_SOURCE__MMAUD_REPLAY__FPS: "2"
+    volumes:
+      - ../configs:/app/configs:ro
+      - ../data/sample:/data/sample:ro
+      - ../train/data/mmaud:/data/mmaud:ro
+  visual-detector:
+    environment:
+      UAVDET_VISUAL_DETECTOR__IMGSZ: "640"
+      UAVDET_VISUAL_DETECTOR__SAHI_SLICE: "640"
+      UAVDET_VISUAL_DETECTOR__SAHI_OVERLAP: "0.2"
+  fusion:
+    environment:
+      UAVDET_FUSION__WINDOW_RELEASE: "per-message"
+      UAVDET_FUSION__LATE__DELTA_CONF: "0.0"
+      UAVDET_FUSION__LATE__DELTA_UNCONF: "0.0"

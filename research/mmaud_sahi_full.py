@@ -6,6 +6,7 @@
 recall/union на независимом материале.
 Запуск: research/.venv/bin/python research/mmaud_sahi_full.py
 """
+import argparse
 import csv
 import bisect
 import glob
@@ -17,15 +18,20 @@ ROOT = Path(__file__).resolve().parent.parent
 MD = ROOT / "MasterDiploma"
 IMGS = sorted(glob.glob(str(MD / "train/data/mmaud/Mavic3/image/*.png")))
 
+ap = argparse.ArgumentParser()
+ap.add_argument("--weights", default=str(MD / "models/visual/yolov8s-uav.pt"))
+ap.add_argument("--out", default=str(ROOT / "research/mmaud_sahi_full.csv"))
+args = ap.parse_args()
+
 # уже измеренный full@1920 (it-58)
 full1920 = {r["img"]: float(r["conf"]) for r in csv.DictReader(open(ROOT / "research/mmaud_imgsz1920.csv", encoding="utf-8"))}
 
 from ultralytics import YOLO  # noqa: E402
 import cv2  # noqa: E402
 
-model = YOLO(str(MD / "models/visual/yolov8s-uav.pt"))
+model = YOLO(args.weights)
 
-OUT = ROOT / "research/mmaud_sahi_full.csv"
+OUT = Path(args.out)
 slice_px, overlap = 640, 0.2
 step = max(1, int(slice_px * (1 - overlap)))
 

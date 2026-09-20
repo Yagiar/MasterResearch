@@ -119,7 +119,7 @@ def _xyxy_to_yolo(x1: float, y1: float, x2: float, y2: float, w: int, h: int) ->
 # Мультиклассовый датасет, прошедший через старый парсер, превращал птиц/самолёты
 # в положительные примеры дрона (тихая подмена классов).
 DEFAULT_DRONE_CLASS_IDS = frozenset({0})          # id класса «дрон» в YOLO-разметке источника
-DEFAULT_DRONE_VOC_NAMES = frozenset({"drone", "uav", "uas", "quadcopter", "quadcopter", "uav-drone"})
+DEFAULT_DRONE_VOC_NAMES = frozenset({"drone", "uav", "uas", "quadcopter", "uav-drone"})
 _dropped_boxes: dict[str, int] = {}               # имя класса/id → сколько боксов отброшено
 
 
@@ -315,11 +315,33 @@ def _parse_video_dataset(root: Path, *, frame_stride: int = 5) -> list[YoloSampl
 
 
 def _parse_dut(root: Path) -> list[YoloSample]:
-    """DUT Anti-UAV: обычно — папки изображений + аннотации (VOC XML или txt). Универсальный парсер картинок."""
-    if _all_images(root):
-        return _parse_image_dataset(root)
-    # некоторые релизы DUT содержат видео
-    return _parse_video_dataset(root)
+    """DUT Anti-UAV (it-65): раскладка {train,val,test}/{img/*.jpg, xml/*.xml} — VOC, явные сплиты.
+
+    Размер боксов берётся из <size> XML (быстрее чтения изображения). Кадры без <object>
+    становятся негативами (пустой label). Fallback на универсальные парсеры для иных раскладок.
+    """
+    sub_splits = {d.name: d for d in sorted(root.iterdir())
+                  if d.is_dir() and (d / "img").exists() and (d / "xml").exists()}
+    if not sub_splits:
+        if _all_images(root):
+            return _parse_image_dataset(root)
+        return _parse_video_dataset(root)
+    samples: list[YoloSample] = []
+    for split, sub in sub_splits.items():
+        out_split = split if split in ("train", "val", "test") else None
+        for img in tqdm(_all_images(sub / "img"), desc=f"parse {root.name}/{split}", unit="img"):
+            xml = sub / "xml" / (img.stem + ".xml")
+            boxes, size = [], None
+            if xml.exists():
+                _, boxes, size = _parse_voc_xml(xml)
+            if boxes:
+                w, h = size if size else _image_size(img)
+                yb = [(_DRONE_CLS, *_xyxy_to_yolo(*b, w, h)) for b in boxes]
+            else:
+                yb = []
+            samples.append(YoloSample(image_path=img, boxes=yb, group=f"{root.name}/{split}",
+                                      split=out_split))
+    return samples
 
 
 def _parse_dvb(root: Path) -> list[YoloSample]:
@@ -361,9 +383,23 @@ def _parse_yolo_dir(root: Path) -> list[YoloSample]:
     return _parse_image_dataset(root)
 
 
+def _parse_coco_background(root: Path) -> list[YoloSample]:
+    """Фоновые изображения без дрона (напр. COCO val2017): все — негативы (it-64).
+
+    Каждому изображению — своя группа: _split_groups распределит фоны по сплитам
+    случайно и независимо (чтобы негативы были и в val/test для замера FP).
+    """
+    samples: list[YoloSample] = []
+    for img in tqdm(_all_images(root), desc=f"parse {root.name}", unit="img"):
+        samples.append(YoloSample(image_path=img, boxes=[], group=f"{root.name}/{img.stem}",
+                                  split=None))
+    return samples
+
+
 _PARSERS = {
     "dut-anti-uav": _parse_dut,
     "drone-vs-bird": _parse_dvb,
+    "coco-background": _parse_coco_background,
     "hf-drone-detection": _parse_yolo_split_dir,
     # собственный YOLO-датасет можно положить в train/data/vkr-uav/ и добавить сюда:
     # "vkr-uav": _parse_yolo_dir,
