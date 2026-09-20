@@ -133,7 +133,9 @@ research/.venv/bin/python research/it65_verdict.py
 # самотест вердикта (сверка функций с baseline'ами на старых канонах, см. отчёт it-65, ходы 29–30):
 #   fp_rate(coco_bg_fp_old-yolov8s-uav.csv) == 25,556%; session_share(old) == 18/18;
 #   sahi_flight_recall(mmaud_sahi_full.csv) == 94,520%
-#   (монитор готовности вердикта без холостых опросов: bash research/it65_ready_monitor.sh)
+#   (монитор готовности вердикта без холостых опросов: bash research/it65_ready_monitor_v2.sh —
+#    готовность только когда все 7 шаговых строк OK; v1 считал готовность по наличию файлов и
+#    мог выдать ложный ВЕРДИКТ-ГОТОВ на частичном CSV при FAIL инкрементального шага))
 ```
 Манифест (`make_manifest.py`) с хода 35 покрывает также кривую тренировки
 `train/runs/visual/uav-yolov8s-bg/results.csv` и все `metrics.json` eval-прогонов E2/E3.
