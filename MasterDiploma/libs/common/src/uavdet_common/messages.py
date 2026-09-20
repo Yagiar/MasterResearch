@@ -144,6 +144,11 @@ class DecisionMsg(_Base):
     p_fused: float
     contributions: Contributions = Field(default_factory=Contributions)
     gating: Gating = Field(default_factory=Gating)
+    # it-67: provenance — какие модели породили решение (ключи: video/audio). Без этого jsonl-лог
+    # решений нельзя связать с весом модели: visual-detector при отсутствующем файле молча
+    # откатывается на COCO-заглушку (detector.py:_FALLBACK_WEIGHTS), и в офлайн-скоринге это
+    # неотличимо от нашей модели. Пустой dict — старая запись или каналы без ModelRef.
+    models: dict[str, ModelRef] = Field(default_factory=dict)
     e2e_latency_ms: float = 0.0
     source_msg_ids: list[str] = Field(default_factory=list)
 

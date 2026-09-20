@@ -25,7 +25,7 @@ import time
 from collections import defaultdict, deque
 
 from uavdet_common.consumer_service import KafkaConsumerService
-from uavdet_common.messages import Contributions, DecisionMsg, Gating, InferenceMsg, Topics
+from uavdet_common.messages import Contributions, DecisionMsg, Gating, InferenceMsg, ModelRef, Topics
 from uavdet_common.metrics import (
     DECISIONS_TOTAL,
     DELTA_T_MS,
@@ -188,6 +188,7 @@ class InferenceConsumer(KafkaConsumerService):
                 delta=outcome.delta,
             ),
             gating=Gating(snr_audio=gr.snr_audio, img_quality=gr.img_quality),
+            models=self._model_refs(window),
             e2e_latency_ms=e2e_ms,
             source_msg_ids=list(outcome.source_msg_ids),
         )
@@ -210,3 +211,17 @@ class InferenceConsumer(KafkaConsumerService):
     def _earliest_ingest_ts(window: AlignedWindow) -> float | None:
         candidates = [m.ingest_ts for m in (*window.video, *window.audio) if m.ingest_ts is not None]
         return min(candidates) if candidates else None
+
+    @staticmethod
+    def _model_refs(window: AlignedWindow) -> dict[str, ModelRef]:
+        """Provenance решения (it-67): ModelRef каналов, участвовавших в окне.
+
+        Берётся из входящих inference-сообщений, а не из конфига: только так в jsonl попадает
+        фактически загруженная модель (visual-detector при отсутствующем файле откатывается на
+        COCO-заглушку, и офлайн это неотличимо от нашей yolov8s-uav).
+        """
+        refs = {}
+        for key, msg in (("video", window.best_video()), ("audio", window.best_audio())):
+            if msg is not None and msg.model.name != "unknown":
+                refs[key] = ModelRef(name=msg.model.name, ver=msg.model.ver)
+        return refs
