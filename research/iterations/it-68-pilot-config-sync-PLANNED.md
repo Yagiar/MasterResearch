@@ -55,6 +55,10 @@
   psql-строка v5 даёт только среднее; median считать по `e2e_latency_ms` записей
   `data/decisions/decisions.jsonl` в интервалах строк `SCORE_OFF <этап> OFF:OFF` для A и B
   (например: `sed -n 'START,ENDp' … | python -c 'median'`) — без правки v5/score_stages.
+  **Обкатанная команда (2026-09-21, выборка 301 строка с it-46 jsonl → медиана 117,96 мс):**
+  `sed -n 'START,ENDp' data/decisions/decisions.jsonl | grep -oE '"e2e_latency_ms": [0-9.]+' \
+   | grep -oE '[0-9.]+$' | sort -n | awk '{a[NR]=$1} END{print (NR%2)?a[(NR+1)/2]:(a[NR/2]+a[NR/2+1])/2}'` \
+  — интервалы START:END берутся из строк `SCORE_OFF A/B` лога A/B (у чётного n — среднее двух средних).
 - **U4 (документирование):** в отчёте и `models/README`/REPRODUCE — ссылка, что живые числа A/B
   относятся к актуальным весам и ревизии конфига (provenance, it-67).
 
