@@ -120,6 +120,18 @@
   "research/mmaud_sahi_full.csv": {
    "sha256": "93b78bf3fe7bed393e7aa2b375a031e6d687651d00af96d5428ac7f3262e1700",
    "bytes": 207109
+  },
+  "train/runs/visual/uav-yolov8s-bg/results.csv": {
+   "sha256": "67f71d59864217b44e7ff47bfd155cf58e1539891eb637c7c170050aa26686a8",
+   "bytes": 4108
+  },
+  "train/runs/eval/visual-old-dut600/metrics.json": {
+   "sha256": "77a61d18d8e603103304fe51c7d373ac036efd843c528d9b7623b5d516d1a054",
+   "bytes": 134
+  },
+  "train/runs/eval/visual-old-hf600/metrics.json": {
+   "sha256": "50791222848e2500b6b2950dd517be8678df1d58afbc51ae84b550cfb171c04b",
+   "bytes": 133
   }
  }
 }

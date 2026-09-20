@@ -51,6 +51,13 @@ FILES = {
     "research/coco_bg_fp_new-yolov8s-bg.csv": ROOT / "research/coco_bg_fp_new-yolov8s-bg.csv",
     "research/mmaud_sahi_full.csv": ROOT / "research/mmaud_sahi_full.csv",
     "research/mmaud_sahi_full_new.csv": ROOT / "research/mmaud_sahi_full_new.csv",
+    # --- it-65: источники чисел E2/E3 и кривая тренировки (метрики eval-прогонов) ---
+    "train/runs/visual/uav-yolov8s-bg/results.csv": MD / "train/runs/visual/uav-yolov8s-bg/results.csv",
+    "train/runs/eval/visual-old-dut600/metrics.json": MD / "train/runs/eval/visual-old-dut600/metrics.json",
+    "train/runs/eval/visual-old-hf600/metrics.json": MD / "train/runs/eval/visual-old-hf600/metrics.json",
+    "train/runs/eval/visual-bg-new/metrics.json": MD / "train/runs/eval/visual-bg-new/metrics.json",
+    "train/runs/eval/visual-new-dut600/metrics.json": MD / "train/runs/eval/visual-new-dut600/metrics.json",
+    "train/runs/eval/visual-new-hf600/metrics.json": MD / "train/runs/eval/visual-new-hf600/metrics.json",
 }
 
 HF_MODELS = {
