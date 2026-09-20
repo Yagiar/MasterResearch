@@ -91,7 +91,36 @@ research/.venv/bin/python research/mmaud_acoustic_eval.py      # AST на /audio
 Ожидаемые результаты: SAHI recall 82.7% (full @1920 — 64.1%); live presence recall 100% (857/857);
 аудио — корреляция каналов ≈ 0.005 (узел неисправен), AST p_drone ≈ 0.075 везде.
 
-## 6. Известные границы воспроизводимости
+## 6. Переподготовка визуальной модели с фоновым корпусом (it-65)
+
+Корпус: hf-drone-detection + DUT Anti-UAV (gdown, публичные файлы) + COCO-фоны (HF
+`simopippa/reduced_coco_1000_val2017`), негативов 1,3% train / 3,3% val / 1,8% test:
+
+```bash
+# сплиты DUT из папок {train,val,test}/{img,xml} + фоны; пересборка корпуса:
+MasterDiploma/venv/bin/uavtrain prepare-visual --datasets dut-anti-uav,hf-drone-detection,coco-background
+# обучение (6 ГБ GPU: batch 8; resume после обрыва — last.pt того же прогона):
+MasterDiploma/venv/bin/uavtrain train-visual --data train/data/_prepared/visual/data.yaml \
+  --base-weights yolov8s.pt --epochs 30 --patience 10 --batch 8 --workers 2 --name uav-yolov8s-bg
+research/.venv/bin/python research/it65_resume_train.py        # resume=True от weights/last.pt
+```
+
+Замеры старой и новой модели одним протоколом (цепочка после тренировки — `it65_chain.sh`,
+лог в каталоге прогона, НЕ в /tmp):
+
+```bash
+# baseline-замеры старой модели (CPU, щадя режим тренировки):
+research/.venv/bin/python research/make_dut_test_subset.py                      # DUT-test600 (seed 65)
+research/.venv/bin/python research/make_dut_test_subset.py --prefix hf --tag hf-test600
+cd MasterDiploma && OMP_NUM_THREADS=4 ./venv/bin/python -m uavtrain.cli eval-visual \
+  --weights models/visual/yolov8s-uav.pt --data train/data/_prepared/visual-dut-test600/data.yaml \
+  --imgsz 640 --device cpu --name old-dut600        # и аналогично old-hf600
+research/.venv/bin/python research/coco_bg_fp_eval.py --weights <pt> --name <метка>   # FP на 90 COCO-фонах test
+research/.venv/bin/python research/session_vis_probe.py --weights <pt> --name <метка> # «стоящий дрон» (presence-TP)
+# полной цепочки (eval test → COCO-FP → SAHI MMAUD новыми весами) — bash research/it65_chain.sh
+```
+
+## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;
   контроль — media-длина 72.609 с, 144 окна.
