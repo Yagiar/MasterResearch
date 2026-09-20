@@ -51,6 +51,14 @@ FILES = {
     "research/coco_bg_fp_new-yolov8s-bg.csv": ROOT / "research/coco_bg_fp_new-yolov8s-bg.csv",
     "research/mmaud_sahi_full.csv": ROOT / "research/mmaud_sahi_full.csv",
     "research/mmaud_sahi_full_new.csv": ROOT / "research/mmaud_sahi_full_new.csv",
+    # --- it-66: пересчёт fusion-контура новыми весами (выходы с суффиксом -new) ---
+    "research/yolo_sandbox_frames_new.csv": ROOT / "research/yolo_sandbox_frames_new.csv",
+    "research/fusion_sim_results-new.csv": ROOT / "research/fusion_sim_results-new.csv",
+    "research/stress_sim_results-new.csv": ROOT / "research/stress_sim_results-new.csv",
+    "research/bootstrap_pairs-new.csv": ROOT / "research/bootstrap_pairs-new.csv",
+    "research/delta_sweep-new.csv": ROOT / "research/delta_sweep-new.csv",
+    "research/event_metrics-new.csv": ROOT / "research/event_metrics-new.csv",
+    "research/threshold_calibration_v2-new.csv": ROOT / "research/threshold_calibration_v2-new.csv",
     # --- it-65: источники чисел E2/E3 и кривая тренировки (метрики eval-прогонов) ---
     "train/runs/visual/uav-yolov8s-bg/results.csv": MD / "train/runs/visual/uav-yolov8s-bg/results.csv",
     "train/runs/eval/visual-old-dut600/metrics.json": MD / "train/runs/eval/visual-old-dut600/metrics.json",
