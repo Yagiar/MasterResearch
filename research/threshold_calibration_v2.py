@@ -18,9 +18,11 @@ import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+import argparse
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(ROOT / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
 
 ast = {r["t0"]: r for r in csv.DictReader(open(ROOT / "research/ast_windows.csv"))}
-yolo = {r["second"]: r for r in csv.DictReader(open(ROOT / "research/yolo_sandbox_frames.csv"))
+yolo = {r["second"]: r for r in csv.DictReader(open(_YSRC))
         if r["imgsz"] == "480"}
 
 wins = []

@@ -14,12 +14,14 @@ import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+import argparse
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(ROOT / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
 CLIP = 72.609
 
 gt = {int(r["second"]): (int(r["drone_visible"]), int(r["airborne"]))
       for r in csv.DictReader(open(ROOT / "research/gt_sandbox_video.csv"))}
 ast = {r["t0"]: r for r in csv.DictReader(open(ROOT / "research/ast_windows.csv"))}
-yolo = {r["second"]: r for r in csv.DictReader(open(ROOT / "research/yolo_sandbox_frames.csv"))
+yolo = {r["second"]: r for r in csv.DictReader(open(_YSRC))
         if r["imgsz"] == "480"}
 
 # события GT «airborne»: непрерывные участки

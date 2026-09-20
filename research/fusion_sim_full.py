@@ -16,9 +16,11 @@ import csv
 import math
 
 ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
+import argparse
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(__import__("pathlib").Path(ROOT) / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
 
 ast = {r["t0"]: r for r in csv.DictReader(open(f"{ROOT}/research/ast_windows.csv"))}
-yolo = {r["second"]: r for r in csv.DictReader(open(f"{ROOT}/research/yolo_sandbox_frames.csv"))
+yolo = {r["second"]: r for r in csv.DictReader(open(_YSRC))
         if r["imgsz"] == "480"}
 
 WINS = sorted(ast.keys(), key=float)
