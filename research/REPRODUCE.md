@@ -64,6 +64,9 @@ consumer-группы (`kafka-consumer-groups --delete`), TRUNCATE, затем `
 # it-67: post-hoc-join — какие model_name/model_ver были в живых аблациях it-42…51 (том uavdet-pgdata):
 bash research/it67_pg_join.sh   # защищён: требует финальных строк обеих цепочек it-65 и available ≥ 2 ГиБ;
                                 # поднимает только postgres, останавливает его trap'ом; вывод → research/it67_pg_join.out
+# it-68: живой A/B fusion-конфига (A=per-message/k=0 поставка, B=watermark/k=5 испытанное) на актуальных весах:
+bash research/it68_ab_run.sh    # этапы ablation_v5.sh + provenance-заголовок (sha весов, строка реестра);
+                                # те же защиты; лог research/it68_ab_run.log; скоринг — score_stages.py --burn-in-s 90
 ```
 
 ## 4. Скоринг из train-контура (evaluate_fusion_jsonl, it-48)
