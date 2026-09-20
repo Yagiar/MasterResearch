@@ -34,10 +34,18 @@
 
 ## Что остаётся сделать (не выполнено в этом ходе)
 
-1. Post-hoc-join по `uavdet-pgdata`: какие `model_name` реально были в живых аблациях it-42…51
-   (поднять только `postgres` из `infra/docker-compose.yml`, запрос, остановить).
-2. Синхронизация `configs/pilot.yaml` с испытанным протоколом (`audio_temporal_k: 5`,
-   `window_release: watermark`, ε/hop, τ) — отдельной итерацией, с прогонным подтверждением,
-   после it-65/it-66 (см. пп. 1–3 смежного аудита в отчёте it-66).
-3. В тексте диссертации: оговорка, что живые числа относятся к конфигу испытаний, а не к поставляемому
-   пилотному конфигу, пока пункт 2 не закрыт.
+1. Post-hoc-join по `uavdet-pgdata`: какие `model_name` реально были в живых аблациях it-42…51.
+   Процедура (выполнять только после окончания цепочек it-65/66 и при available ≥ 2 ГиБ):
+   `docker compose -f infra/docker-compose.yml up -d postgres` →
+   `docker compose -f infra/docker-compose.yml exec postgres psql -U uavdet -d uavdet -c "SELECT
+   source_id, modality, model_name, model_ver, count(*), min(ingested_at), max(ingested_at) FROM
+   uavdet.inference GROUP BY 1,2,3,4 ORDER BY 6"` → `docker compose -f infra/docker-compose.yml stop postgres`.
+   Поднимаем только сервис `postgres` (том `uavdet-pgdata`), остальные сервисы не трогаем;
+   остановка — `stop`, не `down` (данные и контейнер сохраняются).
+2. Синхронизация `configs/pilot.yaml` — зарегистрирована как **it-68**
+   (`it-68-pilot-config-sync-PLANNED.md`, критерии U1–U4; τ остаётся 0,5 по живому it-43).
+3. Оговорка в тексте: частичное закрытие 2026-09-20 — числа живых аблаций перенесены в
+   `MasterDiploma/reports/runs_log.md` (прогон №4) с явной оговоркой «поставка per-message/k=0 ≠
+   испытанный watermark/k=5»; аудит `reports/НИР-2/otchet.md` чист (цитируется сходимость v5
+   0,92–0,93 и FP по обоим режимам, привязки 0,968 к поставляемому конфигу нет). Остаётся
+   перенести формулировку в главу диссертации при её написании (или закрыть правкой конфита it-68).
