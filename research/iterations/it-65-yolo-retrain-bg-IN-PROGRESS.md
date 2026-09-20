@@ -115,5 +115,10 @@ metrics.json доменных eval'ов, session probe, SAHI-full с перес�
 research/.venv/bin/python research/yolo_frames_eval.py \
   --weights MasterDiploma/models/visual/yolov8s-uav.pt \
   --out research/yolo_sandbox_frames_new.csv
-# далее — parametrized-источники в fusion_sim_full.py / stress_sim.py / event_metrics.py (it-66)
+# далее — fusion-контур принимает --yolo-csv и --suffix (output: <имя><suffix>.csv; значение
+# с дефисом передавать только формой --suffix=-new): пересчёт =
+#   fusion_sim_full / stress_sim / event_metrics / threshold_calibration_v2 / bootstrap_delta_v2
+#   --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new
+# дефолтные артефакты it-36..41 не перезаписываются; смоук-прогон с --suffix дал побайтно
+# идентичные каноническим таблицы (коммит подготовки it-66)
 ```

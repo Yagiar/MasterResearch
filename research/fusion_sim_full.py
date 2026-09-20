@@ -17,7 +17,7 @@ import math
 
 ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 import argparse
-_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(__import__("pathlib").Path(ROOT) / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YA.add_argument("--suffix", default="", help="суффикс для вых. CSV, напр. -new (it-66)"); _ARGS = _YA.parse_known_args()[0]; _YSRC = str(__import__("pathlib").Path(ROOT) / _ARGS.yolo_csv); _SFX = _ARGS.suffix  # it-66: пересчёт новыми весами
 
 ast = {r["t0"]: r for r in csv.DictReader(open(f"{ROOT}/research/ast_windows.csv"))}
 yolo = {r["second"]: r for r in csv.DictReader(open(_YSRC))
@@ -120,7 +120,7 @@ for fname, ffn in FILTERS:
                      ("late 0.5/0.5", lambda pv, pa, w: 0.5 * pv + 0.5 * pa)):
         results_csv.append(report_row(f"{name}+{fname}", mk, pas))
 
-with open(f"{ROOT}/research/fusion_sim_results.csv", "w", newline="") as f:
+with open(f"{ROOT}/research/fusion_sim_results{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["policy", "P", "R", "F1", "FP", "FN"])
     w.writeheader()
     w.writerows(results_csv)

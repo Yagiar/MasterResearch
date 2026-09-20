@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 import argparse
-_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(ROOT / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YA.add_argument("--suffix", default="", help="суффикс для вых. CSV, напр. -new (it-66)"); _ARGS = _YA.parse_known_args()[0]; _YSRC = str(ROOT / _ARGS.yolo_csv); _SFX = _ARGS.suffix  # it-66: пересчёт новыми весами
 CLIP = 72.609
 
 gt = {int(r["second"]): (int(r["drone_visible"]), int(r["airborne"]))
@@ -81,7 +81,7 @@ for name, fn in CONFIGS.items():
     print(f"{name:<22} {n_str:>14} {d_str:>12} {fp:>4} {fp_hour:>15.0f}")
     rows_out.append(dict(config=name, events_detected=n_str, delay_s=d_str, fp=fp, fp_per_hour=round(fp_hour)))
 
-with open(ROOT / "research/event_metrics.csv", "w", newline="") as f:
+with open(ROOT / f"research/event_metrics{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["config", "events_detected", "delay_s", "fp", "fp_per_hour"])
     w.writeheader(); w.writerows(rows_out)
 print("\nCSV: research/event_metrics.csv")

@@ -20,7 +20,7 @@ from statistics import mean, stdev
 
 ROOT = str(__import__("pathlib").Path(__file__).resolve().parent.parent)  # корень workspace (it-39: без абсолютных путей)
 import argparse
-_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(__import__("pathlib").Path(ROOT) / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YA.add_argument("--suffix", default="", help="суффикс для вых. CSV, напр. -new (it-66)"); _ARGS = _YA.parse_known_args()[0]; _YSRC = str(__import__("pathlib").Path(ROOT) / _ARGS.yolo_csv); _SFX = _ARGS.suffix  # it-66: пересчёт новыми весами
 N_SEEDS = 25
 
 ast = {r["t0"]: r for r in csv.DictReader(open(f"{ROOT}/research/ast_windows.csv"))}
@@ -154,7 +154,7 @@ for of in (0.1, 0.25, 0.5):
         csv_out.append(dict(stress=f"outage{of}", policy=pol, F1_mean=round(m, 4), F1_std=round(sd, 4)))
     print(f"{of:>7} | " + " | ".join(f"{c:>9}" for c in cells))
 
-with open(f"{ROOT}/research/stress_sim_results.csv", "w", newline="") as f:
+with open(f"{ROOT}/research/stress_sim_results{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["stress", "policy", "F1_mean", "F1_std"])
     w.writeheader()
     w.writerows(csv_out)

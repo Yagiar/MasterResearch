@@ -120,8 +120,10 @@ research/.venv/bin/python research/session_vis_probe.py --weights <pt> --name <�
 # полной цепочки (eval test → COCO-FP → SAHI MMAUD новыми весами) — bash research/it65_chain.sh
 # вторая цепочка (eval новыми весами DUT600/HF600 → session probe → перегенерация манифеста):
 bash research/it65_chain2.sh
-# пересчёт sandbox-домена новыми весами (pre-follow-up it-66):
+# пересчёт sandbox-домена и fusion-контура новыми весами (it-66; значение --suffix — только формой с =):
 research/.venv/bin/python research/yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv
+for s in fusion_sim_full stress_sim event_metrics threshold_calibration_v2 bootstrap_delta_v2; do
+  research/.venv/bin/python research/$s.py --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new; done
 # вердикт по предрегистрированным критериям E1–E5 (из артефактов цепочек):
 research/.venv/bin/python research/it65_verdict.py
 ```

@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 import argparse
-_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(ROOT / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YA.add_argument("--suffix", default="", help="суффикс для вых. CSV, напр. -new (it-66)"); _ARGS = _YA.parse_known_args()[0]; _YSRC = str(ROOT / _ARGS.yolo_csv); _SFX = _ARGS.suffix  # it-66: пересчёт новыми весами
 
 ast = {r["t0"]: r for r in csv.DictReader(open(ROOT / "research/ast_windows.csv"))}
 yolo = {r["second"]: r for r in csv.DictReader(open(_YSRC))
@@ -102,7 +102,7 @@ for mname, fn in METHODS.items():
     F, tau, P, R = best
     print(f"    ЛУЧШИЙ: τ={tau:.2f} → P={P:.3f} R={R:.3f} F1={F:.3f}")
 
-with open(ROOT / "research/threshold_calibration_v2.csv", "w", newline="") as f:
+with open(ROOT / f"research/threshold_calibration_v2{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["method", "tau", "P", "R", "F1"])
     w.writeheader()
     w.writerows(rows_out)

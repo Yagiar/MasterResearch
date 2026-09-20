@@ -17,7 +17,7 @@ from statistics import mean, quantiles
 
 ROOT = Path(__file__).resolve().parent.parent
 import argparse
-_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YSRC = str(ROOT / _YA.parse_known_args()[0].yolo_csv)  # it-66: пересчёт новыми весами
+_YA = argparse.ArgumentParser(); _YA.add_argument("--yolo-csv", default="research/yolo_sandbox_frames.csv"); _YA.add_argument("--suffix", default="", help="суффикс для вых. CSV, напр. -new (it-66)"); _ARGS = _YA.parse_known_args()[0]; _YSRC = str(ROOT / _ARGS.yolo_csv); _SFX = _ARGS.suffix  # it-66: пересчёт новыми весами
 B = 2000  # бутстрап-реплик
 BLOCK_WINDOWS = 10  # 10 окон × 0.5 с = 5 с клипа
 
@@ -98,7 +98,7 @@ for a, b in pairs:
     print(f"  {a} − {b}: ΔF1 = {point[a] - point[b]:+.3f}  [{lo:+.3f}; {hi:+.3f}]  → {verdict}")
     rows_out.append(dict(a=a, b=b, dF1=round(point[a] - point[b], 3), ci_lo=round(lo, 3), ci_hi=round(hi, 3), significant=verdict))
 
-with open(ROOT / "research/bootstrap_pairs.csv", "w", newline="") as f:
+with open(ROOT / f"research/bootstrap_pairs{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["a", "b", "dF1", "ci_lo", "ci_hi", "significant"])
     w.writeheader(); w.writerows(rows_out)
 
@@ -126,7 +126,7 @@ for dc in (0.0, 0.05, 0.1, 0.15):
 print(f"\n  ЛУЧШИЙ Δ: δc={best[1][0]}, δu={best[1][1]} → F1={best[0]:.3f}  "
       f"(без Δ: {point['late τ=0.5']:.3f}) → Δ {'не помогает' if best[0] <= point['late τ=0.5'] + 1e-9 else 'помогает на ' + format(best[0] - point['late τ=0.5'], '+.3f')}")
 
-with open(ROOT / "research/delta_sweep.csv", "w", newline="") as f:
+with open(ROOT / f"research/delta_sweep{_SFX}.csv", "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["delta_conf", "delta_unconf", "F1"])
     w.writeheader(); w.writerows(table)
 print("\nCSV: research/bootstrap_pairs.csv, research/delta_sweep.csv")
