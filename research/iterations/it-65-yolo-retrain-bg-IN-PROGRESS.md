@@ -63,6 +63,9 @@ metrics.json доменных eval'ов, session probe, SAHI-full с перес�
    (`cp models/visual/yolov8s-uav.pt models/visual/yolov8s-uav-old-neg0.pt` — models/ вне git,
    перезапись необратима); live-прогону ничего не мешает: compose монтирует `models/:/models:ro`,
    pilot.yaml ждёт `/models/visual/yolov8s-uav.pt`, gpu-override правит только device — ребилд не нужен.
+   **Контроль перезаписи (зарегистрирован 2026-09-20 до экспорта)**: sha256 текущих весов
+   `yolov8s-uav.pt` = `41f3fd5593f41f6c18b13316ca48ac05e7a88ed14d4804428fb92035f8cda262` (6 215 274 Б,
+   от 12.05) — после `cp` в `yolov8s-uav-old-neg0.pt` хэш backup обязан совпасть, а основной файл — измениться.
    Команда экспорта (код сверен 2026-09-20, `uavtrain/export.py`): `MasterDiploma/venv/bin/uavtrain
    export-visual --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt
    --metrics train/runs/eval/visual-bg-new/metrics.json` — копирует в `models/visual/yolov8s-uav.pt`
