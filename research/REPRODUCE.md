@@ -124,11 +124,14 @@ bash research/it65_chain2.sh
 research/.venv/bin/python research/yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv
 for s in fusion_sim_full stress_sim event_metrics threshold_calibration_v2 bootstrap_delta_v2; do
   research/.venv/bin/python research/$s.py --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new; done
+#   (аудит 2026-09-20: у всех пяти скриптов выходы именованы с суффиксом — старых артефактов не касаются;
+#    при запуске it-66 добавить 7 файлов *-new в FILES make_manifest.py, иначе они не попадут в манифест)
 # вердикт по предрегистрированным критериям E1–E5 (из артефактов цепочек):
 research/.venv/bin/python research/it65_verdict.py
 # самотест вердикта (сверка функций с baseline'ами на старых канонах, см. отчёт it-65, ходы 29–30):
 #   fp_rate(coco_bg_fp_old-yolov8s-uav.csv) == 25,556%; session_share(old) == 18/18;
 #   sahi_flight_recall(mmaud_sahi_full.csv) == 94,520%
+#   (монитор готовности вердикта без холостых опросов: bash research/it65_ready_monitor.sh)
 ```
 Манифест (`make_manifest.py`) с хода 35 покрывает также кривую тренировки
 `train/runs/visual/uav-yolov8s-bg/results.csv` и все `metrics.json` eval-прогонов E2/E3.
