@@ -19,6 +19,15 @@
 с перекрёстными ссылками на заметки «Проблема малого объекта (small target)» и
 «Несопоставимость метрик и датасетов»; вольт вне git, коммита нет.
 
+**Пре-флайт согласованности имён (ход 50, 21:41 UTC, без нагрузки):** сверил цепочки → вердикт →
+манифест по всем артефактам — расхождений нет: `eval-visual --name {bg-new,new-dut600,new-hf600}`
+пишет `train/runs/eval/visual-<name>/metrics.json` (шаблон `f"visual-{name}"` в `evaluate.py:50`),
+что совпадает с путями в `it65_verdict.py` и ключами `make_manifest.py`; `coco_bg_fp_eval.py --name
+new-yolov8s-bg` → `research/coco_bg_fp_new-yolov8s-bg.csv`, `session_vis_probe.py --name
+new-yolov8s-bg` → `research/session_vis_probe_new-yolov8s-bg.csv`, SAHI `--out
+research/mmaud_sahi_full_new.csv` — всё читается вердиктом по тем же путям. Синтаксис шага 5
+(экспорт) подтверждён в CLI: `export-visual --weights --metrics [--out-name]`.
+
 **Политика ожидания (правило пользователя 2026-09-20):** холостые опросы цели запрещены — ожидание
 несёт условный монитор `research/it65_ready_monitor.sh` (опрос раз в 10 мин, печатает событие только
 при изменении состояния: новая эпоха / `шаг N FAIL` / `ВЕРДИКТ-ГОТОВ` и завершается). Агрессивные
