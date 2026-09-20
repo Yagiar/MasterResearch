@@ -28,7 +28,7 @@ say "шаг 1: yolo_frames_eval новыми весами (CPU)"
 
 say "шаг 2: пять fusion-скриптов (--suffix=-new)"
 for s in fusion_sim_full stress_sim event_metrics threshold_calibration_v2 bootstrap_delta_v2; do
-  "$PY" "$ROOT/research/$s.py" --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new >> "$LOG" 2>&1 \
+  "$PY" "$ROOT/research/$s.py" --yolo-csv "$ROOT/research/yolo_sandbox_frames_new.csv" --suffix=-new >> "$LOG" 2>&1 \
     && say "шаг 2 $s OK" || say "шаг 2 $s FAIL"
 done
 
