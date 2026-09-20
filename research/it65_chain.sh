@@ -9,14 +9,14 @@ set -u
 ROOT=/home/otrix/code/GeneralFolderMasterDiploma
 MD=$ROOT/MasterDiploma
 RUN=$MD/train/runs/visual/uav-yolov8s-bg
-LOG=/tmp/it65_chain.log
+LOG=$RUN/it65_chain.log   # не /tmp — переживает перезагрузку
 BEST=$RUN/weights/best.pt
 
 say() { echo "[$(date '+%F %T')] $*" >> "$LOG"; }
 
 say "watcher запущен; жду завершения тренировки"
 while true; do
-  if ! pgrep -f "uavtrain.cli" > /dev/null; then
+  if ! pgrep -f "uavtrain.cli|it65_resume_train" > /dev/null; then
     say "процесс тренировки не найден — считаем завершённой"
     break
   fi
