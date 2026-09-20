@@ -61,6 +61,10 @@
 
 Артефакты прогона: `yolo_sandbox_frames_new.csv` + 6 файлов `*-new.csv` (ключи пре-зарегистрированы
 в манифесте), лог — `research/it66_run.log`.
+**Измеримость T1–T5 подтверждена аудитом 2026-09-21** по заголовкам канонических CSV: T1/T2 —
+`policy,P,R,F1,FP,FN` (fusion_sim_results), T3 — `method,tau,…,F1` (threshold_calibration_v2),
+T4 — `config,…,delay_s,…` (event_metrics), T5 — `a,b,dF1,ci_lo,ci_hi,significant` (bootstrap_pairs);
+правок скриптов ради записи критериев не требуется.
 
 ## Границы и риски (заранее)
 
