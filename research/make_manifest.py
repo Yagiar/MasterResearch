@@ -59,6 +59,8 @@ FILES = {
     "research/delta_sweep-new.csv": ROOT / "research/delta_sweep-new.csv",
     "research/event_metrics-new.csv": ROOT / "research/event_metrics-new.csv",
     "research/threshold_calibration_v2-new.csv": ROOT / "research/threshold_calibration_v2-new.csv",
+    # --- it-67: вывод post-hoc-join по uavdet-pgdata (появится после запуска скрипта) ---
+    "research/it67_pg_join.out": ROOT / "research/it67_pg_join.out",
     # --- it-65: источники чисел E2/E3 и кривая тренировки (метрики eval-прогонов) ---
     "train/runs/visual/uav-yolov8s-bg/results.csv": MD / "train/runs/visual/uav-yolov8s-bg/results.csv",
     "train/runs/eval/visual-old-dut600/metrics.json": MD / "train/runs/eval/visual-old-dut600/metrics.json",
