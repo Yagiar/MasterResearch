@@ -113,6 +113,10 @@
    "sha256": "ba7cd6de813f5092f30b874b1d71d2d44989664aa72192faccf02059e4bd37e0",
    "bytes": 6767
   },
+  "research/session_vis_probe_old-yolov8s-uav.csv": {
+   "sha256": "2f24e4cc3cd73a68de7bb853e5cfa75bea01277469ef4d597d96219af6ca3f53",
+   "bytes": 425
+  },
   "research/mmaud_sahi_full.csv": {
    "sha256": "93b78bf3fe7bed393e7aa2b375a031e6d687651d00af96d5428ac7f3262e1700",
    "bytes": 207109
