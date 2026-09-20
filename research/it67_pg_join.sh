@@ -17,8 +17,8 @@ avail=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)
 [ "$avail" -ge 2048 ] || { echo "ОТКАЗ: available ${avail} МиБ < 2048 МиБ"; exit 1; }
 
 cd "$MD"
-docker compose -f infra/docker-compose.yml up -d postgres
 trap 'docker compose -f infra/docker-compose.yml stop postgres' EXIT
+docker compose -f infra/docker-compose.yml up -d postgres
 
 for i in $(seq 1 30); do
   if docker compose -f infra/docker-compose.yml exec -T postgres \
