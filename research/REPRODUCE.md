@@ -122,12 +122,14 @@ research/.venv/bin/python research/session_vis_probe.py --weights <pt> --name <�
 # полной цепочки (eval test → COCO-FP → SAHI MMAUD новыми весами) — bash research/it65_chain.sh
 # вторая цепочка (eval новыми весами DUT600/HF600 → session probe → перегенерация манифеста):
 bash research/it65_chain2.sh
-# пересчёт sandbox-домена и fusion-контура новыми весами (it-66; значение --suffix — только формой с =):
-research/.venv/bin/python research/yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv
-for s in fusion_sim_full stress_sim event_metrics threshold_calibration_v2 bootstrap_delta_v2; do
-  research/.venv/bin/python research/$s.py --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new; done
-#   (аудит 2026-09-20: у всех пяти скриптов выходы именованы с суффиксом — старых артефактов не касаются;
-#    при запуске it-66 добавить 7 файлов *-new в FILES make_manifest.py, иначе они не попадут в манифест)
+# пересчёт sandbox-домена и fusion-контура новыми весами (it-66) — одной командой
+# (отказывается без артефактов it-65; сверяет sha весов с best.pt; логи research/it66_run.log):
+bash research/it66_run.sh [путь.к.новым.весам]   # по умолчанию models/visual/yolov8s-uav.pt
+#   (вручную то же самое: yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv,
+#    затем для s в fusion_sim_full stress_sim event_metrics threshold_calibration_v2
+#    bootstrap_delta_v2: $s.py --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new;
+#    значение --suffix — только формой с =; 7 файлов *-new уже зарегистрированы в FILES
+#    make_manifest.py — добавлять больше не нужно)
 # вердикт по предрегистрированным критериям E1–E5 (из артефактов цепочек):
 research/.venv/bin/python research/it65_verdict.py
 # самотест вердикта (сверка функций с baseline'ами на старых канонах, см. отчёт it-65, ходы 29–30):
