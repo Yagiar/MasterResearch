@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
-"""Детерминированная подвыборка DUT-кадров из test-сплита (it-65 контроль).
+"""Детерминированные подвыборки test-кадров по домену (it-65 контроль).
 
 Зачем: корпус it-65 собрал три домена (hf-drone-detection, DUT, фоны); у СТАРОЙ модели
-нет замера на новом домене DUT. Чтобы «сравнить старую и новую» без полного val по
-4915 кадрам на CPU, фиксируется сэмпл 600 DUT-кадров test (symlink-каталог + data.yaml):
-на нём гоняются обе модели одних протоколом.
-Запуск: research/.venv/bin/python research/make_dut_test_subset.py
+нет замеров на новых доменах. Чтобы «сравнить старую и новую» без полного val по
+4915 кадрам на CPU, фиксируются сэмплы 600 кадров домена из test (symlink-каталог +
+data.yaml): на них гоняются обе модели одним протоколом.
+Запуск: research/.venv/bin/python research/make_dut_test_subset.py [--prefix dut-anti-uav|hf]
 """
+import argparse
 import random
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TEST_IMG = ROOT / "MasterDiploma/train/data/_prepared/visual/images/test"
 TEST_LAB = ROOT / "MasterDiploma/train/data/_prepared/visual/labels/test"
-OUT = ROOT / "MasterDiploma/train/data/_prepared/visual-dut-test600"
-N, SEED = 600, 65
+ap = argparse.ArgumentParser()
+ap.add_argument("--prefix", default="dut-anti-uav")
+ap.add_argument("--tag", default="dut-test600", help="имя каталога: visual-<tag>")
+ap.add_argument("-n", type=int, default=600)
+ap.add_argument("--seed", type=int, default=65)
+args = ap.parse_args()
+OUT = ROOT / f"MasterDiploma/train/data/_prepared/visual-{args.tag}"
+N, SEED = args.n, args.seed
 
-dut = sorted(p for p in TEST_IMG.glob("*.jpg") if p.stem.startswith("dut-anti-uav"))
+dut = sorted(p for p in TEST_IMG.glob("*.jpg") if p.stem.startswith(args.prefix))
 random.Random(SEED).shuffle(dut)
 picked = dut[:N]
 
