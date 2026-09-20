@@ -64,7 +64,9 @@ consumer-группы (`kafka-consumer-groups --delete`), TRUNCATE, затем `
 # it-67: post-hoc-join — какие model_name/model_ver были в живых аблациях it-42…51 (том uavdet-pgdata):
 bash research/it67_pg_join.sh   # защищён: требует финальных строк обеих цепочек it-65 и available ≥ 2 ГиБ;
                                 # поднимает только postgres, останавливает его trap'ом; вывод → research/it67_pg_join.out
-# it-68: живой A/B fusion-конфига (A=per-message/k=0 поставка, B=watermark/k=5 испытанное) на актуальных весах:
+# it-68: живой A/B fusion-конфига (A=per-message/k=0 прежняя поставка, B=watermark/k=5 испытанное) на актуальных весах:
+#   (правка configs/pilot.yaml на watermark/k=5 уже внесена 2026-09-21, U1; этапы v5 задают оба
+#    конфига env-переопределениями UAVDET_FUSION__*, так что порядок «сначала A/B, потом правка» не обязателен)
 bash research/it68_ab_run.sh    # этапы ablation_v5.sh + provenance-заголовок (sha весов, строка реестра);
                                 # те же защиты; лог research/it68_ab_run.log; скоринг — score_stages.py --burn-in-s 90
 ```
@@ -150,6 +152,18 @@ research/.venv/bin/python research/it65_verdict.py
 ```
 Манифест (`make_manifest.py`) с хода 35 покрывает также кривую тренировки
 `train/runs/visual/uav-yolov8s-bg/results.csv` и все `metrics.json` eval-прогонов E2/E3.
+
+```bash
+# экспорт при зелёном вердикте (exit 0; красный exit 2 — НЕ экспортировать):
+cd MasterDiploma
+cp models/visual/yolov8s-uav.pt models/visual/yolov8s-uav-old-neg0.pt   # backup до перезаписи
+sha256sum models/visual/yolov8s-uav-old-neg0.pt   # обязан дать 41f3fd55…a262 (старые майские веса)
+./venv/bin/uavtrain export-visual \
+  --weights train/runs/visual/uav-yolov8s-bg/weights/best.pt \
+  --metrics train/runs/eval/visual-bg-new/metrics.json \
+  --dataset "hf-drone-detection + DUT Anti-UAV + COCO-фоны (негативы 1,3 % train / 3,3 % val / 1,8 % test), 1 класс drone, it-65, seed 1337"
+# флаг --dataset закрыл дефект реестра (без него registry.csv записал бы корпус it-65 как «hf-drone-detection»);
+# md-строка печатается в stdout — переносится в models/README.md вручную, старую строку переименовать в -old-neg0.pt
 
 ```bash
 # E2/E3 контроль устройством (baseline старой модели — CPU, chain2 — GPU; порог E2 узкий):
