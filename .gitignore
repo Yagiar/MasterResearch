@@ -40,3 +40,6 @@ research/mmaud_audio*.wav
 
 # Локальное состояние планировщика сессий
 .qoder/
+
+# артефакты ultralytics при запуске eval из корня workspace (it-65)
+runs/
