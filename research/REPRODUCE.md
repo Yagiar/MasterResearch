@@ -164,6 +164,11 @@ sha256sum models/visual/yolov8s-uav-old-neg0.pt   # обязан дать 41f3fd
   --dataset "hf-drone-detection + DUT Anti-UAV + COCO-фоны (негативы 1,3 % train / 3,3 % val / 1,8 % test), 1 класс drone, it-65, seed 1337"
 # флаг --dataset закрыл дефект реестра (без него registry.csv записал бы корпус it-65 как «hf-drone-detection»);
 # md-строка печатается в stdout — переносится в models/README.md вручную, старую строку переименовать в -old-neg0.pt
+```
+
+Заметки к экспорту: переименование касается таблицы `models/README.md` (строка 2026-05-12) — в
+append-only `models/registry.csv` визуальных строк нет вообще (майский вес регистрировался до появления
+реестра), export просто добавит первую визуальную запись.
 
 ```bash
 # E2/E3 контроль устройством (baseline старой модели — CPU, chain2 — GPU; порог E2 узкий):
