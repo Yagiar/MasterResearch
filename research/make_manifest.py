@@ -47,6 +47,7 @@ FILES = {
     # --- it-65: базовые замеры старой модели и результаты новой (по мере появления) ---
     "research/coco_bg_fp_old-yolov8s-uav.csv": ROOT / "research/coco_bg_fp_old-yolov8s-uav.csv",
     "research/session_vis_probe_old-yolov8s-uav.csv": ROOT / "research/session_vis_probe_old-yolov8s-uav.csv",
+    "research/session_vis_probe_new-yolov8s-bg.csv": ROOT / "research/session_vis_probe_new-yolov8s-bg.csv",
     "research/coco_bg_fp_new-yolov8s-bg.csv": ROOT / "research/coco_bg_fp_new-yolov8s-bg.csv",
     "research/mmaud_sahi_full.csv": ROOT / "research/mmaud_sahi_full.csv",
     "research/mmaud_sahi_full_new.csv": ROOT / "research/mmaud_sahi_full_new.csv",
