@@ -42,6 +42,9 @@
    uavdet.inference GROUP BY 1,2,3,4 ORDER BY 6"` → `docker compose -f infra/docker-compose.yml stop postgres`.
    Поднимаем только сервис `postgres` (том `uavdet-pgdata`), остальные сервисы не трогаем;
    остановка — `stop`, не `down` (данные и контейнер сохраняются).
+   Исполнимо: `bash research/it67_pg_join.sh` (все три защиты в скрипте: финальные строки обеих
+   цепочек, available ≥ 2048 МиБ, `stop postgres` в trap; отказ проверен вживую 2026-09-21 —
+   exit=1 до завершения цепочки 1, docker не тронут; вывод → `research/it67_pg_join.out`).
 2. Синхронизация `configs/pilot.yaml` — зарегистрирована как **it-68**
    (`it-68-pilot-config-sync-PLANNED.md`, критерии U1–U4; τ остаётся 0,5 по живому it-43).
 3. Оговорка в тексте: частичное закрытие 2026-09-20 — числа живых аблаций перенесены в

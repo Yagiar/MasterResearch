@@ -60,6 +60,12 @@ research/.venv/bin/python research/e2e_decompose.py <decisions.jsonl> research/i
 consumer-группы (`kafka-consumer-groups --delete`), TRUNCATE, затем `up`; после правок кода —
 ребилд образов; конфиг источников: 5 fps (gpu-overlay с 25 fps удалён, it-47).
 
+```bash
+# it-67: post-hoc-join — какие model_name/model_ver были в живых аблациях it-42…51 (том uavdet-pgdata):
+bash research/it67_pg_join.sh   # защищён: требует финальных строк обеих цепочек it-65 и available ≥ 2 ГиБ;
+                                # поднимает только postgres, останавливает его trap'ом; вывод → research/it67_pg_join.out
+```
+
 ## 4. Скоринг из train-контура (evaluate_fusion_jsonl, it-48)
 
 ```bash
