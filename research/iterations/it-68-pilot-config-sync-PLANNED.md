@@ -34,7 +34,8 @@
 2. `make test` (pytest fusion: поведение watermark/k уже покрыто тестами it-43/44).
    **Выполнено 2026-09-21 01:30 MSK: 92 passed за 19,9 с** — нюанс: Makefile зовёт `pytest` из PATH
    (в голом shell — exit 127), запускать как `PATH="$PWD/venv/bin:$PATH" make test`.
-3. Живой A/B-подтверждение: `bash research/it68_ab_run.sh` (создан 2026-09-21 22:16, до прогона) —
+3. Живой A/B-подтверждение: `bash research/it68_ab_run.sh` (создан 2026-09-21 01:17, коммит
+   `6271a52`, до прогона) —
    боевые этапы `ablation_v5.sh` (it-46: 240 с, Δ=0, τ=0,5, скоринг `score_stages.py --burn-in-s 90`
    по media_ts): конфигурация A = прежняя (per-message, k=0) = этап A, конфигурация B = новая
    (watermark, k=5) = этап B, этап C (watermark k=0) — бонус-контроль разделения эффектов. Уточнение
