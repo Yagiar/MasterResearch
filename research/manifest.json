@@ -253,6 +253,26 @@
    "sha256": "62321ea9f762e3a334f0b53085dba151b20c67d18bfd6cdb9cd6ac4a4102599d",
    "bytes": 163650
   },
+  "research/it73_sahi_contour.txt": {
+   "sha256": "79ccde1d8b48f6edcc1a547911ac301cd0a39661110dc56fe2df4900d61ae725",
+   "bytes": 3802
+  },
+  "research/yolo_sandbox_frames_old_sahi640.csv": {
+   "sha256": "f65ea932cdb689d3f465acca815a1c33d00532858f26051da8ba2114d801c39c",
+   "bytes": 2071
+  },
+  "research/yolo_sandbox_frames_new_sahi640.csv": {
+   "sha256": "71bdda017b708c33146ab36193c4cdd4b381213e688a0649bdbfbb32ed774674",
+   "bytes": 2072
+  },
+  "research/coco_bg_sahi_fp_it73_old.csv": {
+   "sha256": "d5c43ec953fa8ccd25f429c5dce0adf60c89b663ad015fd187dc7cc26e8b7115",
+   "bytes": 14770
+  },
+  "research/coco_bg_sahi_fp_it73_new.csv": {
+   "sha256": "a34d9794514ba7aeeed41bcecc34ef33e4f470464d547a2e9d78f3acc82f49a7",
+   "bytes": 13692
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316

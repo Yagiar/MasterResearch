@@ -286,3 +286,17 @@ research/.venv/bin/python research/it72_independent_e6.py       # → it72_indep
   окружения GPU/драйвера — абсолютное совпадение RAW-чисел не гарантировано, NORM-скоринг
   устойчивее.
 - Старые прогоны (до it-35) без `media_ts` скорятся только диагностическим `--fit-phase`.
+
+## 6e. it-73 — SAHI-pv как вход контура (2026-09-21, GPU-инференс, вердикт W2 красный)
+
+```bash
+# S1: SAHI (640/0,2, инференс-срез 640, conf 0,05, max по ~8 тайлам) по sandbox-кадрам 1920×1080:
+research/.venv/bin/python research/it73_sahi_sandbox.py --weights MasterDiploma/models/visual/yolov8s-uav.pt \
+  --out research/yolo_sandbox_frames_old_sahi640.csv --device cuda      # и аналогично new (best.pt it-65)
+# S2: SAHI-FP на 400 coco-bg-v1 (ДЕГЕНЕРИРУЕТ: все кадры ≤640px ⇒ 1 тайл = кадр ⇒ тождественно V1 it-69;
+#     замеры оставлены как зарегистрированная эквивалентность):
+research/.venv/bin/python research/it73_coco_sahi_fp.py --weights <.pt> \
+  --out research/coco_bg_sahi_fp_it73_<old|new>.csv --device cuda
+# контур (каркас it-71, D0 τ=0,5, гейт 0,25; самопроверка = строки it71_policy_ablation.csv):
+research/.venv/bin/python research/it73_contour.py
+# сводка/вердикт — research/it73_sahi_contour.txt (в манифесте): возврат 5/5 окон, но FP 13>8 → не кандидат.
