@@ -107,6 +107,8 @@ FILES = {
     "research/yolo_sandbox_frames_new_sahi640.csv": ROOT / "research/yolo_sandbox_frames_new_sahi640.csv",
     "research/coco_bg_sahi_fp_it73_old.csv": ROOT / "research/coco_bg_sahi_fp_it73_old.csv",
     "research/coco_bg_sahi_fp_it73_new.csv": ROOT / "research/coco_bg_sahi_fp_it73_new.csv",
+    "research/it74_vote_analysis.txt": ROOT / "research/it74_vote_analysis.txt",
+    "research/it74_vote_grid.csv": ROOT / "research/it74_vote_grid.csv",
     "research/mmaud_sahi_full_doguilmak-v11x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v11x.csv",
     "research/mmaud_sahi_full_doguilmak-v8x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v8x.csv",
     "research/mmaud_sahi_full_skyguard-v11.csv": ROOT / "research/mmaud_sahi_full_skyguard-v11.csv",

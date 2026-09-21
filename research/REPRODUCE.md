@@ -300,3 +300,16 @@ research/.venv/bin/python research/it73_coco_sahi_fp.py --weights <.pt> \
 # контур (каркас it-71, D0 τ=0,5, гейт 0,25; самопроверка = строки it71_policy_ablation.csv):
 research/.venv/bin/python research/it73_contour.py
 # сводка/вердикт — research/it73_sahi_contour.txt (в манифесте): возврат 5/5 окон, но FP 13>8 → не кандидат.
+```
+
+## 6f. it-74 — голосование двух моделей AND/OR (2026-09-21, ноль инференса)
+
+```bash
+# чистый join существующих CSV (mmaud_sahi_full{,_new}, coco_bg_fp_it69v1-{old,new},
+# yolo_sandbox_frames{,_new} imgsz480, ast_windows); 6 сами-проверок канонов встроены:
+research/.venv/bin/python research/it74_vote_analysis.py
+# выходы (в манифесте): it74_vote_analysis.txt (сетка+вердикт), it74_vote_grid.csv.
+# Итог: AND@0,40 — полёт 94,7 % / FP 7,2 % — первая зелёная пара E5×E1; G4 контур красный
+# (R 0,946 < 0,98) → кандидат офлайн-линейки без контурной заявки; ×2-доставка — решение автора.
+```
+
