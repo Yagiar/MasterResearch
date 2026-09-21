@@ -28,6 +28,7 @@ ap.add_argument("--weights", default=str(MD / "models/visual/yolov8s-uav.pt"))
 ap.add_argument("--out", default=str(ROOT / "research/mmaud_sahi_full.csv"))
 ap.add_argument("--full1920-csv", default=str(ROOT / "research/mmaud_imgsz1920.csv"),
                 help="предыдущий замер full@1920 ТЕМИ ЖЕ весами; 'none' — отключить мерж (честный conf_union)")
+ap.add_argument("--device", default=None, help="устройство инференса ('cpu' для фоновых прогонов без гонки за GPU; по умолчанию — как решит ultralytics)")
 args = ap.parse_args()
 
 # уже измеренный full@1920 (it-58) — только если он относится к тем же весам
@@ -55,7 +56,7 @@ def sahi_conf(img):
     for y in ys:
         for x in xs:
             tile = img[y:y + min(slice_px, H - y), x:x + min(slice_px, W - x)]
-            r = model.predict(tile, imgsz=640, conf=0.05, verbose=False)[0]
+            r = model.predict(tile, imgsz=640, conf=0.05, verbose=False, device=args.device)[0]
             if r.boxes is not None and len(r.boxes):
                 best = max(best, float(r.boxes.conf.max()))
     return best
