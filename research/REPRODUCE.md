@@ -217,6 +217,25 @@ bash research/it68_ab_run.sh   # защиты: финальные строки �
   (max_conf<0,4→0; боевой гейт поставки — 0,25, `pilot.yaml:78`) + пять fusion-скриптов
   `--suffix=-new-gate04`; выходы в манифесте. Результат побайтово = it-66 (гейт в контуре no-op).
 
+## 6c. it-70 — рычаг рецепта: разбавление фоновых негативов (2026-09-21→)
+
+- Прунинг (обратим: исходники не тронуты, полный корпус = prepare-visual it-65):
+  `research/.venv/bin/python research/it70_prune_negatives.py --apply` — стратифицированный
+  keep-list `random.Random(20260921)` (сид 1337 в dry-run дал структурную корреляцию с
+  `_split_groups` — не использовать для реза!), фоны train 720→240 (0,42 %), val 90→30,
+  test 90→30; артефакт `research/it70_neg_keep.txt` (sha в отчёте).
+- Тренировка (cmd it-65 дословно, кроме имени): из `MasterDiploma/`:
+  `./venv/bin/uavtrain train-visual --data train/data/_prepared/visual/data.yaml --base-weights yolov8s.pt --epochs 30 --patience 10 --batch 8 --workers 2 --name uav-yolov8s-bg70`
+  (лог `train/runs/visual/it70_train.out`; resume-практика it-65 при обрыве).
+- Все замеры E1–E8 одной detached-цепочкой: `bash research/it70_measure_run.sh` (watcher ждёт
+  «Results saved»; лог `train/runs/visual/uav-yolov8s-bg70/it70_measure.log`; артефакты с
+  метками `it70v1`/`bg70`: eval-каталоги `visual-bg70-{dut,hf}600`,
+  `coco_bg_fp_it70v1.csv` (те же 400 независимых фонов V1, каталог `coco-bg-v1`),
+  `session_vis_probe_bg70.csv`, `mmaud_sahi_full_bg70.csv`,
+  `yolo_sandbox_frames_bg70{_gate025,}.csv`, пять `*-bg70.csv`).
+- Вердикт по предрегистрации (b43f782): `research/.venv/bin/python research/it70_verdict.py; echo $?`
+  (0 — все зелёные, 1 — есть ЖДЁТ, 2 — красный; без пайпа на exit-код).
+
 ## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;
