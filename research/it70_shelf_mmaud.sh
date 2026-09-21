@@ -11,6 +11,7 @@ PY="$ROOT/research/.venv/bin/python"
 CSV="$ROOT/research/shelf_screen_results.csv"
 LOG="$ROOT/research/shelf_mmaud.log"
 MAX_MODELS=3
+DEVICE="${DEVICE:-cpu}"  # 21.09: автор разблокировал GPU для инференса; по умолчанию cpu — как в предрегистрации
 say() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG"; }
 
 grep -q 'SHELF SCREEN DONE' "$ROOT/research/shelf_screen.log" || { say "ОТКАЗ: скрининг не завершён"; exit 1; }
@@ -57,7 +58,7 @@ awk -F'\t' '$1=="LEADER"{ if (!seen[$2]++) print $2 }' "$LOG" | tail -n "$MAX_MO
   [ -f "$OUT" ] && { say "$pt: $OUT уже есть — пропуск"; continue; }
   say "$pt: старт MMAUD SAHI (CPU, ~3-5 ч)"
   "$PY" "$ROOT/research/mmaud_sahi_full.py" --weights "$ROOT/research/shelf_models/$F" \
-    --out "$OUT" --device cpu --full1920-csv none >> "$LOG" 2>&1 \
+    --out "$OUT" --device "$DEVICE" --full1920-csv none >> "$LOG" 2>&1 \
     && say "$pt: OK (см. сводку recall выше)" || say "$pt: FAIL"
 done
 say "MMAUD-арбитр плеча S завершён"

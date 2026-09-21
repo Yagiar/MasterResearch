@@ -23,11 +23,11 @@ say "старт; weights=$W sha=$(sha256sum "$W" | cut -d' ' -f1 | cut -c1-12) p
 
 say "E1: FP per-image на 400 независимых фонах (coco-bg-v1, CPU)"
 "$PY" "$ROOT/research/coco_bg_fp_eval.py" --weights "$W" --name "$PREFIX" \
-  --images-dir "$MD/train/data/_prepared/coco-bg-v1" --pattern '*.jpg' --device cpu >> "$LOG" 2>&1 \
+  --images-dir "$MD/train/data/_prepared/coco-bg-v1" --pattern '*.jpg' --device "${DEVICE:-cpu}" >> "$LOG" 2>&1 \
   && say "E1 OK" || say "E1 FAIL"
 
 say "E4: session probe (стоящий дрон, CPU)"
-"$PY" "$ROOT/research/session_vis_probe.py" --weights "$W" --name "$PREFIX" --device cpu >> "$LOG" 2>&1 \
+"$PY" "$ROOT/research/session_vis_probe.py" --weights "$W" --name "$PREFIX" --device "${DEVICE:-cpu}" >> "$LOG" 2>&1 \
   && say "E4 OK" || say "E4 FAIL"
 
 say "sandbox-кадры (full+SAHI по стробоскоп-клипу, CPU)"
