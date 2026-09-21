@@ -42,7 +42,9 @@ research/.venv/bin/python research/yolo_frames_eval.py
 | `event_metrics.csv` (событийные метрики) | `research/.venv/bin/python research/event_metrics.py` | события GT, задержка первого обнаружения, FP/час |
 
 Проверка детерминированности: `fusion_sim_full.py` и `bootstrap_delta_v2.py` при перезапуске
-дают побайтно те же CSV (сид 20260905 в бутстрапе).
+дают побайтно те же CSV (сид 20260905 в бутстрапе). Аудит 21.09 (после it-75): то же для
+`it71_policy_ablation.py`, `it73_contour.py`, `it74_vote_analysis.py`, `it75_contour_vote.py`
+и `it74_vote_bootstrap.py` (сид 20260921) — перезапуск против git чисто (DET-CLEAN).
 
 ## 3. Живой пайплайн (GPU/Docker) и скоринг решений
 
