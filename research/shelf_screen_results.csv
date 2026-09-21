@@ -5,3 +5,5 @@ shelf-doguilmak-v8x,0.2774,0.5275,0.568,0.378,0.247,0.310,HF doguilmak/Drone-Det
 shelf-skyguard-v11,0.6592,0.8725,0.338,0.230,0.168,0.113,"MIT, HF SkyGuardAI/drone-detection-yolov11"
 shelf-ruju-v12,0.0004,0.0000,0.025,0.010,0.000,0.000,"AGPL-3.0(!), HF rujutashashikanjoshi/yolo12-..."
 shelf-danivelikova-v26n,0.0059,0.0661,0.050,0.010,0.003,0.000,HF danivelikova/...-yolo26n
+shelf-iris-v8s,0.2126,0.1900,0.453,0.370,0.305,0.190,"CC-BY-NC(!), IRIS EO benchmark baseline"
+shelf-noah-v8s,0.2045,0.6339,0.145,0.098,0.072,0.049,HF Noah-Yohannes/Drone_Detection
