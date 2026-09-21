@@ -112,6 +112,8 @@ FILES = {
     "research/it74_vote_bootstrap.txt": ROOT / "research/it74_vote_bootstrap.txt",
     "research/it75_contour_vote.txt": ROOT / "research/it75_contour_vote.txt",
     "research/it76_ensemble_echeck.txt": ROOT / "research/it76_ensemble_echeck.txt",
+    "research/it77_ensemble_map.csv": ROOT / "research/it77_ensemble_map.csv",
+    "research/it77_ensemble_map.txt": ROOT / "research/it77_ensemble_map.txt",
     "research/mmaud_sahi_full_doguilmak-v11x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v11x.csv",
     "research/mmaud_sahi_full_doguilmak-v8x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v8x.csv",
     "research/mmaud_sahi_full_skyguard-v11.csv": ROOT / "research/mmaud_sahi_full_skyguard-v11.csv",

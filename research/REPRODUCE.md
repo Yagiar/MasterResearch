@@ -336,3 +336,15 @@ research/.venv/bin/python research/it76_ensemble_echeck.py   # → it76_ensemble
 # матрица E1–E8: пробелы — только E2/E3 (merge боксов) и живой A/B.
 ```
 
+
+## 6i. it-77 — ансамбль-NMS mAP на DUT/HF600 (2026-09-21, GPU-инференс без обучения)
+
+```bash
+# обязательные флаги окружения (OOM-уроки первого прогона,см. it-77-ensemble-nms-map.md):
+# чанки ~150 встроены в скрипт; нужен expandable_segments на 6-GiB GPU:
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True MasterDiploma/venv/bin/python research/it77_ensemble_map.py
+# → it77_ensemble_map.{csv,txt} (в манифесте). Ключи предсказаний — по порядку отдачи stream
+# (r.path в 8.4.48 синтетическое imageN.jpg); одиночные проверяются блокатолом против канонов.
+# Итог: блокатор зелёный (4/4 в ±0,010); H1 КРАСНЫЙ: merge dut 0,8737 < new 0,9014; hf 0,8798 < 0,8861
+# → mAP-ось (E2/E3) для ансамбля закрыта отрицательно; профиль: conf-AND@0,4 + контурный OR, НЕ merge боксов.
+```
