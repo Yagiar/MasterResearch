@@ -15,6 +15,7 @@ import argparse
 import csv
 import bisect
 import glob
+import os
 from pathlib import Path
 
 import numpy as np
@@ -62,7 +63,9 @@ def sahi_conf(img):
     return best
 
 rows = []
-with open(OUT, "w", newline="") as f:
+# атомарность: частичный CSV после килла не должен выглядеть «готовым» для вотчеров
+TMP = OUT.parent / (OUT.name + ".tmp")
+with open(TMP, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=["img", "z", "conf_full1920", "conf_sahi", "conf_union"])
     w.writeheader()
     for i, p in enumerate(IMGS):
@@ -75,6 +78,7 @@ with open(OUT, "w", newline="") as f:
         rows.append(dict(img=stem, cf=cf, cs=cs, union=union))
         if (i + 1) % 250 == 0:
             print(f"  {i + 1}/{len(IMGS)}", flush=True)
+os.replace(TMP, OUT)
 
 def recall(rs, key):
     return sum(1 for r in rs if r[key] >= 0.5) / max(1, len(rs))
