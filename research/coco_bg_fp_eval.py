@@ -23,11 +23,15 @@ def main() -> None:
     ap.add_argument("--name", default=None, help="метка для CSV (по умолчанию — имя весов)")
     ap.add_argument("--imgsz", type=int, default=640)
     ap.add_argument("--device", default="cpu", help="cpu по умолчанию — не конкурировать с тренировкой")
+    ap.add_argument("--images-dir", default=None,
+                    help="каталог фонов (по умолчанию test-сплит подготовленного корпуса; it-69 V1 — свежая выборка val2017)")
+    ap.add_argument("--pattern", default="coco-background_*.jpg")
     args = ap.parse_args()
 
-    imgs = sorted(IMAGES_DIR.glob("coco-background_*.jpg"))
+    images_dir = Path(args.images_dir) if args.images_dir else IMAGES_DIR
+    imgs = sorted(images_dir.glob(args.pattern))
     if not imgs:
-        raise SystemExit(f"нет кадров coco-background в {IMAGES_DIR}")
+        raise SystemExit(f"нет кадров {args.pattern} в {images_dir}")
 
     from ultralytics import YOLO
 

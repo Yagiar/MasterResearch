@@ -63,6 +63,19 @@ FILES = {
     "research/it67_pg_join.out": ROOT / "research/it67_pg_join.out",
     "research/it68_ab_summary.txt": ROOT / "research/it68_ab_summary.txt",
     "research/it69_thresh_shift_analysis.txt": ROOT / "research/it69_thresh_shift_analysis.txt",
+    # --- it-69: V1 расширенный независимый фон + артефакты вердикта ---
+    "research/it69_v1_coco400.txt": ROOT / "research/it69_v1_coco400.txt",
+    "research/it69_v2_splithalf.txt": ROOT / "research/it69_v2_splithalf.txt",
+    "research/coco_bg_fp_it69v1-old.csv": ROOT / "research/coco_bg_fp_it69v1-old.csv",
+    "research/coco_bg_fp_it69v1-new.csv": ROOT / "research/coco_bg_fp_it69v1-new.csv",
+    # --- it-69 V3: контур new-весов с гейтом 0,4 (выходы с суффиксом -new-gate04) ---
+    "research/yolo_sandbox_frames_new_gate04.csv": ROOT / "research/yolo_sandbox_frames_new_gate04.csv",
+    "research/fusion_sim_results-new-gate04.csv": ROOT / "research/fusion_sim_results-new-gate04.csv",
+    "research/stress_sim_results-new-gate04.csv": ROOT / "research/stress_sim_results-new-gate04.csv",
+    "research/bootstrap_pairs-new-gate04.csv": ROOT / "research/bootstrap_pairs-new-gate04.csv",
+    "research/delta_sweep-new-gate04.csv": ROOT / "research/delta_sweep-new-gate04.csv",
+    "research/event_metrics-new-gate04.csv": ROOT / "research/event_metrics-new-gate04.csv",
+    "research/threshold_calibration_v2-new-gate04.csv": ROOT / "research/threshold_calibration_v2-new-gate04.csv",
     # --- it-65: источники чисел E2/E3 и кривая тренировки (метрики eval-прогонов) ---
     "train/runs/visual/uav-yolov8s-bg/results.csv": MD / "train/runs/visual/uav-yolov8s-bg/results.csv",
     "train/runs/eval/visual-old-dut600/metrics.json": MD / "train/runs/eval/visual-old-dut600/metrics.json",

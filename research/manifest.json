@@ -173,6 +173,50 @@
    "sha256": "32ad412859ea3ac430e9d06e35b77cb1aaf1e68ead04afe34192448c99a918fe",
    "bytes": 1297
   },
+  "research/it69_v1_coco400.txt": {
+   "sha256": "fc5b627c8f3e79df0e5173d13f7a64cd6751b1b4b70aef340d2d4bbda24e4ec1",
+   "bytes": 1293
+  },
+  "research/it69_v2_splithalf.txt": {
+   "sha256": "11c49bf55b49aaff2cc0f854477a3b9df55f54c9e530d48c6586b96e8247e522",
+   "bytes": 326
+  },
+  "research/coco_bg_fp_it69v1-old.csv": {
+   "sha256": "cbc613a9af7e3349f28ed5fe38df36102503af4cb0d9fbe9f19609dd094c6aa0",
+   "bytes": 14243
+  },
+  "research/coco_bg_fp_it69v1-new.csv": {
+   "sha256": "8583fb8e12c16324ebb06217aec40a7943ab8229d3b472e8c72e9250466cfa23",
+   "bytes": 13676
+  },
+  "research/yolo_sandbox_frames_new_gate04.csv": {
+   "sha256": "c31367a1990ad1c0e3468de87af7bc6c00c3b6d54e5ff870c8bbd62266cd9fc9",
+   "bytes": 4814
+  },
+  "research/fusion_sim_results-new-gate04.csv": {
+   "sha256": "0bd174f10d747dec7de78f127df5769fba5ca61cdcd70bddc1efe98940209fb9",
+   "bytes": 1069
+  },
+  "research/stress_sim_results-new-gate04.csv": {
+   "sha256": "0282e4add15df54e6ff6d94f8e1b2b9010774b242740f385dc174da1ec5edcb8",
+   "bytes": 3790
+  },
+  "research/bootstrap_pairs-new-gate04.csv": {
+   "sha256": "9cf4b283d51054809d3b1358ad04d121eaa886914f73dc002c1d6f93cb55a07c",
+   "bytes": 387
+  },
+  "research/delta_sweep-new-gate04.csv": {
+   "sha256": "ff2f928aca2ecf62276b37043f2440af322ffe545d6737b6c56e9b1b10b77b4b",
+   "bytes": 284
+  },
+  "research/event_metrics-new-gate04.csv": {
+   "sha256": "64bd66e72e189781b2f054524e3fb07de378a913ac1b9d58baacef38742cf5ab",
+   "bytes": 239
+  },
+  "research/threshold_calibration_v2-new-gate04.csv": {
+   "sha256": "c1f97097ba2865d86599d7d52dfcac32436ccf0d2ae5e1738af2480c64bf85ee",
+   "bytes": 2913
+  },
   "train/runs/visual/uav-yolov8s-bg/results.csv": {
    "sha256": "5a08f4037b1430759f36569c772c1b6ab0fca2958d9e4eaae0d3000ef4b7edeb",
    "bytes": 4874

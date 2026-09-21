@@ -202,6 +202,21 @@ research/.venv/bin/python research/score_stages.py --burn-in-s 90 A=START:END B=
 # медиана задержки U3 — по обкатанной команде sed|grep|sort|awk из it-68 PLANNED (U3).
 bash research/it68_ab_run.sh   # защиты: финальные строки цепочек it-65, память ≥2 ГиБ; НЕ трогает веса
 
+## 6b. it-69 — независимые подтверждения перекалибровки гейта (2026-09-21)
+
+- **V1 (внешние данные!):** официальный `https://s3.amazonaws.com/images.cocodataset.org/zips/val2017.zip`
+  (path-style — домен `images.cocodataset.org` даёт TLS-перехват сертификата; проверку отключать нельзя),
+  sha256 `4f7e2ccb2866ec5041993c9cf2a952bbed69647b115d0f74da7ce8f4bef82f05`, CRC-тест zip.
+  Выборка: 400 кадров из val2017 по возрастанию имени, байт-хеш-исключение 900 использованных
+  (`coco-background/val2017`, совпало 899) → `MasterDiploma/train/data/_prepared/coco-bg-v1/` (вне git).
+  Замер: `research/.venv/bin/python research/coco_bg_fp_eval.py --weights <вес> --name it69v1-{old,new}
+  --images-dir MasterDiploma/train/data/_prepared/coco-bg-v1 --pattern '*.jpg'` →
+  `coco_bg_fp_it69v1-{old,new}.csv` (в манифесте), вердикт-сводка `it69_v1_coco400.txt`.
+- **V2:** пересчёт из `mmaud_sahi_full{,_new}.csv` (см. `it69_v2_splithalf.txt`); новых прогонов нет.
+- **V3:** `bash research/it69_v3_run.sh` — гейт-предфильтр `yolo_sandbox_frames_new_gate04.csv`
+  (max_conf<0,4→0; боевой гейт поставки — 0,25, `pilot.yaml:78`) + пять fusion-скриптов
+  `--suffix=-new-gate04`; выходы в манифесте. Результат побайтово = it-66 (гейт в контуре no-op).
+
 ## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;

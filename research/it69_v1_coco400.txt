@@ -1,0 +1,13 @@
+# it-69 V1 — расширенный независимый фон COCO (замер 2026-09-21 13:54–13:55 МСК, CPU)
+# выборка: 400 кадров val2017 (официальный val2017.zip, sha256 4f7e2ccb2866ec5041993c9cf2a952bbed69647b115d0f74da7ce8f4bef82f05), исключённых байт-хешами из 900 использованных (899 совпало); отбор — первые 400 по отсортированным именам; каталог MasterDiploma/train/data/_prepared/coco-bg-v1
+# команда: research/.venv/bin/python research/coco_bg_fp_eval.py --weights <вес> --name it69v1-{old,new} --images-dir MasterDiploma/train/data/_prepared/coco-bg-v1 --pattern '*.jpg'
+# CSV: research/coco_bg_fp_it69v1-{old,new}.csv (per-frame max_conf)
+модель порог доля n к 95%ДИ
+old 0.25 61.8% 400 247 [57.0,66.5]
+old 0.40 39.8% 400 159 [35.0,44.5]
+old 0.50 27.5% 400 110 [23.1,31.9]
+new 0.25 17.8% 400 71 [14.0,21.5]
+new 0.40 10.2% 400 41 [7.3,13.2]
+new 0.50 6.5% 400 26 [4.1,8.9]
+# медиана max_conf: old 0,333 | new 0,035
+# вердикт V1: ЗЕЛЁНЫЙ — FP(new,0,4)=10,2% ≤ 12,8% (точечно; верх ДИ 13,2% чуть за порогом — честно отмечено) и FP(old,0,5)=27,5% ∈ 25,6±5 п.п.
