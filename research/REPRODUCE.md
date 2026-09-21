@@ -327,3 +327,12 @@ research/.venv/bin/python research/it75_contour_vote.py   # → it75_contour_vot
 # Вывод: ансамбль двухрядный — image=AND@0,4, контур=OR; гипотеза живой проверки (аналог it-68), n=1 материал.
 ```
 
+## 6h. it-76 — покрытие E-линейки ансамблем (2026-09-21, ноль инференса)
+
+```bash
+research/.venv/bin/python research/it76_ensemble_echeck.py   # → it76_ensemble_echeck.txt (в манифесте)
+# Ф: FP min-ряда ≥0,4 на 90 старых фонах (coco_bg_fp_{old,new}-yolov8s-*.csv) = 5,6 % (барьер ±8 п.п. с V1 7,2 %);
+# С: presence «стоящего» на 18 с negative-session (session_vis_probe_{old,new}.csv) = 18/18;
+# матрица E1–E8: пробелы — только E2/E3 (merge боксов) и живой A/B.
+```
+

@@ -289,6 +289,10 @@
    "sha256": "1ed1e42b51f8bfb4dfc241e1c2d307bd3d7fbc388482b36511c54dd94ef3cc21",
    "bytes": 1166
   },
+  "research/it76_ensemble_echeck.txt": {
+   "sha256": "c572d85213fd58ed0e493aa1a1f66eab121012cf7c674db2ed96d09efc016462",
+   "bytes": 1586
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316
