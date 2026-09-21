@@ -144,6 +144,7 @@ def main() -> None:
     seen_local_md5 = {md5((IMG / a).read_bytes()).hexdigest() for a in accepted if (IMG / a).exists()}
     processed = {r["ImageID"] for r in kept}
     t0 = time.time()
+    bad_streak = 0
     for iid, url, lic in pool:
         if len(accepted) >= N_MAIN or len(processed) >= ATTEMPT_CAP:
             break
@@ -158,6 +159,14 @@ def main() -> None:
                "bird": int(iid in birds)}
         buf, st = get_bytes(url)
         time.sleep(DELAY * random.uniform(0.8, 1.4))
+        if st == "ok":
+            bad_streak = 0
+        else:
+            bad_streak += 1
+            if bad_streak >= 15:
+                print(f"circuit-open: 15 не-OK подряд, дрем 1200 с (принято {len(accepted)})", flush=True)
+                time.sleep(1200)
+                bad_streak = 0
         if st != "ok" and not st.startswith("dead-429") and iid in retry_ids:
             dead_ids.add(iid)  # смерть при второй проверке → больше не дёргаем
         dst = IMG / f"{iid}.jpg"
