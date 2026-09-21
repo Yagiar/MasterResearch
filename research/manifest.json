@@ -165,6 +165,10 @@
    "sha256": "13fbcfb0f24d013e91a308a2bceff7abee0ef034705d351a1d302443318bf263",
    "bytes": 371
   },
+  "research/it68_ab_summary.txt": {
+   "sha256": "72484c3e65fc03feaa697e7e049710ddfc8e3cb20afd9dee907a55e233f39963",
+   "bytes": 943
+  },
   "train/runs/visual/uav-yolov8s-bg/results.csv": {
    "sha256": "5a08f4037b1430759f36569c772c1b6ab0fca2958d9e4eaae0d3000ef4b7edeb",
    "bytes": 4874

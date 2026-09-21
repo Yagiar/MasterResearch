@@ -1,0 +1,10 @@
+# it-68 A/B — переносимые строки из research/it68_ab_run.log (gitignore *.log); полные таблицы — score_stages --burn-in-s 90
+веса visual: 41f3fd5593f41f6c18b13316ca48ac05e7a88ed14d4804428fb92035f8cda262  /home/otrix/code/GeneralFolderMasterDiploma/MasterDiploma/models/visual/yolov8s-uav.pt
+реестр: "2026-05-13","lightweight CNN (acoustic)","acoustic/lwcnn.pt","DroneAudioDataset (Al-Emadi) yes_drone+bebop_1+membo_1 vs ESC-50; MFCC 40×64, окна 1с/0.5с","accuracy=0.9949; precision_macro=0.9948; recall_macro=0.9949; f1_macro=0.9949"
+=== ЭТАП A permessage k0: release=per-message k=0   06:22:18 ===
+SCORE_OFF A permessage k0 175663:177216
+=== ЭТАП B watermark k5: release=watermark k=5   06:26:38 ===
+SCORE_OFF B watermark k5 177217:178771
+=== ЭТАП C watermark k0: release=watermark k=0   06:30:57 ===
+SCORE_OFF C watermark k0 178772:180322
+=== ablation v5 завершён ===

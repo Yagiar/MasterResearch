@@ -31,3 +31,11 @@
 | `visual/VKR_united_datasets_airplane_birds_drone_11-03-2025.pt` | `{0:Bird, 1:drone, 2:Airplane}` | в `configs/pilot.yaml` → `visual_detector.weights_path` + `drone_class_ids: [1]` |
 | `visual/VKR_BPLA_model_10-11-2024.pt` | `{0:drone}` | `weights_path` на него; `drone_class_ids` не нужен (имя класса `drone`) |
 | `visual/VKR_AOD_detection_model_yolo12n.pt` | `{0:airplane, 1:helicopter, 2:drone, 3:bird}` | `weights_path` на него; опц. `drone_class_ids: [2]` |
+
+## Область действия живого A/B (it-68, 2026-09-21)
+
+Числа живой A/B-проверки конфигураций fusion (A: per-message/k=0; B: watermark/k=5; C: watermark/k=0)
+отнесены к весам `visual/yolov8s-uav.pt` sha `41f3fd55…` (не изменены — вердикт it-65 запретил экспорт)
+и ревизии `configs/pilot.yaml` из коммита `0b08e1b` (U4-provenance). Отчёт с вердиктами U1–U4:
+`research/iterations/it-68-pilot-config-sync.md`; сырые строки (интервалы SCORE_OFF, sha весов,
+строка реестра): `research/it68_ab_summary.txt`.
