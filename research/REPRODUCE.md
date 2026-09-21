@@ -136,6 +136,9 @@ bash research/it65_chain2.sh
 # пересчёт sandbox-домена и fusion-контура новыми весами (it-66) — одной командой
 # (отказывается без артефактов it-65; сверяет sha весов с best.pt; логи research/it66_run.log):
 bash research/it66_run.sh [путь.к.новым.весам]   # по умолчанию models/visual/yolov8s-uav.pt
+#   ВАЖНО (21.09): экспорт it-65 НЕ делался (красный E5) → в models/ лежат СТАРЫЕ веса;
+#   для it-66 обязан явный аргумент: bash research/it66_run.sh \
+#     MasterDiploma/train/runs/visual/uav-yolov8s-bg/weights/best.pt
 #   (вручную то же самое: yolo_frames_eval.py --weights <new.pt> --out research/yolo_sandbox_frames_new.csv,
 #    затем для s в fusion_sim_full stress_sim event_metrics threshold_calibration_v2
 #    bootstrap_delta_v2: $s.py --yolo-csv research/yolo_sandbox_frames_new.csv --suffix=-new;
@@ -152,6 +155,14 @@ research/.venv/bin/python research/it65_verdict.py
 ```
 Манифест (`make_manifest.py`) с хода 35 покрывает также кривую тренировки
 `train/runs/visual/uav-yolov8s-bg/results.csv` и все `metrics.json` eval-прогонов E2/E3.
+
+Итог 2026-09-21 07:01 МСК: тренировка 30/30 эпох (best ep30 mAP50 0,8406); вердикт **exit=2**
+(E1 8,889 % OK / E2 0,9059 OK / E3 0,8830 OK / E4 18/18 OK / **E5 SAHI полёт 84,3 % < 89,5 % —
+красный**) → экспорт НЕ делался, `models/visual/yolov8s-uav.pt` — прежние майские веса.
+Инцидент: шаг 3 цепочки упал на печати метрик (`mmaud_sahi_full.py`: `bisect_left` без префикса
+`bisect.`) при полном CSV — исправлено, шаг перезапущен по протоколу частичных файлов
+(conf_sahi совпал 1:1 на всех 5091 строках), манифест перегенерирован, вердикт подтверждён.
+Подробности и трактовка — отчёт `iterations/it-65-yolo-retrain-bg.md`, раздел «ИТОГ».
 
 ```bash
 # экспорт при зелёном вердикте (exit 0; красный exit 2 — НЕ экспортировать):

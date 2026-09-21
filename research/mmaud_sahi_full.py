@@ -83,8 +83,8 @@ gt_ts = [float(Path(g).stem) for g in gt_files]
 gt_z = [float(np.load(g)[2]) for g in gt_files]
 
 
-ground = [r for r in rows if gt_z[min(len(gt_z) - 1, bisect_left(gt_ts, float(r["img"])))] < 0.5]
-flight = [r for r in rows if gt_z[min(len(gt_z) - 1, bisect_left(gt_ts, float(r["img"])))] > 1.0]
+ground = [r for r in rows if gt_z[min(len(gt_z) - 1, bisect.bisect_left(gt_ts, float(r["img"])))] < 0.5]
+flight = [r for r in rows if gt_z[min(len(gt_z) - 1, bisect.bisect_left(gt_ts, float(r["img"])))] > 1.0]
 
 print(f"\n=== ПОЛНЫЙ корпус {len(rows)} кадров (стоит {len(ground)}, летит {len(flight)}) ===")
 for name, seg in (("стоит", ground), ("летит", flight)):
