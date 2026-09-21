@@ -133,6 +133,34 @@
    "sha256": "375f3cc378b5fb69ff635f7ef4078e307df2cdea8ad83c51f728485ca1d7afe5",
    "bytes": 207045
   },
+  "research/yolo_sandbox_frames_new.csv": {
+   "sha256": "2b06ed4828d7d8be4ee175dce1374276df1992174228a7592a2ed3e52ebbc705",
+   "bytes": 4830
+  },
+  "research/fusion_sim_results-new.csv": {
+   "sha256": "0bd174f10d747dec7de78f127df5769fba5ca61cdcd70bddc1efe98940209fb9",
+   "bytes": 1069
+  },
+  "research/stress_sim_results-new.csv": {
+   "sha256": "0282e4add15df54e6ff6d94f8e1b2b9010774b242740f385dc174da1ec5edcb8",
+   "bytes": 3790
+  },
+  "research/bootstrap_pairs-new.csv": {
+   "sha256": "9cf4b283d51054809d3b1358ad04d121eaa886914f73dc002c1d6f93cb55a07c",
+   "bytes": 387
+  },
+  "research/delta_sweep-new.csv": {
+   "sha256": "ff2f928aca2ecf62276b37043f2440af322ffe545d6737b6c56e9b1b10b77b4b",
+   "bytes": 284
+  },
+  "research/event_metrics-new.csv": {
+   "sha256": "64bd66e72e189781b2f054524e3fb07de378a913ac1b9d58baacef38742cf5ab",
+   "bytes": 239
+  },
+  "research/threshold_calibration_v2-new.csv": {
+   "sha256": "c1f97097ba2865d86599d7d52dfcac32436ccf0d2ae5e1738af2480c64bf85ee",
+   "bytes": 2913
+  },
   "train/runs/visual/uav-yolov8s-bg/results.csv": {
    "sha256": "5a08f4037b1430759f36569c772c1b6ab0fca2958d9e4eaae0d3000ef4b7edeb",
    "bytes": 4874
