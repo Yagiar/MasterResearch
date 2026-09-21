@@ -245,6 +245,31 @@ bash research/it68_ab_run.sh   # защиты: финальные строки �
   `research/.venv/bin/python research/it70_shelf_report.py` (самотест на канонах: old 0,945 /
   new 0,843 SAHI-полёт). Оговорки (leakage/AGPL/CC-BY-NC) — в PLANNED, раздел «Плечо S».
 
+## 6d. it-65-union / it-70 Парето / it-71 / it-72 — безобученные доделки (2026-09-21, ноль или GPU-инференс)
+
+```bash
+# union-бэклог it65-union-new-weights (GPU-инференс ~8 мин, права на обучающий режим НЕ касается):
+research/.venv/bin/python research/mmaud_imgsz1920_eval.py \
+  --weights MasterDiploma/train/runs/visual/uav-yolov8s-bg/weights/best.pt \
+  --out research/mmaud_imgsz1920_new.csv           # → it65_union_new.out (лог, вне git)
+research/.venv/bin/python research/it65_union_analysis.py   # → it65_union_analysis.txt
+#   Итог: union new полёт 85,2 % / дальн10-19 70,5 % (+1 п.п. к SAHI), old-контроль 95,5/91,5 →
+#   потеря дальних честная, inference-time рычаги исчерпаны.
+
+# Парето-фронт «гейт T → recall/FP» по существующим CSV (ноль инференса):
+research/.venv/bin/python research/it70_threshold_tradeoff.py   # → it70_threshold_tradeoff.txt
+
+# it-71: сетка политик fusion 2 веса × 2 гейта × 6 политик (ноль инференса, вход —
+#   yolo_sandbox_frames{,_new}.csv + ast_windows.csv + gt_sandbox_video.csv):
+research/.venv/bin/python research/it71_policy_ablation.py       # → it71_policy_ablation.{csv,txt}
+#   канон-самопроверка в конце лога: old@0,25/D0 F1=0,961 (сверка с it-66). Итог: кандидатов нет.
+
+# it-72: независимая MMAUD-сессия 207 с (кадры+лидар с OneDrive, вне git; ноль инференса —
+#   вход mmaud_sahi_full{,_new}.csv + mmaud_acoustic_eval.csv):
+research/.venv/bin/python research/it72_independent_e6.py       # → it72_independent_e6.txt
+#   Итог: материал непригоден (1 событие, 3 ground-бина, насыщение max-агрегации) — см. отчёт.
+```
+
 ## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;
