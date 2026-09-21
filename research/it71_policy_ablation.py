@@ -4,7 +4,7 @@
 Каркас окон как в fusion_sim_full.py (it-36): 144 окна AST, pv = YOLO max_conf секунды
 (с детекторным гейтом g: max_conf < g → 0), pa = AST p_drone, GT airborne majority.
 Сетка и правило вердикта предрегистрированы в
-research/iterations/it-71-fusion-decision-policy-ablation-PLANNED.md — до запуска менять нельзя.
+research/iterations/it-71-fusion-decision-policy-ablation.md — до запуска менять нельзя.
 
 Запуск: research/.venv/bin/python research/it71_policy_ablation.py
 """
