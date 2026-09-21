@@ -96,6 +96,7 @@ FILES = {
     # плечо S: полка HF-моделей
     "research/shelf_screen_results.csv": ROOT / "research/shelf_screen_results.csv",
     "research/it70_recall_by_distance.txt": ROOT / "research/it70_recall_by_distance.txt",
+    "research/it70_threshold_tradeoff.txt": ROOT / "research/it70_threshold_tradeoff.txt",
     "research/mmaud_sahi_full_doguilmak-v11x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v11x.csv",
     "research/mmaud_sahi_full_doguilmak-v8x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v8x.csv",
     "research/mmaud_sahi_full_skyguard-v11.csv": ROOT / "research/mmaud_sahi_full_skyguard-v11.csv",

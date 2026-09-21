@@ -229,6 +229,10 @@
    "sha256": "46e66686f29279615c0985ce51677e8a957d938e58328a772b73a781428fa8a0",
    "bytes": 189
   },
+  "research/it70_threshold_tradeoff.txt": {
+   "sha256": "cf6db4b97157ad5c25506e943d5636ce6bdc0289454a5c7b26425da0ede54219",
+   "bytes": 1852
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316
