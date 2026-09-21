@@ -5,14 +5,16 @@ CPU-only, вне git (данные в MasterDiploma/train/data/_prepared/hi-res-
 OriginalMD5 (первое вхождение); пред-фильтр min-стороны по метаданным невозможен
 (OriginalSize = размер файла, не пиксели — зарегистрированное уточнение к PLANNED),
 поэтому размерный фильтр фактический (PIL).
-Загрузка: ПОСЛЕДОВАТЕЛЬНАЯ, 0,4 с/запрос, на HTTP 429 — экспоненциальный backoff и повтор
-того же URL (8-worker-версия сожгла очередь 429-ми; статусы final: accepted/small/too-big/
-broken-img/dup; «missing/fail» при рестарте возвращаются в очередь).
+Загрузка: ПОСЛЕДОВАТЕЛЬНАЯ, 0,4 с/запрос, через curl-субпроцесс (edge Flickr персистентно
+троттлит python-urllib 429-ми; curl в том же окне даёт 200), на 429 — мягкий бэкофф 10/20/30 с
+и повтор того же URL (8-worker-версия сожгла очередь 429-ми; статусы final: accepted/small/
+too-big/dup/dead-404/broken-img; «missing/fail» при рестарте возвращаются в очередь).
 """
 from __future__ import annotations
 
 import csv
 import random
+import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -51,34 +53,35 @@ def fetch(url: str, dst: Path) -> None:
 
 
 def get_bytes(url: str) -> tuple[bytes | None, str]:
-    """None,reason: 'ok' → None байты не бывают; иначе тело или код ошибки."""
-    back = 5.0
-    for attempt in range(5):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "research-fp-measure/1.0"})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                cl = r.headers.get("Content-Length")
-                if cl and int(cl) > 25 * 1024 * 1024:
-                    return None, "too-big"
-                buf = r.read(25 * 1024 * 1024 + 1)
+    """Закачка через curl-субпроцесс: edge Flickr троттлит python-urllib персистентными 429
+    (подтверждено 21.09: urllib в бэкоффе стоит минуты, curl в этом же окне даёт 200 за 0,2 с).
+    Мягкий арифметический бэкофф 10/20/30 с; >25 MiB → too-big (--max-filesize, rc=63)."""
+    tmpf = DATA / "_curl.tmp"
+    for attempt in range(4):
+        r = subprocess.run(
+            ["curl", "-s", "-m", "40", "-A", "research-fp-measure/1.0",
+             "--max-filesize", str(25 * 1024 * 1024), "-o", str(tmpf), "-w", "%{http_code}", url],
+            capture_output=True, text=True)
+        code = r.stdout.strip()
+        if code == "200" and r.returncode == 0:
+            buf = tmpf.read_bytes()
+            tmpf.unlink(missing_ok=True)
             if len(buf) > 25 * 1024 * 1024:
                 return None, "too-big"
             return buf, "ok"
-        except urllib.error.HTTPError as e:
-            if e.code in (404, 410):
-                return None, "dead-404"
-            if e.code == 429:
-                time.sleep(back)
-                back *= 4
-                continue
-            time.sleep(2)
-            if attempt == 4:
-                return None, f"http-{e.code}"
-        except Exception as e:
-            time.sleep(2)
-            if attempt == 4:
-                return None, f"fail:{type(e).__name__}"
-    return None, "dead-429x5"
+        tmpf.unlink(missing_ok=True)
+        if r.returncode == 63:
+            return None, "too-big"
+        if code in ("404", "410"):
+            return None, "dead-404"
+        if code == "429":
+            print(f"429: {url.split('/')[-1][:24]} (попытка {attempt + 1})", flush=True)
+            time.sleep(10 * (attempt + 1))
+            continue
+        time.sleep(2)
+        if attempt == 3:
+            return None, f"http-{code or r.returncode}"
+    return None, "dead-429x4"
 
 
 def main() -> None:
