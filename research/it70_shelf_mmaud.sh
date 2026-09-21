@@ -35,9 +35,15 @@ cands.sort(reverse=True)
 top = [c for c in cands if c[4] is not None and c[4] < float(old["fp@0.5"])][:3]
 if not top:  # никто не прошёл фильтр FP — берём 2 лучших по сумме с пометкой
     top = [c for c in cands if c[4] is not None][:2]
+    if top:
+        print("NOTE\tни одна полочная модель не прошла FP-фильтр — берём 2 лучших по сумме (с пометкой)")
+if not top:
+    print("NOTE\tлидеров нет вовсе (все строки shelf с пропусками) — арбитр нечего запускать")
 for s, m, d, h, fp in top:
     print(f"LEADER\t{m}\t{d:.4f}\t{h:.4f}\t{fp:.3f}")
 EOF
+n_lead=$(grep -c '^LEADER' "$LOG" || true)
+[ "$n_lead" -eq 0 ] && { say "лидеров нет — завершаюсь (см. NOTE в логе)"; exit 0; }
 
 awk -F'\t' '$1=="LEADER"{ if (!seen[$2]++) print $2 }' "$LOG" | tail -n "$MAX_MODELS" | while read -r label; do
   pt="${label#shelf-}"
