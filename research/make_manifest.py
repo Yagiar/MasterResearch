@@ -100,6 +100,8 @@ FILES = {
     "research/it71_policy_ablation.txt": ROOT / "research/it71_policy_ablation.txt",
     "research/it71_policy_ablation.csv": ROOT / "research/it71_policy_ablation.csv",
     "research/it72_independent_e6.txt": ROOT / "research/it72_independent_e6.txt",
+    "research/it65_union_analysis.txt": ROOT / "research/it65_union_analysis.txt",
+    "research/mmaud_imgsz1920_new.csv": ROOT / "research/mmaud_imgsz1920_new.csv",
     "research/mmaud_sahi_full_doguilmak-v11x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v11x.csv",
     "research/mmaud_sahi_full_doguilmak-v8x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v8x.csv",
     "research/mmaud_sahi_full_skyguard-v11.csv": ROOT / "research/mmaud_sahi_full_skyguard-v11.csv",

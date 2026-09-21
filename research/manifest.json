@@ -245,6 +245,14 @@
    "sha256": "4261027cf41da974e0754dfda224e96990ad312adacb9ed6e21d4f00efe210a7",
    "bytes": 1893
   },
+  "research/it65_union_analysis.txt": {
+   "sha256": "9559000e81128e84dfb9f87bff20ef75cd020ec52bfca838f5b14a746862a3fa",
+   "bytes": 558
+  },
+  "research/mmaud_imgsz1920_new.csv": {
+   "sha256": "62321ea9f762e3a334f0b53085dba151b20c67d18bfd6cdb9cd6ac4a4102599d",
+   "bytes": 163650
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316
