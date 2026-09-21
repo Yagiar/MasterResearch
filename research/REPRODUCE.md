@@ -193,6 +193,15 @@ cd MasterDiploma && ./venv/bin/python -m uavtrain.cli eval-visual \
 отрыв от порога E2 (>0,720) двукратный — каталог `visual-new-dut600-cpu` не создавался; постоянный
 warning манифеста «не включены: …visual-new-dut600-cpu/metrics.json» ожидаем и безвреден.
 
+# Живой A/B конфига fusion (it-68): A=per-message/k=0 (прежняя поставка), B=watermark/k=5
+# (испытанное it-43), C=watermark/k=0 — бонус-контроль; этапы ablation_v5.sh по 240 с, τ=0,5.
+# Provenance (U4): веса/ревизия — в заголовке research/it68_ab_run.log (sha256 + строка реестра);
+# интервалы этапов — строки `SCORE_OFF <A|B|C> START:END` того же лога (нумерация строк
+# MasterDiploma/data/decisions/decisions.jsonl). Скоринг:
+research/.venv/bin/python research/score_stages.py --burn-in-s 90 A=START:END B=... C=...
+# медиана задержки U3 — по обкатанной команде sed|grep|sort|awk из it-68 PLANNED (U3).
+bash research/it68_ab_run.sh   # защиты: финальные строки цепочек it-65, память ≥2 ГиБ; НЕ трогает веса
+
 ## 7. Известные границы воспроизводимости
 
 - `sandboxDataForSimulator/` (клип + wav) не версионируется — подложить из локального архива;
