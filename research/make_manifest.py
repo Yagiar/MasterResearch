@@ -113,6 +113,15 @@ FILES = {
     "train/runs/eval/visual-new-hf600/metrics.json": MD / "train/runs/eval/visual-new-hf600/metrics.json",
 }
 
+# плечо S: артефакты полного протокола финалистов (генерируются post-arbitrage)
+for _lbl in ("skyguard-v11", "doguilmak-v8x"):
+    for _k in (f"research/coco_bg_fp_{_lbl}.csv", f"research/session_vis_probe_{_lbl}.csv",
+               f"research/yolo_sandbox_frames_{_lbl}.csv", f"research/yolo_sandbox_frames_{_lbl}_gate025.csv",
+               f"research/fusion_sim_results-{_lbl}.csv", f"research/stress_sim_results-{_lbl}.csv",
+               f"research/bootstrap_pairs-{_lbl}.csv", f"research/delta_sweep-{_lbl}.csv",
+               f"research/event_metrics-{_lbl}.csv", f"research/threshold_calibration_v2-{_lbl}.csv"):
+        FILES[_k] = ROOT / _k
+
 HF_MODELS = {
     "Rashidbm/samid-drone-detector": "акустический AST-детектор (research/it-05, 15, 18)",
 }

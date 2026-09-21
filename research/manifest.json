@@ -229,6 +229,18 @@
    "sha256": "46e66686f29279615c0985ce51677e8a957d938e58328a772b73a781428fa8a0",
    "bytes": 189
   },
+  "research/mmaud_sahi_full_doguilmak-v8x.csv": {
+   "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
+   "bytes": 192316
+  },
+  "research/mmaud_sahi_full_skyguard-v11.csv": {
+   "sha256": "26d0c4aad9f562a8888e9200d971b9d50f8a3fdc97927376c46eca72992b2b41",
+   "bytes": 192346
+  },
+  "research/mmaud_sahi_full_noah-v8s.csv": {
+   "sha256": "c0fa150b5f28561d39253190bdfbeed7b468b9be1d5f9c7cd20ddae281b33831",
+   "bytes": 191822
+  },
   "train/runs/visual/uav-yolov8s-bg/results.csv": {
    "sha256": "5a08f4037b1430759f36569c772c1b6ab0fca2958d9e4eaae0d3000ef4b7edeb",
    "bytes": 4874
@@ -252,6 +264,86 @@
   "train/runs/eval/visual-new-hf600/metrics.json": {
    "sha256": "558a9bfe3745a1e7338988a4f410ffd30da446907d0a2af30ef28fd97599aad0",
    "bytes": 133
+  },
+  "research/coco_bg_fp_skyguard-v11.csv": {
+   "sha256": "762e1e16f78a422af03e45887964ae63c72dfb571c714e9b3a442450f23e2cba",
+   "bytes": 13913
+  },
+  "research/session_vis_probe_skyguard-v11.csv": {
+   "sha256": "a90a4f9a27391979f80bbb8b6dfdba653370f662cb00cc5d2ed4a37c4634158e",
+   "bytes": 427
+  },
+  "research/yolo_sandbox_frames_skyguard-v11.csv": {
+   "sha256": "7bcafed2b58343d7ee77b2297457987d5a7f5eba493024e9fff0c722fda47eec",
+   "bytes": 4835
+  },
+  "research/yolo_sandbox_frames_skyguard-v11_gate025.csv": {
+   "sha256": "3beb49380c426dbde3ef2ce9501abbd638f0fd49ad437b4f33edf513784d5181",
+   "bytes": 4819
+  },
+  "research/fusion_sim_results-skyguard-v11.csv": {
+   "sha256": "288f1f61275bcf8a9b76037facb8c319b9290adcba9dc4564941ed8fc23ca37a",
+   "bytes": 1069
+  },
+  "research/stress_sim_results-skyguard-v11.csv": {
+   "sha256": "5a44b3ae4d08531edf0788c043a019d311940266b653af2e1ae79491393f249a",
+   "bytes": 3799
+  },
+  "research/bootstrap_pairs-skyguard-v11.csv": {
+   "sha256": "b1310ef60ad8af8aa4bd940a90430717ff012c4c0b074a920276942d04e77a67",
+   "bytes": 397
+  },
+  "research/delta_sweep-skyguard-v11.csv": {
+   "sha256": "1fed6286aebfab8385757cfb62f39a91d91f914d0fd188927b2d086eeeb1c956",
+   "bytes": 272
+  },
+  "research/event_metrics-skyguard-v11.csv": {
+   "sha256": "8fd4ecb22c09ca51a83c3348e23cb6cfeab80abc8ece2feab0a7f22ca94fa31b",
+   "bytes": 238
+  },
+  "research/threshold_calibration_v2-skyguard-v11.csv": {
+   "sha256": "b51bb199b4d4e8f8f7976f325d587c21153416eaab2d007a25682a386948a8d1",
+   "bytes": 2883
+  },
+  "research/coco_bg_fp_doguilmak-v8x.csv": {
+   "sha256": "27bf54b163f303c9e6747c9b45a546a55902ff0614c47d2c49f1be1c02f36619",
+   "bytes": 14057
+  },
+  "research/session_vis_probe_doguilmak-v8x.csv": {
+   "sha256": "a4d52fcabbc23d6fce6bdb4c450758b92e5b9ab72514e48303fbb6f141f5f6e9",
+   "bytes": 426
+  },
+  "research/yolo_sandbox_frames_doguilmak-v8x.csv": {
+   "sha256": "8ee564c40f30548f149c8e8d90746aa8bd1864fb5261eec9d0e240e03ff33ba4",
+   "bytes": 4905
+  },
+  "research/yolo_sandbox_frames_doguilmak-v8x_gate025.csv": {
+   "sha256": "4428a7852ada9f42ff3668b690369f7932ac2bfea3dffa562910e133163ff382",
+   "bytes": 4103
+  },
+  "research/fusion_sim_results-doguilmak-v8x.csv": {
+   "sha256": "dbe1f1f6c52a63d18d44019d44020bdbc2db0bda8e7e23c7ab72e0c4102fc141",
+   "bytes": 1083
+  },
+  "research/stress_sim_results-doguilmak-v8x.csv": {
+   "sha256": "4ffaa83a9cd3febfdc6356522423a54d0d4cd502adaf3006d5438e64e3abc7da",
+   "bytes": 3795
+  },
+  "research/bootstrap_pairs-doguilmak-v8x.csv": {
+   "sha256": "a7a327b728cf4ca48a66480809c3f6b63bf17b6a231c699d44b471d35dbfa202",
+   "bytes": 376
+  },
+  "research/delta_sweep-doguilmak-v8x.csv": {
+   "sha256": "1051c07af8e3c02f49a79dc631f686acc5bbfb9e98c487ec6de99c2a049b8c72",
+   "bytes": 284
+  },
+  "research/event_metrics-doguilmak-v8x.csv": {
+   "sha256": "682702f49a318d4224d825c2cc88f066aec555a401cfb48f0519a98fdcefc48d",
+   "bytes": 243
+  },
+  "research/threshold_calibration_v2-doguilmak-v8x.csv": {
+   "sha256": "24e041e76d8ec72e3efbf4e61a0c6c212ec9c0496d829e9a82d6319e0f33898c",
+   "bytes": 2913
   }
  },
  "gitignored_inputs": {

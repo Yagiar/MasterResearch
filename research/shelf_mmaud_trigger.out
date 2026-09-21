@@ -3,3 +3,15 @@ LEADER	shelf-skyguard-v11	0.6592	0.8725	0.168
 LEADER	shelf-noah-v8s	0.2045	0.6339	0.072
 LEADER	shelf-doguilmak-v8x	0.2774	0.5275	0.247
 [2026-09-21 15:43:23] skyguard-v11: старт MMAUD SAHI (CPU, ~3-5 ч)
+[2026-09-21 16:33:20] skyguard-v11: OK (см. сводку recall выше)
+[2026-09-21 16:33:20] noah-v8s: старт MMAUD SAHI (CPU, ~3-5 ч)
+[2026-09-21 17:50:56] выбор лидеров из /home/otrix/code/GeneralFolderMasterDiploma/research/shelf_screen_results.csv
+LEADER	shelf-skyguard-v11	0.6592	0.8725	0.168
+LEADER	shelf-noah-v8s	0.2045	0.6339	0.072
+LEADER	shelf-doguilmak-v8x	0.2774	0.5275	0.247
+[2026-09-21 17:50:56] skyguard-v11: /home/otrix/code/GeneralFolderMasterDiploma/research/mmaud_sahi_full_skyguard-v11.csv уже есть — пропуск
+[2026-09-21 17:50:56] noah-v8s: старт MMAUD SAHI (CPU, ~3-5 ч)
+[2026-09-21 18:29:13] noah-v8s: OK (см. сводку recall выше)
+[2026-09-21 18:29:13] doguilmak-v8x: старт MMAUD SAHI (CPU, ~3-5 ч)
+[2026-09-21 20:18:32] doguilmak-v8x: OK (см. сводку recall выше)
+[2026-09-21 20:18:32] MMAUD-арбитр плеча S завершён
