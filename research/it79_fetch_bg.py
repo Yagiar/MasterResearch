@@ -29,7 +29,7 @@ MANIFEST = DATA / "manifest.csv"
 MIN_SIDE = 768
 N_MAIN = 400
 ATTEMPT_CAP = 41000  # весь пул
-DELAY = 0.4
+DELAY = 1.2  # 21.09: 0,4 с загнал IP в устойчивый 429-режим (0 принято/90 с)
 AERIAL_NAMES = [
     "Airplane", "Helicopter", "Drone", "Unmanned aerial vehicles", "UAV",
     "Kite", "Parachute", "Hot air balloon", "Balloon", "Model aircraft",
@@ -142,7 +142,7 @@ def main() -> None:
         rec = {"ImageID": iid, "url": url, "license": lic, "status": "", "w": "", "h": "",
                "bird": int(iid in birds)}
         buf, st = get_bytes(url)
-        time.sleep(DELAY)
+        time.sleep(DELAY * random.uniform(0.8, 1.4))
         dst = IMG / f"{iid}.jpg"
         if st != "ok":
             rec["status"] = st
