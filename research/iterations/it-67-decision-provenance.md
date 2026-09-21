@@ -32,19 +32,35 @@
   непись «unknown». Прогон: `./venv/bin/python -m pytest services/fusion/tests libs/common/tests -q` →
   59 + 63 passed, новых падений нет.
 
+## Post-hoc-join по `uavdet-pgdata` — ВЫПОЛНЕН 2026-09-21 06:16 МСК
+
+`bash research/it67_pg_join.sh` (защиты отработали: обе цепочки it-65 финализированы, available ≥ 2 ГиБ;
+поднят только `postgres`, остановлен trap'ом). Вывод — `research/it67_pg_join.out` (ключ манифеста).
+
+Результат (`uavdet.inference`, GROUP BY source_id, modality, model_name, model_ver) — ровно одна группа:
+
+| source_id | modality | model_name | model_ver | count | период (UTC) |
+|---|---|---|---|---|---|
+| cam-01 | video | yolov8s-uav | 1 | 34 918 | 2026-09-18 22:04:51 → 2026-09-19 02:55:44 |
+
+Что это доказывает и чего не доказывает:
+
+1. **Видеоканал — настоящей моделью, не заглушкой.** В коде эпохи живых прогонов (проверено по
+   `git show d24010c:…detector.py`, коммит 19.09 00:20 МСК — до первой строки БД) `model_name` —
+   это `Path(weights).stem` только при существовании файла весов; при откате записалось бы
+   `yolov8n.pt` + `model_ver="surrogate-coco"`. Строка `yolov8s-uav / 1` могла породиться только
+   реально загруженным `models/visual/yolov8s-uav.pt`. Дыра находки №3 закрыта для видеоканала
+   в покрытом окне.
+2. **Аудиоканал join не подтверждает:** в `uavdet.inference` нет ни одной audio-строки за период —
+   post-hoc-проверка модели аудио-ветки невозможна (остаточный пробел; фиксируется честно).
+3. **Окно покрытия — часть живого периода:** 34 918 строк за ~4,8 ч против 175 662 записей
+   `decisions.jsonl` (несколько сессий) — ранние прогоны в БД не попали.
+4. `model_ver` одинаков на всём окне — аблации it-42…51 им не различаются; это и не требовалось:
+   различие аблаций было в конфигурации fusion (watermark k), модель одна и та же.
+
 ## Что остаётся сделать (не выполнено в этом ходе)
 
-1. Post-hoc-join по `uavdet-pgdata`: какие `model_name` реально были в живых аблациях it-42…51.
-   Процедура (выполнять только после окончания цепочек it-65/66 и при available ≥ 2 ГиБ):
-   `docker compose -f infra/docker-compose.yml up -d postgres` →
-   `docker compose -f infra/docker-compose.yml exec postgres psql -U uavdet -d uavdet -c "SELECT
-   source_id, modality, model_name, model_ver, count(*), min(ingested_at), max(ingested_at) FROM
-   uavdet.inference GROUP BY 1,2,3,4 ORDER BY 6"` → `docker compose -f infra/docker-compose.yml stop postgres`.
-   Поднимаем только сервис `postgres` (том `uavdet-pgdata`), остальные сервисы не трогаем;
-   остановка — `stop`, не `down` (данные и контейнер сохраняются).
-   Исполнимо: `bash research/it67_pg_join.sh` (все три защиты в скрипте: финальные строки обеих
-   цепочек, available ≥ 2048 МиБ, `stop postgres` в trap; отказ проверен вживую 2026-09-21 —
-   exit=1 до завершения цепочки 1, docker не тронут; вывод → `research/it67_pg_join.out`).
+1. ~~Post-hoc-join по `uavdet-pgdata`~~ — выполнено выше (2026-09-21).
 2. Синхронизация `configs/pilot.yaml` — зарегистрирована как **it-68**
    (`it-68-pilot-config-sync-PLANNED.md`, критерии U1–U4; τ остаётся 0,5 по живому it-43).
 3. Оговорка в тексте: частичное закрытие 2026-09-20 — числа живых аблаций перенесены в

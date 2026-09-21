@@ -189,6 +189,9 @@ cd MasterDiploma && ./venv/bin/python -m uavtrain.cli eval-visual \
   --data train/data/_prepared/visual-dut-test600/data.yaml \
   --imgsz 640 --device cpu --name new-dut600-cpu   # отдельный каталог visual-new-dut600-cpu, вердикт не трогает
 ```
+Условие контроля не наступило (зафиксировано 2026-09-21): mAP50 новой на GPU = 0,9059 ∉ [0,715; 0,725],
+отрыв от порога E2 (>0,720) двукратный — каталог `visual-new-dut600-cpu` не создавался; постоянный
+warning манифеста «не включены: …visual-new-dut600-cpu/metrics.json» ожидаем и безвреден.
 
 ## 7. Известные границы воспроизводимости
 
