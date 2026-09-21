@@ -38,6 +38,7 @@ URLS_CSV = "https://storage.googleapis.com/openimages/2018_04/validation/validat
 BBOX_CSV = "https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv"
 CLS_CSV = "https://storage.googleapis.com/openimages/v5/class-descriptions-boxable.csv"
 FINAL = ("accepted", "small", "too-big", "dup-local-md5", "surplus")
+DEAD = DATA / "dead.txt"
 
 
 def fetch(url: str, dst: Path) -> None:
@@ -121,13 +122,20 @@ def main() -> None:
 
     kept: list[dict] = []
     accepted: list[str] = []
+    dead_ids: set[str] = set()
+    if DEAD.exists():
+        dead_ids = {l.strip() for l in open(DEAD, encoding="utf-8") if l.strip()}
+    retry_ids: set[str] = set()
     if MANIFEST.exists():
         for row in csv.DictReader(open(MANIFEST, encoding="utf-8")):
             if any(row["status"].startswith(p) for p in FINAL) or row["status"].startswith("broken-img"):
                 kept.append(row)
                 if row["status"] == "accepted":
                     accepted.append(f"{row['ImageID']}.jpg")
-    print(f"resume: принято {len(accepted)}, final-строк {len(kept)} (missing/fail возвращены в очередь)", flush=True)
+            else:
+                retry_ids.add(row["ImageID"])
+    print(f"resume: принято {len(accepted)}, final-строк {len(kept)}, dead-подтверждённых {len(dead_ids)} "
+          f"(missing/fail возвращены в очередь: {len(retry_ids)})", flush=True)
 
     from PIL import Image
     seen_local_md5 = {md5((IMG / a).read_bytes()).hexdigest() for a in accepted if (IMG / a).exists()}
@@ -139,10 +147,16 @@ def main() -> None:
         if iid in processed:
             continue
         processed.add(iid)
+        if iid in dead_ids:
+            kept.append({"ImageID": iid, "url": url, "license": lic, "status": "dead-confirmed",
+                         "w": "", "h": "", "bird": int(iid in birds)})
+            continue
         rec = {"ImageID": iid, "url": url, "license": lic, "status": "", "w": "", "h": "",
                "bird": int(iid in birds)}
         buf, st = get_bytes(url)
         time.sleep(DELAY * random.uniform(0.8, 1.4))
+        if st != "ok" and not st.startswith("dead-429") and iid in retry_ids:
+            dead_ids.add(iid)  # смерть при второй проверке → больше не дёргаем
         dst = IMG / f"{iid}.jpg"
         if st != "ok":
             rec["status"] = st
@@ -172,6 +186,7 @@ def main() -> None:
                 rec["status"] = f"broken-img:{type(e).__name__}"
         kept.append(rec)
         if len(kept) % 100 == 0:
+            DEAD.write_text("\n".join(sorted(dead_ids)) + "\n", encoding="utf-8")
             with open(MANIFEST, "w", newline="", encoding="utf-8") as mf:
                 mw = csv.DictWriter(mf, fieldnames=list(kept[0].keys()))
                 mw.writeheader()
@@ -182,6 +197,7 @@ def main() -> None:
         mw = csv.DictWriter(mf, fieldnames=list(kept[0].keys()))
         mw.writeheader()
         mw.writerows(kept)
+    DEAD.write_text("\n".join(sorted(dead_ids)) + "\n", encoding="utf-8")
     (DATA / "filelist.txt").write_text("\n".join(sorted(accepted)) + "\n", encoding="utf-8")
     dead = sum(r["status"].startswith(("dead-404", "http-", "fail:", "dead-429")) for r in kept)
     small = sum(r["status"] == "small" for r in kept)
