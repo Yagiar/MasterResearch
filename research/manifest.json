@@ -225,6 +225,10 @@
    "sha256": "f0267a60d7c26bc7ed9644568ef80268f82b752eaf930bdae9eb7da75d47d9ba",
    "bytes": 300
   },
+  "research/it70_recall_by_distance.txt": {
+   "sha256": "46e66686f29279615c0985ce51677e8a957d938e58328a772b73a781428fa8a0",
+   "bytes": 189
+  },
   "train/runs/visual/uav-yolov8s-bg/results.csv": {
    "sha256": "5a08f4037b1430759f36569c772c1b6ab0fca2958d9e4eaae0d3000ef4b7edeb",
    "bytes": 4874
