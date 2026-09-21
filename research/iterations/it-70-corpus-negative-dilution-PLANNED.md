@@ -90,7 +90,10 @@
 Плечо регистрируется здесь как **скрининговое**, не вердиктное: обучать не нужно, но финальным
 арбитром остаётся независимая линейка E1/E5 (см. оговорки).
 
-- 7 HF-чекпойнтов (`research/shelf_models/`, вне git; sha в коммите 3e399d0): doguilmak v11x/v8x,
+- 7 HF-чекпойнтов (`research/shelf_models/`, вне git; sha256 первые 16 хех-цифр:
+  doguilmak_v11x `8762f0759ddab1cd`, doguilmak_v8x `5953cb6c00b6f0e2`, skyguard_v11
+  `33f5bc2309b61427`, ruju_v12 `3257a0bac00fd1d1`, danivelikova_v26n `60f5a2a5b0f963ba`,
+  iris_v8s `412675eb07237a7b`, noah_v8s `bb06acbd90b5148f`): doguilmak v11x/v8x,
   SkyGuard v11, ruju v12 (AGPL), danivelikova v26n, IRIS v8s (CC-BY-NC), Noah v8s — все single-class id 0.
 - `research/shelf_screen.py` (CPU, инкрементальный CSV `shelf_screen_results.csv`): mAP50 DUT-600 и
   HF-600 (split=test, imgsz640) + FP на 400 независимых фонах coco-bg-v1; первым — калибровочный

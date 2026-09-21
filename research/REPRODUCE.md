@@ -235,6 +235,15 @@ bash research/it68_ab_run.sh   # защиты: финальные строки �
   `yolo_sandbox_frames_bg70{_gate025,}.csv`, пять `*-bg70.csv`).
 - Вердикт по предрегистрации (b43f782): `research/.venv/bin/python research/it70_verdict.py; echo $?`
   (0 — все зелёные, 1 — есть ЖДЁТ, 2 — красный; без пайпа на exit-код).
+- Плечо S (полка HF-моделей; веса `research/shelf_models/*.pt` вне git — скачаны с HF, sha в
+  `iterations/it-70-…-PLANNED.md`): скрининг `research/.venv/bin/python research/shelf_screen.py`
+  (CPU; инкрементальный `research/shelf_screen_results.csv`, финальный маркер
+  «SHELF SCREEN DONE»; первая строка — калибровка боевым майским весом, ожидается
+  0,7202/0,8673/0,275 бит-в-бит с канонами) → арбитраж независимым MMAUD:
+  `bash research/it70_shelf_mmaud.sh` (топ-3 по dut+hf при FP@0,5 < 27,5 %; SAHI 640/0,2 на CPU,
+  `--full1920-csv none`; идемпотентен по наличию выходных CSV) → сводка
+  `research/.venv/bin/python research/it70_shelf_report.py` (самотест на канонах: old 0,945 /
+  new 0,843 SAHI-полёт). Оговорки (leakage/AGPL/CC-BY-NC) — в PLANNED, раздел «Плечо S».
 
 ## 7. Известные границы воспроизводимости
 
