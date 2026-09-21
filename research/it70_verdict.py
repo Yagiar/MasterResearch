@@ -6,7 +6,10 @@ E1 — независимые 400 фонов COCO val2017 (тот же ката�
 E6–E8 — контур уровня окон на песочных кадрах (урок V3 it-69).
 Выход: 0 — все зелёные, 1 — есть ЖДЁТ (не полны замеры), 2 — есть красный.
 Запуск: research/.venv/bin/python research/it70_verdict.py
+Метки артефактов выводятся из --prefix (по умолчанию bg70 — behavior цепочки it-70);
+--e1 — путь E1-CSV относительно research/ (для финалистов плеча S: coco_bg_fp_<prefix>.csv).
 """
+import argparse
 import bisect
 import csv
 import glob
@@ -56,9 +59,14 @@ def event_delay(path: Path, config: str) -> float:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--prefix", default="bg70", help="метка артефактов прогона (bg70, shelf-<label>…)")
+    ap.add_argument("--e1", default="coco_bg_fp_it70v1.csv", help="E1-CSV относительно research/")
+    a = ap.parse_args()
+    p, e1 = a.prefix, a.e1
     checks = []  # (id, описание, получено, ожидаем, ok|None)
 
-    f = R / "coco_bg_fp_it70v1.csv"
+    f = R / e1
     if f.exists():
         d = fp_rates(f)
         ok = d["0.25"] <= 0.25 and d["0.5"] <= 0.128
@@ -66,29 +74,29 @@ def main() -> int:
     else:
         checks.append(("E1", "FP независ. 400 фонов", "нет файла", "≤25/≤12,8", None))
 
-    for cid, ev, op, thr in (("E2", "visual-bg70-dut600", ">", 0.720), ("E3", "visual-bg70-hf600", "≥", 0.837)):
-        p = MD / "train/runs/eval" / ev / "metrics.json"
-        if p.exists():
+    for cid, ev, op, thr in (("E2", f"visual-{p}-dut600", ">", 0.720), ("E3", f"visual-{p}-hf600", "≥", 0.837)):
+        pth = MD / "train/runs/eval" / ev / "metrics.json"
+        if pth.exists():
             m = metric(ev, "map50")
-            checks.append((cid, f"mAP50 {ev.replace('visual-bg70-', '')} {op} {thr}", f"{m:.3f}", f"{op}{thr}", m > thr if cid == "E2" else m >= thr))
+            checks.append((cid, f"mAP50 {ev.replace(f'visual-{p}-', '')} {op} {thr}", f"{m:.3f}", f"{op}{thr}", m > thr if cid == "E2" else m >= thr))
         else:
             checks.append((cid, f"mAP50 {ev}", "нет файла", f"{op}{thr}", None))
 
-    f = R / "session_vis_probe_bg70.csv"
+    f = R / f"session_vis_probe_{p}.csv"
     if f.exists():
         k, n = session_share(f, "0.5")
         checks.append(("E4", "стоящий дрон: сек с детектом @0,5 ≥ 16/18", f"{k}/{n}", "≥16/18", k >= 16))
     else:
         checks.append(("E4", "session probe @0,5", "нет файла", "≥16/18", None))
 
-    f = R / "mmaud_sahi_full_bg70.csv"
+    f = R / f"mmaud_sahi_full_{p}.csv"
     if f.exists():
         v = sahi_flight_recall(f)
         checks.append(("E5", "SAHI MMAUD recall полёт @0,5 ≥ 89,5%", f"{v:.1%}", "≥89,5%", v >= 0.895))
     else:
         checks.append(("E5", "SAHI MMAUD recall полёт", "нет файла", "≥89,5%", None))
 
-    f = R / "fusion_sim_results-bg70.csv"
+    f = R / f"fusion_sim_results-{p}.csv"
     if f.exists():
         r6 = fusion_row(f, "video-only", "R")
         r7 = fusion_row(f, "late 0.5/0.5", "F1")
@@ -98,7 +106,7 @@ def main() -> int:
         checks.append(("E6", "контур video-only R окон", "нет файла", "≥0,98", None))
         checks.append(("E7", "контур F1 late", "нет файла", "≥0,95", None))
 
-    f = R / "event_metrics-bg70.csv"
+    f = R / f"event_metrics-{p}.csv"
     if f.exists():
         d8 = event_delay(f, "late τ=0.5")
         checks.append(("E8", "контур: задержка late ≤ канон(0,0)+1,0 с", f"{d8:.1f}", "≤1,0", d8 <= 1.0))
