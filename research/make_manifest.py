@@ -62,6 +62,7 @@ FILES = {
     # --- it-67: вывод post-hoc-join по uavdet-pgdata (появится после запуска скрипта) ---
     "research/it67_pg_join.out": ROOT / "research/it67_pg_join.out",
     "research/it68_ab_summary.txt": ROOT / "research/it68_ab_summary.txt",
+    "research/it69_thresh_shift_analysis.txt": ROOT / "research/it69_thresh_shift_analysis.txt",
     # --- it-65: источники чисел E2/E3 и кривая тренировки (метрики eval-прогонов) ---
     "train/runs/visual/uav-yolov8s-bg/results.csv": MD / "train/runs/visual/uav-yolov8s-bg/results.csv",
     "train/runs/eval/visual-old-dut600/metrics.json": MD / "train/runs/eval/visual-old-dut600/metrics.json",
