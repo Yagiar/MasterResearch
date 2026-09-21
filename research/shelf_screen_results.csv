@@ -1,0 +1,3 @@
+model,dut600_map50,hf600_map50,fp@0.25,fp@0.4,fp@0.5,med_maxconf_bg,note
+old-uav-yolov8s,0.7202,0.8673,0.618,0.398,0.275,0.333,боевой майский (калибровка линейки)
+shelf-doguilmak-v11x,0.2895,0.5274,0.685,0.448,0.347,0.362,"MIT, HF doguilmak/Drone-Detection-YOLOv11x"
