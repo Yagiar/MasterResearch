@@ -6,7 +6,10 @@ It-56: recall «летит» 18.3% @960 → 64.5% @1920 (подвыборка 1/
   2) SAHI-проба (нарезка 640 с перекрытием) на подвыборке «полёт» — потолок восстановления;
   3) кривая p_v по секундам (где модель видит/теряет).
 Запуск: research/.venv/bin/python research/mmaud_imgsz1920_eval.py
+  [--weights ПТЬ.ВЕСОВ] [--out ПТЬ.CSV]   # дефолты: канон it-58 (yolov8s-uav.pt, mmaud_imgsz1920.csv);
+  замеры новых весов (union-бэклог it-65) — явным --out, чтобы не затирать baseline.
 """
+import argparse
 import csv
 import glob
 import sys
@@ -17,6 +20,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 MD = ROOT / "MasterDiploma"
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--weights", default=str(MD / "models/visual/yolov8s-uav.pt"))
+ap.add_argument("--out", default=None, help="путь CSV (по умолчанию research/mmaud_imgsz1920.csv)")
+args = ap.parse_args()
 IMGS = sorted(glob.glob(str(MD / "train/data/mmaud/Mavic3/image/*.png")))
 GTS = sorted(glob.glob(str(MD / "train/data/mmaud/Mavic3/ground_truth/*.npy")))
 gt_ts = [float(Path(g).stem) for g in GTS]
@@ -28,9 +36,9 @@ def z_of(p):
 
 from ultralytics import YOLO  # noqa: E402
 
-model = YOLO(str(MD / "models/visual/yolov8s-uav.pt"))
+model = YOLO(args.weights)
 
-OUT = ROOT / "research/mmaud_imgsz1920.csv"
+OUT = Path(args.out) if args.out else ROOT / "research/mmaud_imgsz1920.csv"
 rows = []
 for i, img_path in enumerate(IMGS):
     res = model.predict(img_path, imgsz=1920, conf=0.01, verbose=False)[0]
