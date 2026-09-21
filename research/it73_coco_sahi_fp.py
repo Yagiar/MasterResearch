@@ -19,10 +19,15 @@ ap.add_argument("--weights", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--images-dir", default=str(ROOT / "MasterDiploma/train/data/_prepared/coco-bg-v1"))
 ap.add_argument("--pattern", default="*.jpg")
+ap.add_argument("--file-list", default=None,
+                help="файл со списком имён (по одному в строке, relative to --images-dir); перекрывает --pattern")
 ap.add_argument("--device", default="cpu")
 args = ap.parse_args()
 
-imgs = sorted(Path(args.images_dir).glob(args.pattern))
+if args.file_list:
+    imgs = [Path(args.images_dir) / l.strip() for l in open(args.file_list) if l.strip()]
+else:
+    imgs = sorted(Path(args.images_dir).glob(args.pattern))
 if not imgs:
     raise SystemExit(f"нет кадров {args.pattern} в {args.images_dir}")
 
