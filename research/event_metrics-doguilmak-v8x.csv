@@ -1,0 +1,6 @@
+config,events_detected,delay_s,fp,fp_per_hour
+audio-only τ=0.25,1/1,0.0–0.0,7,347
+audio-only τ=0.5,1/1,0.5–0.5,3,149
+late τ=0.5,1/1,7.0–7.0,6,297
+late+med5 τ=0.55,1/1,32.0–32.0,3,149
+video-only τ=0.5,1/1,53.0–53.0,22,1091
