@@ -403,3 +403,12 @@ research/.venv/bin/python research/verify_manifest.py   # 111/111 sha256 ok
 # Итог: 7/7 exit 0; git status чист — артефакты (.csv/.txt) совпали байт-в-байт с закоммиченными.
 # it-77 (§6i) в аттестацию не входит: содержит инференс-компоненту (ultralytics), перепрогон не бесплатен.
 ```
+
+## 6n. Регресс кодового контура MasterDiploma (2026-09-22, после цикла it-64…80)
+
+```bash
+cd MasterDiploma && venv/bin/python -m pytest libs/common/tests services
+# Итог: 88 passed in 8.66s — цикл (provenance-правок it-67 включительно) тестовый контур не сломал.
+# make lint (ruff) локально не проверялся: ruff отсутствует и в venv проекта, и в системе
+# (venv/bin/python -m ruff → No module named ruff; which ruff пуст) — фиксация факта, не результат.
+```
