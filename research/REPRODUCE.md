@@ -390,3 +390,16 @@ research/.venv/bin/python research/it80_hd_profile.py
 # H2 КРАСНЫЙ — там же ΔR=−6,4 п.п. (AND хуже лучшего одиночного). Вывод: пара 94,7/7,2 (it-74) —
 # смешанный режим (R из SAHI-HD, FP из 640-px COCO); однородной HD-точки в сетке τ≤0,70 нет.
 ```
+
+## 6m. Перепрогон-аттестация цикла ансамбля (2026-09-22, ноль инференса)
+
+```bash
+# все детерминированные CPU-анализаторы §6f–6j/6l прогнаны заново из закоммиченных входов:
+for s in it74_vote_analysis it74_vote_bootstrap it75_contour_vote it76_ensemble_echeck \
+         it78_gmean_vote it79_sahi_hd_fp it80_hd_profile; do
+  research/.venv/bin/python research/$s.py || echo "FAIL $s"
+done
+research/.venv/bin/python research/verify_manifest.py   # 111/111 sha256 ok
+# Итог: 7/7 exit 0; git status чист — артефакты (.csv/.txt) совпали байт-в-байт с закоммиченными.
+# it-77 (§6i) в аттестацию не входит: содержит инференс-компоненту (ultralytics), перепрогон не бесплатен.
+```
