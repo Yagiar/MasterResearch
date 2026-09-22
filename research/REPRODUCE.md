@@ -360,3 +360,19 @@ research/.venv/bin/python research/it78_gmean_vote.py
 # → вывод it-74 распространяется на всё семейство средних («исчерпано над p-семейством»).
 ```
 
+## 6k. it-79 — SAHI-FP на 400 HD-фонах Open Images (2026-09-21→22, GPU-инференс без обучения)
+
+```bash
+# сбор выборки (CPU, ~10 ч из-за 429-бана Flickr; данные вне git: train/data/_prepared/hi-res-bg-v1):
+research/.venv/bin/python research/it79_fetch_bg.py        # resume-безопасно; ACCEPTED=400/400
+# два GPU-замера harness'ом it-73 (tile 640/0,2; imgsz 640; device cuda):
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True MasterDiploma/venv/bin/python \
+  research/it73_coco_sahi_fp.py --weights MasterDiploma/models/visual/yolov8s-uav.pt \
+  --out research/it79_old.csv --images-dir MasterDiploma/train/data/_prepared/hi-res-bg-v1/images \
+  --file-list MasterDiploma/train/data/_prepared/hi-res-bg-v1/filelist.txt --device cuda
+#   ...то же с --weights MasterDiploma/train/runs/visual/uav-yolov8s-bg/weights/best.pt --out research/it79_new.csv
+cp MasterDiploma/train/data/_prepared/hi-res-bg-v1/{manifest.csv,filelist.txt} research/  # как it79_manifest.csv/it79_filelist.txt
+research/.venv/bin/python research/it79_sahi_hd_fp.py      # сами-проверка fp@0.4≡max_conf≥0.40 → X0–X3
+# Итог: X0 зелёный (400 кадров, min 768…4032, CC, ¬aerial); X1/X2 КРАСНЫЕ:
+# FP(AND@0,40; SAHI-HD)=48,8 % против V1 7,2 % → AND-точка не робастна к HD-режиму (новое ограничение профиля).
+```

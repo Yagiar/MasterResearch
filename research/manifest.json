@@ -1,16 +1,16 @@
 {
  "schema": "uavdet-repro-manifest/1",
  "hf_revisions": {
-  "Rashidbm/samid-drone-detector": "unknown"
+  "Rashidbm/samid-drone-detector": "3a12f618dd8aebf180945bf04ebfeef262d65795"
  },
  "versions": {
   "python": "3.12.3",
-  "torch": "not-installed",
-  "transformers": "not-installed",
-  "librosa": "not-installed",
-  "ultralytics": "not-installed",
-  "numpy": "not-installed",
-  "huggingface_hub": "not-installed"
+  "torch": "2.14.0+cu130",
+  "transformers": "5.16.1",
+  "librosa": "1.0.0",
+  "ultralytics": "8.4.139",
+  "numpy": "2.5.2",
+  "huggingface_hub": "1.30.0"
  },
  "files": {
   "models/visual/yolov8s-uav.pt": {
@@ -308,6 +308,30 @@
   "research/it78_gmean_vote.txt": {
    "sha256": "b0414e09dd488a1f585bf7b96f79c5c486a4c92f38937d1109999147ba29d66f",
    "bytes": 2146
+  },
+  "research/it79_old.csv": {
+   "sha256": "42e89f1c1d0747766119411eab34a38aced1bde0c5264ed047e8d19b0cd5537a",
+   "bytes": 16795
+  },
+  "research/it79_new.csv": {
+   "sha256": "4794f4bf1c463d9933a2c2ff2ed3c2df8426c32fccf2409ae3a5c01f0ebafa41",
+   "bytes": 16417
+  },
+  "research/it79_manifest.csv": {
+   "sha256": "e41600b95a2739e8f25759726ebeea2bebfdc8389dd63d747f49420a842a0ed4",
+   "bytes": 117784
+  },
+  "research/it79_filelist.txt": {
+   "sha256": "bb347931dbf303ebfda45909ce24c8f3411de241da5bb31831ac4a95592ec4f6",
+   "bytes": 8400
+  },
+  "research/it79_sahi_hd_fp.csv": {
+   "sha256": "b235568331a383fa4f768bb6a7b7fa98ce17c54fa4f75b0faa21f080452f807a",
+   "bytes": 404
+  },
+  "research/it79_sahi_hd_fp.txt": {
+   "sha256": "dbfe4539f615f65d53065d53ef5a5363dead2af3d052e4e969ec2cf2fd37dab2",
+   "bytes": 1197
   },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
