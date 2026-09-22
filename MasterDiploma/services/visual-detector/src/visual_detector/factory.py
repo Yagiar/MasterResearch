@@ -22,6 +22,9 @@ def build_detector(vd_cfg: dict[str, Any]) -> YoloDetector:
         sahi_slice=int(vd_cfg.get("sahi_slice", 0)),
         sahi_overlap=float(vd_cfg.get("sahi_overlap", 0.2)),
         drone_class_ids=(list(drone_ids) if drone_ids else None),
+        vote_weights_path=(str(vd_cfg["vote_weights_path"]) if vd_cfg.get("vote_weights_path") else None),
+        vote_mode=str(vd_cfg.get("vote_mode", "off")),
+        vote_floor=float(vd_cfg.get("vote_floor", 0.4)),
     )
 
 

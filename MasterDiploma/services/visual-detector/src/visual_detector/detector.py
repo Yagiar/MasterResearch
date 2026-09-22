@@ -58,6 +58,9 @@ class YoloDetector:
         drone_class_ids: list[int] | None = None,  # явный список id классов = «дрон» (если None — по имени класса)
         sahi_slice: int = 0,        # it-59: размер среза SAHI (0 = выключено); напр. 640
         sahi_overlap: float = 0.2,  # it-59: перекрытие срезов (доля)
+        vote_weights_path: str | None = None,  # it-81: веса второй модели-голосующего (voter)
+        vote_mode: str = "off",                # it-81: off | and | or (кадровый max_conf-ряд, канон it-74/75)
+        vote_floor: float = 0.4,               # it-81: порог τ голосующей пары
     ) -> None:
         from ultralytics import YOLO  # noqa: PLC0415
 
@@ -91,8 +94,46 @@ class YoloDetector:
             drone_class_ids=(sorted(self._drone_ids) if self._drone_ids is not None else "по имени класса"),
         )
 
+        # it-81: кадровое голосование двух моделей (max_conf-ряд, канон it-74/75), только full-frame режим
+        mode = str(vote_mode).lower()
+        if mode not in ("off", "and", "or"):
+            raise ValueError(f"vote_mode должен быть off|and|or, получено {vote_mode!r}")
+        self._vote_mode = mode
+        self._vote_floor = float(vote_floor)
+        self._voter: object | None = None
+        self._voter_name = ""
+        self._voter_names: dict[int, str] = {}
+        if mode != "off":
+            if self._sahi_slice > 0:
+                raise ValueError("vote_mode != off поддерживается только в full-frame режиме (sahi_slice=0)")
+            vpath = Path(str(vote_weights_path or ""))
+            if not vpath.exists():
+                raise ValueError(f"voter-веса не найдены: {vpath}")
+            log.info("visual-detector: загрузка voter-модели", weights=str(vpath), mode=mode)
+            self._voter = YOLO(str(vpath))
+            self._voter_name = vpath.stem
+            self._voter_names = dict(getattr(self._voter, "names", {}) or {})
+
+    @staticmethod
+    def _max_drone_conf(dets: list[Detection]) -> float:
+        return max((d.confidence for d in dets if d.label == "drone"), default=0.0)
+
+    def _apply_vote(self, dets_a: list[Detection], dets_b: list[Detection]) -> list[Detection]:
+        """Кадровое решение AND/OR по max_conf дронов (it-81); non-drone-детекции остаются у primary."""
+        max_a, max_b = self._max_drone_conf(dets_a), self._max_drone_conf(dets_b)
+        floor = self._vote_floor
+        if self._vote_mode == "and":
+            ok = max_a >= floor and max_b >= floor
+        else:  # or
+            ok = max(max_a, max_b) >= floor
+        if not ok:
+            return [d for d in dets_a if d.label != "drone"]
+        return dets_a if max_a >= max_b else list(dets_b)
+
     @property
     def model_name(self) -> str:
+        if self._vote_mode != "off":
+            return f"{self._model_name}+{self._voter_name}:{self._vote_mode}@{self._vote_floor:g}"
         return self._model_name
 
     @property
@@ -113,10 +154,22 @@ class YoloDetector:
         low = self._names.get(cls_id, "").lower()
         return "drone" if ("drone" in low or "uav" in low) else "non-drone"
 
-    def _detect_frame(self, frame: np.ndarray) -> tuple[list[Detection], float]:
+    def _label_for_voter(self, cls_id: int) -> str:
+        """Метки voter-модели: то же правило по имени класса, без surrogate/drone_class_ids."""
+        low = self._voter_names.get(int(cls_id), "").lower()
+        return "drone" if ("drone" in low or "uav" in low) else "non-drone"
+
+    def _detect_frame(
+        self,
+        frame: np.ndarray,
+        model=None,
+        labeler=None,
+    ) -> tuple[list[Detection], float]:
         """Один прогон детектора на кадре (или срезе); возвращает детекции в координатах входа."""
+        model = self._model if model is None else model
+        labeler = self._label_for if labeler is None else labeler
         t0 = time.perf_counter()
-        results = self._model.predict(
+        results = model.predict(
             frame,
             conf=self._conf,
             iou=self._iou,
@@ -134,7 +187,7 @@ class YoloDetector:
             confs = boxes.conf.cpu().numpy() if hasattr(boxes.conf, "cpu") else np.asarray(boxes.conf)
             clss = boxes.cls.cpu().numpy() if hasattr(boxes.cls, "cpu") else np.asarray(boxes.cls)
             for (x1, y1, x2, y2), conf, cls_id in zip(xyxy, confs, clss):
-                label = self._label_for(int(cls_id))
+                label = labeler(int(cls_id))
                 if label is None:
                     continue
                 detections.append(
@@ -206,33 +259,13 @@ class YoloDetector:
                 model_ver=self.model_ver,
             )
         dets, latency_ms = self._detect_frame(frame)
+        if self._vote_mode != "off":
+            dets_b, lat_b = self._detect_frame(frame, model=self._voter, labeler=self._label_for_voter)
+            latency_ms += lat_b
+            dets = self._apply_vote(dets, dets_b)
         return DetectResult(
             detections=dets,
             latency_ms=latency_ms,
-            model_name=self._model_name,
-            model_ver=self.model_ver,
-        )
-        for res in results:
-            boxes = getattr(res, "boxes", None)
-            if boxes is None:
-                continue
-            xyxy = boxes.xyxy.cpu().numpy() if hasattr(boxes.xyxy, "cpu") else np.asarray(boxes.xyxy)
-            confs = boxes.conf.cpu().numpy() if hasattr(boxes.conf, "cpu") else np.asarray(boxes.conf)
-            clss = boxes.cls.cpu().numpy() if hasattr(boxes.cls, "cpu") else np.asarray(boxes.cls)
-            for (x1, y1, x2, y2), conf, cls_id in zip(xyxy, confs, clss):
-                label = self._label_for(int(cls_id))
-                if label is None:
-                    continue
-                detections.append(
-                    Detection(
-                        label=label,
-                        confidence=float(conf),
-                        bbox=[float(x1), float(y1), float(x2 - x1), float(y2 - y1)],
-                    )
-                )
-        return DetectResult(
-            detections=detections,
-            latency_ms=latency_ms,
-            model_name=self._model_name,
+            model_name=self.model_name,
             model_ver=self.model_ver,
         )
