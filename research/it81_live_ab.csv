@@ -1,0 +1,4 @@
+stage,vote,decisions_n,usable_media_ts,burnin_n,norm_p,norm_r,norm_f1,raw_f1_stationary,e2e_median_s,e2e_p95_s
+A_vote_off_old_only,off@-,1824,1822,1046,0.927,1.000,0.962,0.963,2.516,9.879
+B_AND,B-and@0.4,1828,1826,1162,0.927,1.000,0.962,0.968,2.470,4.682
+C_OR,C-or@0.4,1828,1826,1058,0.927,1.000,0.962,0.964,2.523,8.798

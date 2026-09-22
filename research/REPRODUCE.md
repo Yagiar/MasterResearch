@@ -412,3 +412,20 @@ cd MasterDiploma && venv/bin/python -m pytest libs/common/tests services
 # make lint (ruff) локально не проверялся: ruff отсутствует и в venv проекта, и в системе
 # (venv/bin/python -m ruff → No module named ruff; which ruff пуст) — фиксация факта, не результат.
 ```
+
+## 6o. Живой A/B ансамбля it-81 (2026-09-22, GPU-docker, ~17 мин)
+
+```bash
+# Требует: nvidia-container-toolkit, веса models/visual/{yolov8s-uav.pt (41f3fd55…),
+# uav-yolov8s-bg-best.pt (7042602a…)}, материал sandbox (source-simulator).
+cd MasterDiploma && setsid nohup bash ../research/it81_ab_run.sh &   # A off -> B and@0,4 -> C or@0,4
+# Runner сам: пересобирает образ visual-detector (код в образе, не mount!), создаёт топики
+# (Kafka без auto-create), на каждом этапе гейтит P5 (env) -> стрим (inference>0 за 25 с) ->
+# P4 по ДАННЫМ (DISTINCT model_name = ожидаемый состав) — до 240-с окна; при ОТКАЗе любой
+# гейт прерывает всё. Интервалы SCORE_OFF взять из research/it81_ab_run.log.
+cd ../research && .venv/bin/python score_stages.py --burn-in-s 90 "A=S1:E1" "B=S2:E2" "C=S3:E3"
+# Фиксация (третий пуск, канон): NORM A=B=C: P 0,927 / R 1,000 / F1 0,962; SCORE_OFF
+# A 184980:186803, B 186808:188635, C 188636:190463; e2e-медианы 2,516/2,470/2,523 с.
+# НЕ воспроизводится байт-в-байт: живой поток + wall-clock окна (в отличие от §6f-6j/6l).
+# Предыстория: два первых пуска не засчитаны (пустой Kafka; старый pip-код в образе) —
+# operational-заметки в it-81-live-ensemble-ab.md.

@@ -341,6 +341,18 @@
    "sha256": "a41e5abf002db2a8203538194943702c86eb935ec83c3211638d2eee6d580f2f",
    "bytes": 2993
   },
+  "research/it81_live_ab.csv": {
+   "sha256": "735c50cf534301125c16d1227ad9739cf30638c5bd50e7a873732e02c0d94993",
+   "bytes": 320
+  },
+  "research/it81_ab_summary.txt": {
+   "sha256": "b124bc66245a026dc376969e6a65d55043ff12e22cc2c7447c68275516e1c07a",
+   "bytes": 3772
+  },
+  "research/it81_ab_run.sh": {
+   "sha256": "4aae24e60518220f4065bd6521795e8fcb61cc8850abe70e5dc6273c6266ce33",
+   "bytes": 7694
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316
