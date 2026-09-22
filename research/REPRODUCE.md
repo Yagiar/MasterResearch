@@ -429,3 +429,22 @@ cd ../research && .venv/bin/python score_stages.py --burn-in-s 90 "A=S1:E1" "B=S
 # НЕ воспроизводится байт-в-байт: живой поток + wall-clock окна (в отличие от §6f-6j/6l).
 # Предыстория: два первых пуска не засчитаны (пустой Kafka; старый pip-код в образе) —
 # operational-заметки в it-81-live-ensemble-ab.md.
+```
+
+## 6p. Живой фоновый прогон it-82 (2026-09-22→23, GPU-docker, ~18 мин)
+
+```bash
+# Требует: §6k-материал (train/data/_prepared/hi-res-bg-v1 + каталог strict400 из 400 симлинков
+# по filelist.txt — вне git), веса как в §6o, nvidia-container-toolkit.
+cd MasterDiploma && setsid nohup bash ../research/it82_bg_run.sh &   # A off -> B and@0,4 -> C or@0,4
+# Runner — адаптация it81_ab_run.sh: оверлей источника mmaud_replay на /data/bgsrc/strict400
+# (fps=2, без аудио, loop), все гейты it-81 (build образа, топики, P5 env, стрим-гейт 25 с,
+# P3 model_name по ДАННЫМ). Интервалы SCORE_OFF — из research/it82_bg_run.log (gitignored).
+cd ../research && .venv/bin/python it82_bg_fp_eval.py --burn-in-s 60 "A=S1:E1" "B=S2:E2" "C=S3:E3"
+# Канон (пуск №2): SCORE_OFF A 190464:190765, B 190766:191068, C 191069:191371;
+# FP-кадр: A 0,893 [0,847;0,927] / B(AND@0,4) 0,699 [0,632;0,758] / C(OR@0,4) 1,000 — P0/P1/P2 🟢.
+# Единица — отправленный кадр (уникальный media_ts): media_ts режима папки идёт по _DEFAULT_FPS=30
+# при темпе 2 к/с (mmaud_replay.py:121) → таймлайн сжат ×15, предрег. слот 0,5 с — union ~15
+# картинок (приведён в артефактах как контроль). Пуск №1 не засчитан: heredoc `\$1` в оверлее.
+# НЕ воспроизводится байт-в-байт (живой поток); артефакты it82_bg_fp.csv / it82_bg_summary.txt.
+```
