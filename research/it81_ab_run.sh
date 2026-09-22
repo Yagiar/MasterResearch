@@ -66,6 +66,11 @@ stage() {  # $1=имя, $2=vote_mode, $3=floor
   # P5: env видеосервиса должен содержать vote-переменные ДО измерений
   echo "-- P5 env uavdet-visual-detector:"
   docker exec uavdet-visual-detector env | grep -E "UAVDET_VISUAL|VOTE" || echo "P5 FAIL: нет vote-env"
+  # ранний стрим-гейт: за 25 с inference обязан двинуться, иначе этап пустой — abort
+  sleep 25
+  NINF=$(q "SELECT count(1) FROM uavdet.inference;" | tr -d '[:space:]')
+  [ "${NINF:-0}" -gt 0 ] || { echo "ОТКАЗ: пустой поток inference на этапе '$1' (25 с) — прогон прерван"; exit 1; }
+  echo "-- стрим-гейт OK: inference за 25с = $NINF"
   echo "[it81] ждём ${WAIT}с..."
   sleep "$WAIT"
   echo "-- decisions: всего | совместных | доля | avg e2e_ms:"
@@ -88,6 +93,22 @@ COMPOSE_INFRA=(docker compose -f infra/docker-compose.yml -f infra/docker-compos
 write_override off 0.4  # валидный YAML до первого up infra
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it81] ждём инфраструктуру (30с)..."; sleep 30
+
+# топики (аналог make topics-create; в этом Kafka auto-create выключен — пустой прогон без них)
+create_topics() {
+  local t have
+  for t in video.raw audio.raw inference decisions; do
+    "${COMPOSE_INFRA[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh \
+      --bootstrap-server localhost:9092 --create --if-not-exists \
+      --topic "$t" --partitions 1 --replication-factor 1 >/dev/null 2>&1 || true
+  done
+  have=$("${COMPOSE_INFRA[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null)
+  for t in video.raw audio.raw inference decisions; do
+    grep -qx "$t" <<<"$have" || { echo "ОТКАЗ: топик $t не создан"; exit 1; }
+  done
+  echo "[it81] топики на месте: $(tr '\n' ' ' <<<"$have")"
+}
+create_topics
 
 stage "A vote off (old-only)"   off 0.4
 stage "B AND@0,4"               and 0.4
