@@ -122,6 +122,8 @@ FILES = {
     "research/it79_filelist.txt": ROOT / "research/it79_filelist.txt",
     "research/it79_sahi_hd_fp.csv": ROOT / "research/it79_sahi_hd_fp.csv",
     "research/it79_sahi_hd_fp.txt": ROOT / "research/it79_sahi_hd_fp.txt",
+    "research/it80_hd_profile.csv": ROOT / "research/it80_hd_profile.csv",
+    "research/it80_hd_profile.txt": ROOT / "research/it80_hd_profile.txt",
     "research/mmaud_sahi_full_doguilmak-v11x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v11x.csv",
     "research/mmaud_sahi_full_doguilmak-v8x.csv": ROOT / "research/mmaud_sahi_full_doguilmak-v8x.csv",
     "research/mmaud_sahi_full_skyguard-v11.csv": ROOT / "research/mmaud_sahi_full_skyguard-v11.csv",
