@@ -44,3 +44,6 @@ research/mmaud_audio*.wav
 # артефакты ultralytics при запуске eval из корня workspace (it-65)
 runs/
 vitals.csv
+
+# stdout/stderr прогоны замеров (пересоздаются командами REPRODUCE §6; канон — .csv/.txt в манифесте)
+research/it*_*.out
