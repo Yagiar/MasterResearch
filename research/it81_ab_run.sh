@@ -3,7 +3,9 @@
 # research/iterations/it-81-live-ensemble-ab-PLANNED.md).
 # Каркас — ablation_v5.sh (240 с/этап, burn-in 90, media_ts), НО с исправленным механизмом:
 # override-файл передаётся явно через -f "$OVR" (в v3/v5 он был мёртвый — см. аудит-находку it-81),
-# и каждый этап печатает env контейнера visual-detector ДО измерений (критерий P5).
+# и каждый этап печатает env контейнера visual-detector ДО измерений (критерий P5),
+# собирает образ перед прогоном и проверяет model_name в самих данных (P4-гейт:
+# env без нового кода в образе молча игнорируется — находка 22.09).
 # Этапы: A vote=off (baseline, одиночный old) -> B vote=and@0,4 -> C vote=or@0,4 (voter=new).
 # Fusion во всех этапах — боевая поставка: watermark, k=5, τ=0,5, Δ=0.
 set -u
@@ -51,7 +53,7 @@ reset_groups() {
   done
 }
 
-stage() {  # $1=имя, $2=vote_mode, $3=floor
+stage() {  # $1=имя, $2=vote_mode, $3=floor, $4=ожидаемый model_name видео-ветки (regex для P4-гейта)
   echo
   echo "=================================================================="
   echo "=== ЭТАП $1: vote=$2 floor=$3   $(date +%H:%M:%S) ==="
@@ -71,6 +73,13 @@ stage() {  # $1=имя, $2=vote_mode, $3=floor
   NINF=$(q "SELECT count(1) FROM uavdet.inference;" | tr -d '[:space:]')
   [ "${NINF:-0}" -gt 0 ] || { echo "ОТКАЗ: пустой поток inference на этапе '$1' (25 с) — прогон прерван"; exit 1; }
   echo "-- стрим-гейт OK: inference за 25с = $NINF"
+  # P4-гейт по ДАННЫМ: model_name видео-строк = фактический состав ветки.
+  # Env (P5) не доказывает, что код в образе читает его (находка 22.09: контейнер
+  # крутил старый pip-код без vote — B/C молча шли как old-only).
+  P4M=$(q "SELECT DISTINCT model_name FROM uavdet.inference WHERE modality='video';" | tr -d '\r')
+  echo "-- P4 model_name(video): $(tr '\n' ' ' <<<"$P4M")"
+  grep -qE "$4" <<<"$P4M" || { echo "ОТКАЗ P4: ожидаем паттерн /$4/, в данных: $(tr '\n' ' ' <<<"$P4M") — прогон прерван"; exit 1; }
+  echo "-- P4-гейт OK"
   echo "[it81] ждём ${WAIT}с..."
   sleep "$WAIT"
   echo "-- decisions: всего | совместных | доля | avg e2e_ms:"
@@ -91,6 +100,10 @@ echo "веса voter: $(sha256sum "$VOTER_PT" 2>/dev/null || echo 'НЕТ ФАЙ
 
 COMPOSE_INFRA=(docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml)
 write_override off 0.4  # валидный YAML до первого up infra
+# Код сервиса ставится в образ при сборке (pip install ./services/…) — без rebuild
+# контейнер крутил бы старый код и vote-env молча игнорировался (находка 22.09).
+echo "[it81] сборка образа visual-detector (кэш слоёв)..."
+"${COMPOSE[@]}" build visual-detector 2>&1 | tail -3
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it81] ждём инфраструктуру (30с)..."; sleep 30
 
@@ -110,9 +123,9 @@ create_topics() {
 }
 create_topics
 
-stage "A vote off (old-only)"   off 0.4
-stage "B AND@0,4"               and 0.4
-stage "C OR@0,4"                or  0.4
+stage "A vote off (old-only)"   off 0.4 '^yolov8s-uav$'
+stage "B AND@0,4"               and 0.4 '^yolov8s-uav\+uav-yolov8s-bg-best:and@0\.4$'
+stage "C OR@0,4"                or  0.4 '^yolov8s-uav\+uav-yolov8s-bg-best:or@0\.4$'
 
 rm -f "$OVR"
 echo
