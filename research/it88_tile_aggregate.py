@@ -14,12 +14,17 @@
 Сами-проверки канонов + гейт T1 (exploratory) — см. PLANNED. Выход: it88_tile_agg.{csv,txt}.
 Запуск: research/.venv/bin/python research/it88_tile_aggregate.py
 """
+import argparse
 import csv
 import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "research"
+ap = argparse.ArgumentParser()
+ap.add_argument("--dir", default=str(ROOT / "research"),
+                help="каталог с дампами it88_*_old/new.csv (для синтетической самопроверки — /tmp-каталог)")
+args = ap.parse_args()
+OUT = Path(args.dir)
 TAUS = [0.30, 0.35, 0.40, 0.45, 0.50]
 MAIN = 0.40
 ALPHA = 0.05
