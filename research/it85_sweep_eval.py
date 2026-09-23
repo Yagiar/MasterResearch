@@ -19,10 +19,25 @@ import csv
 import json
 import math
 import sys
+from pathlib import Path
 
 ROOT = "/home/otrix/code/GeneralFolderMasterDiploma"
 JSONL = f"{ROOT}/MasterDiploma/data/decisions/decisions.jsonl"
 SAMPLES = f"{ROOT}/research/it85_samples.csv"
+OUT_CSV = f"{ROOT}/research/it85_sweep.csv"
+OUT_TXT = f"{ROOT}/research/it85_sweep_summary.txt"
+# опциональные пути только для синтетической самопроверки парсера (дефолт — боевые артефакты)
+_args = [a for a in sys.argv[1:] if a.startswith("--")]
+for _a in _args:
+    k, v = _a.split("=", 1)
+    if k == "--jsonl":
+        JSONL = v
+    elif k == "--samples":
+        SAMPLES = v
+    elif k == "--out":
+        OUT_CSV = v + ".csv"
+        OUT_TXT = v + ".txt"
+sys.argv = [sys.argv[0]] + [a for a in sys.argv[1:] if not a.startswith("--")]
 N_FRAMES = 400
 DRAIN_MAX = 60.0
 P95_MAX = 10.0
@@ -40,7 +55,7 @@ def pct(xs, p):
 
 rows = [json.loads(l) for l in open(JSONL, encoding="utf-8") if l.strip()]
 with open(SAMPLES, encoding="utf-8") as f:
-    rd = csv.reader(l for l in f if l.strip() and not l.startswith("epoch"))
+    rd = list(csv.reader(l for l in f if l.strip() and not l.startswith("epoch")))
 samples = [(int(r[0]), r[1], int(r[2]), int(r[3]), float(r[4]), float(r[5])) for r in rd if len(r) >= 6]
 
 out = []
@@ -118,19 +133,19 @@ print(f"P2 sustainable_fps(B)≤(A): {sb} ≤ {sa}; Δp95(B−A) по точка
 
 def fmt(x):
     if isinstance(x, bool):
-        return int(x)
+        return str(int(x))
     if isinstance(x, float):
         return "nan" if math.isnan(x) else f"{x:.4f}"
     return str(x)
 
 
-with open(f"{ROOT}/research/it85_sweep.csv", "w", encoding="utf-8") as fh:
+with open(OUT_CSV, "w", encoding="utf-8") as fh:
     fh.write("stage,fps,n_frames_covered,coverage,lag_p50,lag_p95,lag_p99,drain_s,max_backlog,"
              "gpu_util_mean,gpu_util_p95,vram_peak_mib,sustainable,n_samples\n")
     for o in out:
         fh.write(",".join(fmt(x) for x in o) + "\n")
 
-with open(f"{ROOT}/research/it85_sweep_summary.txt", "w", encoding="utf-8") as fh:
+with open(OUT_TXT, "w", encoding="utf-8") as fh:
     fh.write("it-85 throughput saturation sweep (strict400 OI, loop=false, 400 кадров/этап, "
              "post-fix media_ts; sustainable := drain≤60с ∧ p95≤10с ∧ coverage≥0,45)\n")
     for o in out:
