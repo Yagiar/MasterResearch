@@ -4,7 +4,7 @@
 
 Это монорепо с **кодом продукта** (микросервисный потоковый пайплайн на Apache Kafka) и **train-приложением** (обучение/оценка моделей). Архитектура спроектирована и задокументирована в Obsidian-вольте: `/Users/otrix/MasterDiplomaVaultObsidian/00 — Карта/03 — НИР-2 (текущий семестр)/Архитектура приложения/` (микросервисы, контракты, паттерны GoF/SOLID, high-load, развёртывание, C4-диаграммы). Черновик отчёта по НИР — `reports/НИР-2/otchet.md`.
 
-> Текущий статус: сквозной путь (`source-simulator → ingest-gateway → visual-detector → fusion → sink`) + акустическая ветка (`acoustic-detector` + обучение CNN в `train/`) + режимы fusion `video-only`/`audio-only`/`late`/`hybrid` с adaptive gating + PostgreSQL для результатов + dashboard-`gateway` (REST/WS + веб-дашборд) + источник с аудио (`MediaFileAdapter`) и реальный «канал деградации» (на пилоте выключен). Парсеры в `prepare_visual` терпимы к раскладке архивов, но проверены не на всех релизах. **Реального Docker-прогона пайплайна ещё не было.**
+> Текущий статус: сквозной путь (`source-simulator → ingest-gateway → visual-detector → fusion → sink`) + акустическая ветка (`acoustic-detector` + обучение CNN в `train/`) + режимы fusion `video-only`/`audio-only`/`late`/`hybrid` с adaptive gating + PostgreSQL для результатов + dashboard-`gateway` (REST/WS + веб-дашборд) + источник с аудио (`MediaFileAdapter`) и реальный «канал деградации» (на пилоте выключен). Парсеры в `prepare_visual` терпимы к раскладке архивов, но проверены не на всех релизах. **Живые Docker/GPU-прогоны пайплайна выполнялись многократно** (ablation v2–v5, it-30/42…46; последние — живой A/B ансамбля it-81 и фоновый FP-прогон it-82, REPRODUCE §6o/§6p в `../research/`).
 
 ## Структура
 

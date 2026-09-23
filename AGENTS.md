@@ -43,7 +43,7 @@ make run-pipeline[-mm|-gpu] / run-dashboard / pipeline-logs / pipeline-down / in
 
 - **Пути в документах устарели**: `MasterDiploma/CLAUDE.md`, `README.md` и `NIR-2-SEM-Full/HANDOFF.md` ссылаются на macOS-пути (`/Users/otrix/...`). Фактически вольт лежит рядом: `../MasterDiplomaVaultObsidian/`.
 - В `MasterDiploma` **не коммитить**: `.docx` отчёта (генерируется `pandoc reports/НИР-2/otchet.md -o otchet.docx` из markdown), веса `models/`, медиа `sandboxDataForSimulator/`, `venv/`, `train/data/` — это по-прежнему держит его локальный `.gitignore`, который действует и для корневого репо; глобально веса `*.pt/*.onnx/*.pb/*.safetensors` и `*.log` игнорирует корневой `.gitignore`.
-- На CPU `visual-detector` не держит реалтайм — лаг копится; для реальных прогонов `make run-pipeline-gpu` (нужен nvidia-container-toolkit). Реального Docker-прогона пайплайна до недавнего времени не было — проверяйте фактическое состояние.
+- На CPU `visual-detector` не держит реалтайм — лаг копится; для реальных прогонов `make run-pipeline-gpu` (нужен nvidia-container-toolkit). Живые Docker/GPU-прогоны пайплайна есть с 05.09 (it-30/42…46, вновь — it-81/82, `research/REPRODUCE.md` §6o/§6p).
 - `models/visual/` без весов: `visual-detector` требует `yolov8n.pt`; `acoustic-detector` без весов работает в режиме энергетического порога.
 - Git-коммиты — фактические, **без сторонних соавторов** (без Co-Authored-By).
 - Дисциплина цитирования в текстах ВКР/НИР: каждое фактическое утверждение — с проверенным источником (DOI/arXiv), ссылки не выдумывать.
