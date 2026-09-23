@@ -51,6 +51,32 @@ def test_folder_frames_media_ts_continues_across_loops(seq) -> None:
     assert second_start == pytest.approx(6 / 30.0, abs=1e-6)  # продолжение, не сброс
 
 
+def test_folder_media_ts_uses_requested_fps_timebase(seq) -> None:
+    """it-83: у папки кадров таймбейс = темп отправки (requested_fps), а не номинальные 30 Hz.
+
+    Находка it-82: при fps=2 media_ts рос в 15 раз медленнее wall-clock (240 с → 18,3 с),
+    из-за чего media-слоты fusion агрегировали ~15 разных кадров.
+    """
+    img_dir, _ = seq
+    ad = MmaudReplayAdapter(source_id="cam-01", video_path=str(img_dir), audio_path=None,
+                            fps=2.0, loop=False)
+    mts = [f.media_ts for f in ad.frames()]
+    assert mts == pytest.approx([i * 0.5 for i in range(6)])
+    assert all(b > a for a, b in zip(mts, mts[1:], strict=False))
+
+
+def test_folder_media_ts_requested_fps_continues_across_loops(seq) -> None:
+    """it-83: при fps=2 продолжение второй петли — 6 кадров / 2 к/с = 3,0 с."""
+    img_dir, _ = seq
+    ad = MmaudReplayAdapter(source_id="cam-01", video_path=str(img_dir), audio_path=None,
+                            fps=2.0, loop=True)
+    gen = ad.frames()
+    for _ in range(6):
+        next(gen)
+    assert next(gen).media_ts == pytest.approx(3.0, abs=1e-6)
+    ad.close()
+
+
 def test_no_audio_yields_no_windows(seq) -> None:
     """audio_path=None → audio_windows() пуст (video-only режим, it-57)."""
     img_dir, _ = seq

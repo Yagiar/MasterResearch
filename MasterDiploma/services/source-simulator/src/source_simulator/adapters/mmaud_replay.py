@@ -100,6 +100,10 @@ class MmaudReplayAdapter:
 
         params = [int(cv2.IMWRITE_JPEG_QUALITY), self._jpeg_quality]
         if self._video_is_dir:
+            # it-83: у папки кадров собственной частоты нет — таймбейс медиа = темп отправки
+            # (requested_fps); иначе media_ts идёт по номинальным 30 Hz при подаче, например,
+            # 2 к/с и сжимает таймлайн ×15 (находка it-82: 240 с wall → 18,3 с media).
+            self._fps_nominal = self._requested_fps if self._requested_fps > 0 else _DEFAULT_FPS
             files = self._frame_files()
             if not files:
                 raise RuntimeError(f"в папке кадров MMAUD нет изображений: {self._video_path}")
