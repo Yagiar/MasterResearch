@@ -21,10 +21,16 @@
   канон it-81/82/84 (watermark, k=5, τ=0,5, Δ=0). Runner — каркас it84 (гейты P5 env,
   стрим-гейт 25 с, P4 model_name по данным, sha весов, дренажный конец этапа вместо
   wall-таймера; deadline этапа = 400/fps + 240 с).
-- **Семплирование каждые 10 с** (`research/it85_samples.csv`): лаг потребительских групп
-  visual-detector (backlog video.raw = узел ingest+детектор) и fusion (backlog inference),
-  GPU util (%), GPU memory.used (MiB) с хоста nvidia-smi (GTX 1660 Ti, 6144 MiB).
-  Отметки `STAGE_WINDOW` (epoch-границы) и `SEND_DONE` (t_up + 400/fps) — в лог.
+- **Семплирование каждые ~15 с** (`research/it85_samples.csv`): лаг потребительских групп
+  visual-detector (backlog video.raw = узел ingest+детектор) и fusion (backlog inference)
+  (`kafka-consumer-groups.sh --describe --group X`, сумма LAG), GPU util (%) и memory.used
+  (MiB) с хоста nvidia-smi (GTX 1660 Ti, 6144 MiB) — **max из 3 замеров с шагом 2 с**
+  (инференс бёрстами, одиночный редкий тик ловил бы только простой). Отметки `STAGE_WINDOW`
+  (epoch-границы) и `SEND_DONE` (t_up + 400/fps) — в лог.
+  *Поправка предрегистрации (до засчитанных замеров):* пуск №1 остановлен — `--describe`
+  без `--group/--all-groups` печатает usage (лаги — ложные нули); GPU-сэмпл с 10-с тиком
+  без залпа недооценивает util. Пустой CSV/лог пуска №1 удалены, прогон перезапущен с
+  исправленным семплером; вердиктов пуска №1 не существует.
 
 ## Определяемые метрики (на этап)
 

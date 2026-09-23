@@ -20,9 +20,9 @@ SERVICES="source-simulator ingest-gateway visual-detector acoustic-detector fusi
 
 q() { docker compose -f infra/docker-compose.yml exec -T postgres psql -U uavdet -d uavdet -tA -c "$1"; }
 offset() { wc -l < "$JSONL" 2>/dev/null || echo 0; }
-klags() {  # $1=group -> сумма LAG по строкам describe
+klags() {  # $1=group -> сумма LAG по строкам describe (--group обязателен: без него describe печатает usage)
   "${COMPOSE_INFRA[@]}" exec -T kafka /opt/kafka/bin/kafka-consumer-groups.sh \
-    --bootstrap-server localhost:9092 --describe 2>/dev/null \
+    --bootstrap-server localhost:9092 --describe --group "$1" 2>/dev/null \
     | awk -v g="$1" '$1==g && $6 ~ /^[0-9]+$/ {s+=$6} END{print s+0}'
 }
 
@@ -63,15 +63,23 @@ reset_groups() {
   done
 }
 
-sampler() {  # $1=имя этапа; крутится, пока жив флаг-файл
+sampler() {  # $1=имя этапа; крутится, пока жив флаг-файл; tick ~15 с
   touch "$FLAG"
   while [ -f "$FLAG" ]; do
     TS=$(date +%s)
     VD=$(klags visual-detector)
     FU=$(klags fusion)
-    GPU=$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits 2>/dev/null | tr -d ' ')
-    echo "$TS,$1,$VD,$FU,${GPU:-0,0}" >> "$SAMPLES"
-    sleep 10
+    # GPU: залп из 3 замеров по 2 с (max) — редкий тик ловит только простой, инференс бёрстами
+    GU=0; GM=0
+    for i in 1 2 3; do
+      G=$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits 2>/dev/null | tr -d ' ')
+      u=${G%%,*}; m=${G##*,}
+      [ "${u:-0}" -gt "$GU" ] 2>/dev/null && GU=$u
+      [ "${m:-0}" -gt "$GM" ] 2>/dev/null && GM=$m
+      [ "$i" -lt 3 ] && sleep 2
+    done
+    echo "$TS,$1,$VD,$FU,$GU,$GM" >> "$SAMPLES"
+    sleep 5
   done
 }
 

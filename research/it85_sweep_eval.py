@@ -8,7 +8,7 @@
 Метрики на этап (предрегистр, it-85-throughput-saturation-PLANNED.md):
   coverage = уникальных media_ts / 400; lag = (ts − t0) − media_ts, t0 = min(ts − media_ts);
   p50/p95/p99 лага; send_done = t0 + 400/fps; drain_s = от send_done до первого сэмпла
-  (10 с тик) с vd+fusion лагом = 0 (не нашли до конца окна этапа → цензура = провал);
+  (~15 с тик) с vd+fusion лагом = 0 (не нашли до конца окна этапа → цензура = провал);
   max lag за стрим; GPU util mean/p95; VRAM peak — из research/it85_samples.csv.
 sustainable := drain ≤ 60 с И p95 ≤ 10 с И coverage ≥ 0,45.
 Проверки: C1 coverage(A@2)∈[0,45;0,60]; P0 sustainable(A@0,5); P1 все A sustainable;
