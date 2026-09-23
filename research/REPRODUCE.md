@@ -411,6 +411,9 @@ cd MasterDiploma && venv/bin/python -m pytest libs/common/tests services
 # Итог: 88 passed in 8.66s — цикл (provenance-правок it-67 включительно) тестовый контур не сломал.
 # make lint (ruff) локально не проверялся: ruff отсутствует и в venv проекта, и в системе
 # (venv/bin/python -m ruff → No module named ruff; which ruff пуст) — фиксация факта, не результат.
+# ПЕРЕПРОВЕРКА 24.09 (it-83): та же команда → 98 passed in 10.85s. Расхождение с 88 — +8 тестов,
+# добавленных в контур после фиксации §6n (в т.ч. media_ts-файл it-60), и +2 теста it-83;
+# прежняя строка 22.09 не переписывается, перемерка фиксируется отдельно.
 ```
 
 ## 6o. Живой A/B ансамбля it-81 (2026-09-22, GPU-docker, ~17 мин)
@@ -447,4 +450,19 @@ cd ../research && .venv/bin/python it82_bg_fp_eval.py --burn-in-s 60 "A=S1:E1" "
 # при темпе 2 к/с (mmaud_replay.py:121) → таймлайн сжат ×15, предрег. слот 0,5 с — union ~15
 # картинок (приведён в артефактах как контроль). Пуск №1 не засчитан: heredoc `\$1` в оверлее.
 # НЕ воспроизводится байт-в-байт (живой поток); артефакты it82_bg_fp.csv / it82_bg_summary.txt.
+```
+
+## 6q. Фикс media_ts + живой sanity it-83 (2026-09-24, GPU-docker, ~9 мин)
+
+```bash
+# Фикс: mmaud_replay режим папки — таймбейс media_ts = requested_fps (было _DEFAULT_FPS=30
+# при темпе отправки 2 к/с → сжатие таймлайна ×15, находка it-82; §6p). Коммит кода 4dbc99e.
+cd MasterDiploma && venv/bin/python -m pytest services/source-simulator -q   # 11 passed
+# sanity-харнес (каркас it82_bg_run.sh, этапы A off / B and@0,4 по WAIT=120 с):
+cd MasterDiploma && setsid nohup bash ../research/it83_sanity.sh &           # лог research/it83_sanity.log
+cd ../research && .venv/bin/python it83_sanity_eval.py --burn-in-s 60 "A=191372:191538" "B=191539:191703"
+# Канон: S1 post-burn-in ratio A 1,007 / B 0,993 🟢 (буквальный полный-срез B 1,248 — стартовый
+# залп тёп-запуска, зафиксирован и атрибут); S2 кадровая FP B 0,161 < A 0,418 🟢 (не переворот).
+# Срез A расширен до дренажной границы (191538) — 3 хвостовых решения этапа A.
+# НЕ воспроизводится байт-в-байт (живой поток); артефакт it83_sanity_summary.txt.
 ```
