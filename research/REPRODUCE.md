@@ -482,3 +482,15 @@ cd ../research && .venv/bin/python it84_paired_eval.py --expect-frames 180 "A=S1
 # (окно fusion 1,2 медиа-с ≈ 36 картинок при сжатии ×15); пофреймовый канон FP — этот §.
 # НЕ воспроизводится байт-в-байт (живой поток); артефакты it84_paired.csv/it84_paired_summary.txt.
 ```
+
+## 6s. Гейт it-89: skyguard третий voter, zero-inference (2026-09-24)
+
+```bash
+research/.venv/bin/python research/it89_skyguard_gate.py
+# Входы (закоммиченные CSV, ноль инференса): mmaud_sahi_full{,_new,_skyguard-v11}.csv (5091),
+#   coco_bg_fp_it69v1-{old,new}.csv + coco_bg_fp_skyguard-v11.csv (400), GT — mmaud ground_truth/*.npy.
+# Выход: Q0 зелёный (каноны recall@0,5 94,5/84,3/90,9 ±0,2 п.п.; AND₃⊆AND₂⊆MAJ₃ на множествах);
+#   Q1 🔴 (best prec 0,95 @τ=0,5 при introduced_FP=24, порог ≤2 не пройден ни на одной τ);
+#   Q2 🔴 (MAJ₃@0,4: ΔR=+4,0 п.п. против ΔFP=+11,5 п.п.). Итог: закрытие отрицательно без GPU.
+# Артефакты: research/it89_skyguard_gate.csv, research/it89_skyguard_gate.txt. Воспроизводится детерминированно.
+```

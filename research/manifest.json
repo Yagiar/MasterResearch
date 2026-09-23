@@ -397,6 +397,18 @@
    "sha256": "404f3ca637dcf7edba733fbb62099776127b0dc6bb036e1e4681b807b62c2cf6",
    "bytes": 560
   },
+  "research/it89_skyguard_gate.py": {
+   "sha256": "6d7cbbf2f9ad9378a216ddb4933b6106500d1f329276164dd829bc6753e37743",
+   "bytes": 6587
+  },
+  "research/it89_skyguard_gate.csv": {
+   "sha256": "8dff86ee6694e7c72f2a21aa7a7c0487e02326213a7e1c4873d8f10e926cf140",
+   "bytes": 527
+  },
+  "research/it89_skyguard_gate.txt": {
+   "sha256": "75c468db8ad1b31fb0a30620a2f83ecabb2bb051d3544f90a6fb990930c3a956",
+   "bytes": 1713
+  },
   "research/mmaud_sahi_full_doguilmak-v8x.csv": {
    "sha256": "e41a23c9323ebb7fbbe92aedc5f3483ca95c1467bebddaded5c76fc5354ef68d",
    "bytes": 192316
