@@ -43,6 +43,8 @@ ap.add_argument("--weights", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--device", default="cpu")
 ap.add_argument("--stride", type=int, default=10, help="mmaud: каждый N-й flight-кадр (по sorted frame-id)")
+ap.add_argument("--limit", type=int, default=None,
+                help="SMOKE-only: взять первые N кадров (проверка кода, НЕ замер; по умолчанию — полный протокол)")
 args = ap.parse_args()
 
 SLICE, OVERLAP = 640, 0.2
@@ -74,6 +76,10 @@ else:
     flight = [p for p in all_frames if gt_z_at(float(p.stem), gt_ts, gt) > 1.0]
     subset = flight[::max(1, args.stride)]
     print(f"mmaud: flight={len(flight)}, stride={args.stride} → subset={len(subset)}")
+
+if args.limit:
+    subset = subset[:args.limit]
+    print(f"SMOKE --limit: subset={len(subset)} (не замер)")
 
 from ultralytics import YOLO  # noqa: E402
 import cv2  # noqa: E402
