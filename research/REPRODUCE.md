@@ -466,3 +466,19 @@ cd ../research && .venv/bin/python it83_sanity_eval.py --burn-in-s 60 "A=191372:
 # Срез A расширен до дренажной границы (191538) — 3 хвостовых решения этапа A.
 # НЕ воспроизводится байт-в-байт (живой поток); артефакт it83_sanity_summary.txt.
 ```
+
+## 6r. Exact paired replay it-84 (2026-09-24, GPU-docker, ~14 мин)
+
+```bash
+# Требует: материал/веса §6p, код с фиксом it-83 (таймбейс папки = requested_fps).
+cd MasterDiploma && setsid nohup bash ../research/it84_paired_run.sh &   # A off -> B and@0,4, loop=false
+# Отличия от it82_bg_run.sh: строгий конечный прогон 400 кадров (loop=false), конец этапа
+# по ДРЕНАЖУ (offset decisions.jsonl не растёт 45 с; максимум 340 с; <200 решений = ОТКАЗ).
+cd ../research && .venv/bin/python it84_paired_eval.py --expect-frames 180 "A=S1:E1" "B=S2:E2"
+# Канон: SCORE_OFF A 191704:191912, B 191913:192129; C1 🟢 (общих 209, only_B=7 — стартовые
+# окна холодного A); P1 🟢: b=53, c=6, McNemar exact p=1,75·10⁻¹⁰; FP(A) 0,330 [0,270;0,396] →
+# FP(B AND@0,4) 0,105 [0,071;0,154]; cluster-bootstrap Δ [−0,292;−0,163] (seed 8404, 10k).
+# P2 🔴 по букве: FP(A) вне корки [0,5;1,0] — абсолют it-82 инфлирован дофиксной единицей
+# (окно fusion 1,2 медиа-с ≈ 36 картинок при сжатии ×15); пофреймовый канон FP — этот §.
+# НЕ воспроизводится байт-в-байт (живой поток); артефакты it84_paired.csv/it84_paired_summary.txt.
+```

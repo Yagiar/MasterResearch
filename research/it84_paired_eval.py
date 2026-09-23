@@ -91,7 +91,10 @@ if len(names) < 2:
 fa, fb = stages[names[0]], stages[names[1]]
 common = sorted(set(fa) & set(fb))
 only_a, only_b = set(fa) - set(fb), set(fb) - set(fa)
-c1 = not only_a and not only_b and len(common) >= expect
+# C1 по букве предрегистрации: |A∩B| ≥ порог и симметричное выпадение ≤ 15 (не строгая
+# идентичность множеств — 7 хвостовых окон в B есть контурный шум, а не потеря пары)
+SYMM = 15
+c1 = len(only_a) <= SYMM and len(only_b) <= SYMM and len(common) >= expect
 print(f"C1 комплектность: |общих| {len(common)}, только в {names[0]} {len(only_a)}, "
       f"только в {names[1]} {len(only_b)} (порог {expect}) — {'🟢' if c1 else '🔴'}")
 

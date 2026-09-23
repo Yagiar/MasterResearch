@@ -1,0 +1,14 @@
+metric,value
+n_common,209
+only_a,0
+only_b,7
+b_rescued,53
+c_added,6
+both_pos,16
+both_neg,134
+fp_a,0.330144
+fp_b,0.105263
+delta,-0.224880
+mcnemar_p,1.75392e-10
+boot_lo,-0.291866
+boot_hi,-0.162679
