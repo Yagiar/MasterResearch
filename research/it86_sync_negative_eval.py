@@ -16,6 +16,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 JSONL = ROOT / "MasterDiploma/data/decisions/decisions.jsonl"
 OUT = ROOT / "research/it86_sync_summary.txt"
+# опциональные пути для синтетической самопроверки парсера (дефолт — боевые)
+for _a in [x for x in sys.argv[1:] if x.startswith("--")]:
+    k, v = _a.split("=", 1)
+    if k == "--jsonl":
+        JSONL = Path(v)
+    elif k == "--out":
+        OUT = Path(v)
+sys.argv = [sys.argv[0]] + [x for x in sys.argv[1:] if not x.startswith("--")]
 SANITY_MAX_T = 60.0
 LOG = []
 
