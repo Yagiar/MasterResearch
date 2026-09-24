@@ -35,7 +35,7 @@ services:
       UAVDET_SOURCE__FPS: "$FPS"
       UAVDET_SOURCE__MEDIA_FILE__VIDEO_PATH: "$NEG_VIDEO"
       UAVDET_SOURCE__MEDIA_FILE__AUDIO_PATH: "$4"
-      UAVDET_SOURCE__MEDIA_FILE__LOOP: "false"
+      UAVDET_SOURCE__MEDIA_FILE__LOOP: "true"
   fusion:
     environment:
       UAVDET_FUSION__WINDOW_RELEASE: "watermark"
