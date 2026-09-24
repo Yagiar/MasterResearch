@@ -519,3 +519,19 @@ research/.venv/bin/python research/it85_sweep_eval.py \
 # Фикс измерителя: services/source-simulator/.../mmaud_replay.py + регресс test_mmaud_replay_media_ts.py
 #   (fps=0,5 → шаг media_ts 2,0с).
 ```
+
+## 6u. Tile-aware SAHI агрегация it-88 (2026-09-24, GPU-дампы + ноль-инференс разбор)
+
+```bash
+# 4 GPU-дампа per-tile конфиденций (строго после it-85; гейт — наличие it85_sweep_summary.txt):
+bash research/it88_dump_run.sh            # bg400×{old,new}=400; mmaud stride=10×{old,new}=502 flight
+# Ноль-инференс разбор политик (каноны recall/FP из GT, без инференса):
+research/.venv/bin/python research/it88_tile_aggregate.py   # → it88_tile_agg.{csv,txt}
+# Канон: сами-проверки блокаторы — SC1 MAX-AND@0,40 FP=48,8% (≈it-79 48,8±3) 🟢;
+#   SC2 MAX-old recall@0,5=95,8% (≈94,5±3) 🟢. Гейт T1 🔴: ни одна не-MAX политика
+#   (CONS2/CONS3/NULL/FULL) не собирает угол FP(AND@0,40)≤12,8 ∧ recall≥85 → exploratory-негатив;
+#   граница применимости HD/SAHI не снимается, перекалибровка τ не выполнена (стоп-критерий).
+#   CONS3@0,40: FP 19,0/recall 69,9; CONS2@0,40: FP 30,5/recall 86,7; NULL@0,40: FP 1,8/recall 55,6.
+# Воспроизводится детерминированно (дампы закоммичены). Артефакты: it88_bg400_{old,new}.csv,
+#   it88_mmaud_{old,new}.csv, it88_tile_agg.csv, it88_tile_agg.txt.
+```

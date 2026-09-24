@@ -417,6 +417,42 @@
    "sha256": "80c65381648ac20984ff56ddec11eb4b349de1b1a7744df57af23f4d8f06af5f",
    "bytes": 1892
   },
+  "research/it88_sahi_tiled.py": {
+   "sha256": "83644ad043e15adcf4beda4e556fc90c0362a92017fe4967338dac3fbf5b74c7",
+   "bytes": 5831
+  },
+  "research/it88_tile_aggregate.py": {
+   "sha256": "dc0ed386b447758b13872637941bbce8481e470463ec66b936fab6d5d5b877a9",
+   "bytes": 8759
+  },
+  "research/it88_dump_run.sh": {
+   "sha256": "957aaf61bd73576bf18cfc9bc1beaa6df569cd78bf09061f0ad000a26bd1806d",
+   "bytes": 1718
+  },
+  "research/it88_bg400_old.csv": {
+   "sha256": "a1df75d106489729692454337253de2f6764cec5cbaaecd3850d584e1d776494",
+   "bytes": 142512
+  },
+  "research/it88_bg400_new.csv": {
+   "sha256": "9f2d5780bfcd51fe71e8a182f612b3d58d6b30b88e2cc35514c8c874ec5c4c08",
+   "bytes": 141320
+  },
+  "research/it88_mmaud_old.csv": {
+   "sha256": "40194e6d38d51375a09d959d1e6501338d270bd687de2d5a25750525cf67eb36",
+   "bytes": 75901
+  },
+  "research/it88_mmaud_new.csv": {
+   "sha256": "58ca87bb70ed195bb004cc009a2405955760267b0dabe4d1cd13f6421e85cb66",
+   "bytes": 77164
+  },
+  "research/it88_tile_agg.csv": {
+   "sha256": "24a2b3887e01cdc4e9383be9f524bc7535a708eadf137e8f12703aab85e74d95",
+   "bytes": 530
+  },
+  "research/it88_tile_agg.txt": {
+   "sha256": "3af869a3771e79a0cd5ce297bc0e3cdea604a9c006322437771a5e7565fe1b0a",
+   "bytes": 1588
+  },
   "research/it89_skyguard_gate.py": {
    "sha256": "6d7cbbf2f9ad9378a216ddb4933b6106500d1f329276164dd829bc6753e37743",
    "bytes": 6587
