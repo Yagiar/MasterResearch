@@ -86,9 +86,10 @@ adaptive reuse. Дальнейшие текстовые работы (главы
 2. `bash research/it87_holdout_run.sh` — ровно ОДИН раз (дефолт-песочница holdout-24;
    любые HOLD_SUBDIR/MIN_NEW overrides только для смока, не для боя).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
-   `research/.venv/bin/python research/it87_holdout_eval.py --manifest=... <срезы>`
-   (экстрактор проверен на синтетическом логе 24.09:
-   `SRES=$(awk '$1=="SCORE_OFF"{print "\"" $2 "=" $3 "\""}' research/it87_holdout_run.log)`;
+   `mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)`
+   `research/.venv/bin/python research/it87_holdout_eval.py --manifest=... "${SRES[@]}"`
+   (идиомы SRES/FRES сквозно проверены тестом лог→awk→eval 24.09; НЕ `SRES=$(…)`/`$SRES`
+   без кавычек — bash не вырезает встроенные кавычки из подстановки, имена it-86-full с пробелом;
    повторный РАЗБОР допустим, повторный ПРОГОН — нет). Выход: `it87_holdout_summary.txt`, `it87_holdout.csv`.
 4. Закрытие it-87 по ритуалу (красный — тоже закрытие): отчёт-итерация, канон-блок INDEX,
    SYNTHESIS (если меняет claims), REPORT-DELTA позиция 18 (§8 Заключение) — фактический
@@ -97,8 +98,9 @@ adaptive reuse. Дальнейшие текстовые работы (главы
    на neg-сегментах holdout-24; runner сам требует завершённый разбор it-87 и негативы ≥600 с;
    разбор — `it86_sync_negative_eval.py` объединёнными `SCORE_OFF`-срезами плеч; eval аттестован
    под multi-segment синтетикой `it86_eval_selftest.py`: покрытие = union по сегментам,
-   число сегментов в срезе сверить с манифестом); экстрактор имён с пробелом проверен на
-   синтетическом логе: `FRES=$(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print "\"" $2 " " $3 "=" $4 "\""}' research/it86_full_run.log)`. Срезы it-87
+   число сегментов в срезе сверить с манифестом); экстрактор имён с пробелом — та же mapfile-
+   идиома (сквозной тест 24.09): `mapfile -t FRES < <(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print $2 " " $3 "=" $4}' research/it86_full_run.log)`,
+   затем `it86_sync_negative_eval.py "${FRES[@]}"`. Срезы it-87
    не затрагиваются: decisions.jsonl append-only, разбор it-87 к этому моменту завершён.
 6. Любой H0-блокатор на шаге 3 → стоп, честная фиксация «замер не состоялся + причина»;
    повторный прогон — только с явной письменной пометкой автора о первом пуске.

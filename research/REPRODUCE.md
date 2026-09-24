@@ -579,10 +579,13 @@ research/.venv/bin/python research/it87_eval_selftest.py
 #   runner (замороженный стек AND@0,40 + audio, fps=2, loop=false) → один разбор:
 research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/manifest.tsv> \
   "SEGID=START:END" ...        # 1-based строки decisions.jsonl каждого сегмента из SCORE_OFF
-# Экстракторы срезов из логов (проверены на синтетических SCORE_OFF-строках, 24.09):
-#   SRES=$(awk '$1=="SCORE_OFF"{print "\"" $2 "=" $3 "\""}' research/it87_holdout_run.log)
-#   FRES=$(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print "\"" $2 " " $3 "=" $4 "\""}' research/it86_full_run.log)
-#   (имена плечей it-86-full содержат пробел: «V0 off-audio»; eval режет arg.split("=",1)).
+# Экстракторы срезов из логов (проверены сквозным тестом лог→awk→eval, 24.09; ИМЕННО mapfile,
+#   не $var без кавычек: имена плечей it-86-full содержат пробел, а bash не вырезает кавычки
+#   из подстановки — «FRES=$(…)» и «$FRES» ломают передачу (проверено: rc=127/мусор-аргументы)):
+#   mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)
+#   research/.venv/bin/python research/it87_holdout_eval.py --manifest=<…> "${SRES[@]}"
+#   mapfile -t FRES < <(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print $2 " " $3 "=" $4}' research/it86_full_run.log)
+#   research/.venv/bin/python research/it86_sync_negative_eval.py "${FRES[@]}"
 # Гейты/протокол: iterations/it-87-frozen-holdout-PLANNED.md; H0-блокаторы (sha 41f3fd55/7042602a,
 #   p_a≠null, mono, ratio∈[0,8;1,2], полнота) → вердиктов H1–H3 не существует при провале.
 #   Выход: it87_holdout_summary.txt + it87_holdout.csv (вне git до боевого запуска).
