@@ -13,7 +13,7 @@ cd "$MD"
 OVR="$MD/infra/docker-compose.it87.yml"
 JSONL="$MD/data/decisions/decisions.jsonl"
 # HOLD_SUBDIR — песочница прогона внутри sandboxDataForSimulator (bind /data/sandbox:ro).
-# Боевое открытие: только дефолт holdout-24. Smoke-прогон обвязки: HOLD_SUBDIR=smoke87 (не боевой замер).
+# Боевое открытие: только дефолт holdout-24. Smoke-прогон обвязки: HOLD_SUBDIR=smoke18 (не боевой замер).
 HOLD_SUBDIR="${HOLD_SUBDIR:-holdout-24}"
 LOG="$ROOT/research/it87_holdout_run.log"
 if [ "$HOLD_SUBDIR" != "holdout-24" ]; then LOG="$ROOT/research/it87_smoke_run.log"; fi
