@@ -72,6 +72,11 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   awk "BEGIN{exit !($dur+0 >= $MIN_DUR+0)}" || { echo "ОТКАЗ pre-flight: '$id' — dur=$dur < MIN_DUR=$MIN_DUR с (шов 21: на коротких сегментах ratio покрытия H0.4 завышается математически — live-смоук 24.09 дал 1,376 на 30-с pos, ложный H0-блок однократного открытия; это допуск записи, пороги eval не тронуты; гейт продублирован в stage(), но там он наступал ПОСЛЕ tee/docker — частичным логом)"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
+  # Шов 22: конвенция TEMPLATE (боевой стек декодирует .mp4+.wav) становится механическим
+  # гейтом ДО tee/docker: .mov/.m4a проскочили бы сверку новизны (она формат-независима)
+  # и уткнулись бы в пустой стрим уже посреди однократного замера.
+  case "$vid" in *.mp4) ;; *) echo "ОТКАЗ pre-flight: '$id' — видео '$vid' не .mp4 (шов 22: расширение вне контракта TEMPLATE; каталог индекса новизны mov/m4a покрывает, simulator — нет; отказ ДО tee/docker, однократный замер не сожжён)"; exit 1 ;; esac
+  case "$aud" in *.wav) ;; *) echo "ОТКАЗ pre-flight: '$id' — аудио '$aud' не .wav (шов 22: та же контракта TEMPLATE; отказ ДО tee/docker)"; exit 1 ;; esac
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
   if [ "$role" = "pos" ]; then
     awk "BEGIN{exit !($gs+0 < $ge+0)}" || { echo "ОТКАЗ pre-flight: '$id' — gt_start≥gt_end ($gs≥$ge): H2-фильтр alarm∈[gs,ge] пуст навсегда, пролёт молча выпал бы из seq-recall после необратимого замера"; exit 1; }
