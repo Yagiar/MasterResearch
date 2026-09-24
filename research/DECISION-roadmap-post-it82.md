@@ -27,13 +27,13 @@ confirmatory holdout** на материале, который цикл нико
 
 | № | работа | приоритет | состояние |
 |---|---|---|---|
-| it-83 | фикс `media_ts` режима папки (`requested_fps` вместо nominal 30) + pytest-регресс + короткий live-sanity A/B | P0 | этот коммит |
-| it-84 | точный **paired** replay old vs AND@0,4 (один finite список frame-id, loop off, дренаж Kafka, гейт completeness, discordant-таблица McNemar/cluster-bootstrap) | P1 | plan |
-| it-85 | throughput saturation sweep (fps 0,5…5: coverage, lag, p50/p95/p99, GPU util/VRAM, drain-time; определение sustainable throughput предрегистрировано) | P1 | plan |
-| it-86 | мультимодальный **синхронный** негатив V0/V1/V2 (video off-gate / +audio gate / AND+gate; при отсутствии своего синхронного материала — запись 10–30 мин cam+mic без дрона; telemetry-гейты покрытия аудио, уроки it-30) | P2 | блок: после it-83 |
-| it-87 | frozen final holdout (предрег. протокол: веса/sha, τ, режим входа, fusion, метрики вкл. false-alarms/hour и TTD; открытие материала — однократно; красный результат не триггерит новый τ) | P1-финал | план за it-84/85 |
-| it-88 | tile-aware SAHI aggregation (empirical-null percentile по n_tiles; cross-tile consistency; full-frame corroboration) — exploratory, затем только на holdout | P2 | опционально |
-| it-89 | skyguard third voter — **только** после zero-inference disagreement analysis (rescued_TP/introduced_FP/rescue_precision на множестве old≠new); стоп-критерий: нет complementary signal → закрыть отрицательно без GPU-прогона | P3 | гейтирован |
+| it-83 | фикс `media_ts` режима папки (`requested_fps` вместо nominal 30) + pytest-регресс + короткий live-sanity A/B | P0 | 🟢 ЗАВЕРШЕНА 24.09 |
+| it-84 | точный **paired** replay old vs AND@0,4 (один finite список frame-id, loop off, дренаж Kafka, гейт completeness, discordant-таблица McNemar/cluster-bootstrap) | P1 | 🟢 ЗАВЕРШЕНА 24.09 (P1 🟢) |
+| it-85 | throughput saturation sweep (fps 0,5…5: coverage, lag, p50/p95/p99, GPU util/VRAM, drain-time; определение sustainable throughput предрегистрировано) | P1 | 🟢 ЗАВЕРШЕНА 24.09 (потолок ≥5 к/с) |
+| it-86 | мультимодальный **синхронный** негатив V0/V1/V2 (video off-gate / +audio gate / AND+gate; при отсутствии своего синхронного материала — запись 10–30 мин cam+mic без дрона; telemetry-гейты покрытия аудио, уроки it-30) | P2 | 🟢 SANITY; full — шаг 5 чек-листа после it-87 |
+| it-87 | frozen final holdout (предрег. протокол: веса/sha, τ, режим входа, fusion, метрики вкл. false-alarms/hour и TTD; открытие материала — однократно; красный результат не триггерит новый τ) | P1-финал | 🔄 ждёт запись автора (holdout-24) |
+| it-88 | tile-aware SAHI aggregation (empirical-null percentile по n_tiles; cross-tile consistency; full-frame corroboration) — exploratory, затем только на holdout | P2 | 🔴 закрыта отрицательно 24.09 (T1) |
+| it-89 | skyguard third voter — **только** после zero-inference disagreement analysis (rescued_TP/introduced_FP/rescue_precision на множестве old≠new); стоп-критерий: нет complementary signal → закрыть отрицательно без GPU-прогона | P3 | 🟢 закрыта отрицательно 24.09 без GPU (Q1/Q2) |
 
 Порядок it-83 → (документация — этот же коммит) → it-84/85 → it-86 → it-87; письмённые
 обязательства (§7.7/7.8 под it-82, §8 Заключение, глава про ансамбль) идут параллельно,
