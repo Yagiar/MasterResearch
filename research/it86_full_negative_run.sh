@@ -160,4 +160,6 @@ run_arm "V1 +audio"    true  off 0.4 "$REGEX_SINGLE"
 run_arm "V2 and+audio" true  and 0.40 "$REGEX_AND"
 rm -f "$OVR"
 echo
-echo "=== it-86-full завершён; разбор: research/.venv/bin/python research/it86_sync_negative_eval.py <срезы SCORE_OFF> (агрегация M1–M3 — по сумме плеч) ==="
+echo "=== it-86-full завершён; РАЗБОР (идеома сквозно проверена 24.09; агрегация M1–M3 — по сумме плеч): ==="
+echo "  mapfile -t FRES < <(awk '\$1==\"SCORE_OFF\" && \$2 ~ /^V[012]\$/ {print \$2 \" \" \$3 \"=\" \$4}' $LOG)"
+echo "  research/.venv/bin/python research/it86_sync_negative_eval.py \"\${FRES[@]}\""

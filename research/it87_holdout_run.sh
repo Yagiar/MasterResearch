@@ -143,4 +143,6 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
 done < <(tr -d '\r' < "$MANIFEST")
 rm -f "$OVR"
 echo
-echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ: research/.venv/bin/python research/it87_holdout_eval.py --manifest \"$MANIFEST\" <срезы SCORE_OFF> ==="
+echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ (идеома сквозно проверена 24.09; повторный ПРОГОН — нет): ==="
+echo "  mapfile -t SRES < <(awk '\$1==\"SCORE_OFF\"{print \$2 \"=\" \$3}' $LOG)"
+echo "  research/.venv/bin/python research/it87_holdout_eval.py --manifest=\"$MANIFEST\" \"\${SRES[@]}\""
