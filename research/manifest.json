@@ -489,6 +489,10 @@
    "sha256": "f30761c2474e3c69e2af30689d94f0a1f9870be08b7c79b13546192032f8608d",
    "bytes": 10779
   },
+  "research/it87_build_media_index.sh": {
+   "sha256": "767bf68c660f2fa638cd03e5745af4fdaccdf1c124b34ca46d1476772f7d31d6",
+   "bytes": 2284
+  },
   "research/verify_manifest.py": {
    "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
    "bytes": 3142

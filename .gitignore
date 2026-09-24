@@ -47,3 +47,4 @@ vitals.csv
 
 # stdout/stderr прогоны замеров (пересоздаются командами REPRODUCE §6; канон — .csv/.txt в манифесте)
 research/it*_*.out
+research/it87_media_index.sha256
