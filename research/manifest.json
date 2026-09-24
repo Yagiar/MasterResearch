@@ -482,8 +482,8 @@
    "bytes": 10680
   },
   "research/it87_holdout_manifest_TEMPLATE.tsv": {
-   "sha256": "5a24204c1f00e6e0fa028d95b129c28b1f715345ef4e44b7ce1a9fded4c4d33f",
-   "bytes": 1947
+   "sha256": "e53fc4b0c86b724c3348f02db621ea9f5f3fc1e43b1eaa5132a918b3c0069bbd",
+   "bytes": 2173
   },
   "research/it86_full_negative_run.sh": {
    "sha256": "fd4976e351425b8161dcfbb2e03710a1d63bd737900a6062a01ea1548372e5bb",
