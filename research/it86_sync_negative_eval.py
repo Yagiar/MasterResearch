@@ -2,7 +2,7 @@
 """it-86 разбор: мультимодальный синхронный негатив V0/V1/V2 (GT «дрона нет» → alarm = FA).
 
 Аргументы: имена-срезы вида "V0 off-audio=START:END" (1-based строки decisions.jsonl, из SCORE_OFF).
-Протокол/гейты: iterations/it-86-multimodal-sync-negative-PLANNED.md.
+Протокол/гейты: iterations/it-86-multimodal-sync-negative.md.
 M0 (блокатор телеметрии): в V1/V2 доля решений с непустым contributions.p_a > 0 И audio-окна
 фактически покрывают сегмент — иначе V1/V2 не интерпретируются (урок it-30).
 При T_сегмента < 60 с прогон — SANITY обвязки: FA/hour не является вердиктом (широкий ДИ,
@@ -119,7 +119,7 @@ def main(slices):
         if v2:
             p(f"\nM3 (боевая V2): FA-доля {100 * v2['fa_rate']:.1f} %, FA/hour≈{v2['fa_hr']:.0f}.")
     with open(OUT, "w", encoding="utf-8") as f:
-        f.write("it-86 sync negative — срез stdout (протокол: iterations/it-86-multimodal-sync-negative-PLANNED.md)\n\n"
+        f.write("it-86 sync negative — срез stdout (протокол: iterations/it-86-multimodal-sync-negative.md)\n\n"
                 + "\n".join(LOG) + "\n")
     p(f"\nСводка: {OUT}")
 
