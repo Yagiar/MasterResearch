@@ -562,3 +562,21 @@ research/.venv/bin/python research/it86_sync_negative_eval.py \
 #   M3-дескриптив: AND@0,4 не отличим от V1 на этом материале. Full-прогон — после записи
 #   автором 10–30 мин синхронного негатива. Артефакты: it86_sync_summary.txt (+ run/eval).
 ```
+
+## 6w. Frozen holdout it-87 — харнес и самопроверка eval (24.09; боевое открытие — одно, в ожидании)
+
+```bash
+# САМОПРОВЕРКА eval-путей H1–H3 (CPU, ноль инференса, детерминированно; синтеты в /tmp/it87_selftest):
+research/.venv/bin/python research/it87_eval_selftest.py
+# Канон: «ВСЕ ПУТИ H1/H2/H3/CSV СОВПАЛИ С РУЧНОЙ АРИФМЕТИКОЙ 🟢» — H1 40/402 🟢; H2 4/5 🔴
+#   (фильтр alarm∈[gs,ge]; pos5 с t=90 вне GT не ловится); H3 медиана 3,0 / p90 10,0 🟢
+#   (nearest-rank: при n=4 p90 = максимум ряда). Боевой it87_holdout_eval.py при этом НЕ меняется
+#   (копия с подменой sha-констант).
+# БОЕВОЙ ЗАМЕР — ОДИН РАЗ после записи автором holdout-24 (манифест+видео+аудио):
+#   runner (замороженный стек AND@0,40 + audio, fps=2, loop=false) → один разбор:
+research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/manifest.tsv> \
+  "SEGID=START:END" ...        # 1-based строки decisions.jsonl каждого сегмента из SCORE_OFF
+# Гейты/протокол: iterations/it-87-frozen-holdout-PLANNED.md; H0-блокаторы (sha 41f3fd55/7042602a,
+#   p_a≠null, mono, ratio∈[0,8;1,2], полнота) → вердиктов H1–H3 не существует при провале.
+#   Выход: it87_holdout_summary.txt + it87_holdout.csv (вне git до боевого запуска).
+```
