@@ -481,6 +481,10 @@
    "sha256": "72a89e629271c288366effc9ea8fb925b0d5997d07ef3bb69222925339137cf9",
    "bytes": 1367
   },
+  "research/it86_full_negative_run.sh": {
+   "sha256": "0ba5469dd7922a14c6c43210148dccf16b05afebf81f7df71ebc43b238f9549c",
+   "bytes": 8997
+  },
   "research/verify_manifest.py": {
    "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
    "bytes": 3142
