@@ -87,7 +87,8 @@ adaptive reuse. Дальнейшие текстовые работы (главы
    любые HOLD_SUBDIR/MIN_NEW overrides только для смока, не для боя).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
    `mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)`
-   `research/.venv/bin/python research/it87_holdout_eval.py --manifest=... "${SRES[@]}"`
+   `research/.venv/bin/python research/it87_holdout_eval.py --manifest=<путь к holdout-24/manifest.tsv> "${SRES[@]}"`
+   (путь = дефолт внутри eval, можно без флага; явный параметр — только если манифест переложен)
    (идиомы SRES/FRES сквозно проверены тестом лог→awk→eval 24.09; НЕ `SRES=$(…)`/`$SRES`
    без кавычек — bash не вырезает встроенные кавычки из подстановки, имена it-86-full с пробелом;
    повторный РАЗБОР допустим, повторный ПРОГОН — нет). Выход: `it87_holdout_summary.txt`, `it87_holdout.csv`.
