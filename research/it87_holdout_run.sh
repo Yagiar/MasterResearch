@@ -155,6 +155,12 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
   stage "$id" "$vid" "$aud" "$dur"
 done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
+# убрать приложения (GPU!): тот же отработанный rm -sf, что между этапами; full `down`
+# с этим стеком files снёс бы и общую infra (kafka/postgres переживают прогон осознанно),
+# а после rm -f "$OVR" он ещё и падал бы на отсутствующем оверрее (|| true его бы проглотил).
+# При mid-run ОТКАЗе (P4/P5/дренаж) этот шаг не выполняется — гасить вручную:
+# тот же rm -sf с оверреем, пока $OVR на месте (шаг 2.5 чек-листа роадмапа).
+"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 rm -f "$OVR"
 echo
 echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ (идеома сквозно проверена 24.09; повторный ПРОГОН — нет): ==="

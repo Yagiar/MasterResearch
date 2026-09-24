@@ -94,6 +94,13 @@ adaptive reuse. Дальнейшие текстовые работы (главы
        съёмки — зафиксировано комментарием в скрипте).
 2. `bash research/it87_holdout_run.sh` — ровно ОДИН раз (дефолт-песочница holdout-24;
    любые HOLD_SUBDIR/MIN_NEW overrides только для смока, не для боя).
+2.5 При mid-run ОТКАЗе (P4/P5/пустой стрим/дренаж) хвост-уборка раннера не выполняется и
+   app-контейнеры остаются держать GPU: погасить вручную тем же отработанным вызовом,
+   пока оверрей на месте: `cd MasterDiploma && docker compose -f infra/docker-compose.yml
+   -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml
+   -f infra/docker-compose.it87.yml rm -sf source-simulator ingest-gateway visual-detector
+   acoustic-detector fusion sink` (НЕ `down`: с этим стеком files он снесёт и общую
+   kafka/postgres; `rm -sf` — ровно то, что раннер делает между этапами).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
    `mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)`
    `research/.venv/bin/python research/it87_holdout_eval.py --manifest=<путь к holdout-24/manifest.tsv> "${SRES[@]}"`
@@ -160,6 +167,15 @@ eval её не проверяет (у eval свои пять блокаторо�
 ДО боевого пуска; честная область — полные байтовые совпадения, фрагменты — протоколом съёмки).
 Манифест-целостность: `uav-yolov8s-bg-best.pt` (вторая половина боевой пары, sha H0 `7042602a`)
 не был запинен в `manifest.json` — добавлен, пересборка 153→154, verify чист.
+Одиннадцатый шов (аудит хвоста it87-раннера): после завершения прогона app-контейнеры
+(source-simulator/visual-detector/…) оставались жить и держать GPU — в раннере не было ни
+`trap`, ни хвостовой уборки (grep `trap|down|cleanup` = 0). Первый вариант правки (`down`
+после `rm -f "$OVR"`) сам содержал два дефекта, пойманных проверкой перед коммитом: `down`
+с полным стеком files снёс бы и общую kafka/postgres (которые переживают прогон осознанно),
+а после удаления оверрея ещё и молча падал бы под `|| true`. Итог: хвостовой `"${COMPOSE[@]}"
+rm -sf $SERVICES` (тот же отработанный между этапами вызов) ДО `rm -f "$OVR"`; EXIT-trap
+сознательно не добавлен — тот же риск задеть общую infra. Ручная уборка при mid-run ОТКАЗе —
+новый шаг 2.5 чек-листа (на него ссылается комментарий в скрипте).
 
 ## Что уже выполнено из P0-блока аудита (этот проход)
 
