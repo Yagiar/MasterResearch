@@ -28,6 +28,7 @@ NEGDUR=0
 declare -a SEGS=()
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
+  [[ "$id" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "ОТКАЗ pre-flight: segment_id '$id' — только буквы/цифры/точка/дефис/подчёркивание (пробел ломает awk-идиому разбора SCORE_OFF)"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg)"; exit 1; }
   [ "$role" = "neg" ] || continue
   [[ "$vid$aud" == *'"'* || "$vid$aud" == *'$'* || "$vid$aud" == *'`'* || "$vid$aud" == *'\'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка/\$/backtick/обратный слэш в имени (heredoc-оверрай раскрывает \$ и \` молча)"; exit 1; }
