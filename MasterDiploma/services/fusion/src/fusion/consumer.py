@@ -191,6 +191,7 @@ class InferenceConsumer(KafkaConsumerService):
             models=self._model_refs(window),
             e2e_latency_ms=e2e_ms,
             source_msg_ids=list(outcome.source_msg_ids),
+            trigger_modality=trig.modality,
         )
         self.publish(Topics.DECISIONS, trig.source_id, decision)
         MESSAGES_TOTAL.labels(service=_SERVICE, topic=Topics.DECISIONS).inc()

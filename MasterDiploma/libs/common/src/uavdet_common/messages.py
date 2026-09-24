@@ -151,6 +151,11 @@ class DecisionMsg(_Base):
     models: dict[str, ModelRef] = Field(default_factory=dict)
     e2e_latency_ms: float = 0.0
     source_msg_ids: list[str] = Field(default_factory=list)
+    # it-87 (пре-открыточный аудит 24.09): модальность триггера выпуска. media_ts решения —
+    # событийное время ТРИГГЕРА; без этого поля ряд решений нельзя разбить на модальные
+    # подпотоки (аудио- и видео-медиачасы в merge-адаптере расходятся на секунды под нагрузкой,
+    # глобальная монотонность media_ts не выполняется и не должна выполняться).
+    trigger_modality: str | None = None
 
 
 # --- config.commands (опц., compacted-топик) ---

@@ -35,6 +35,14 @@ MIN_NEW="${MIN_NEW:-20}"
 if [ "$HOLD_SUBDIR" = "holdout-24" ] && [ "$MIN_NEW" != "20" ]; then
   echo "ОТКАЗ pre-flight: боевой режим не принимает MIN_NEW=$MIN_NEW (канон 20; overrides — только для смока, см. шаг 2 чек-листа)"; exit 1
 fi
+# Шов 21: допуск длительности сегмента записи (не порог замера). На dur < ~50 с ratio
+# покрытия H0.4 завышается математически ((dur−факт.хвост)/(dur−10) > 1,2 — live-смоук
+# 24.09: 30-с pos дал 1,376), т. е. короткий сегмент гарантировал ложный H0-блок
+# однократного боевого открытия. Пороги eval [0,8;1,2] не тронуты.
+MIN_DUR="${MIN_DUR:-60}"
+if [ "$HOLD_SUBDIR" = "holdout-24" ] && [ "$MIN_DUR" != "60" ]; then
+  echo "ОТКАЗ pre-flight: боевой режим не принимает MIN_DUR=$MIN_DUR (канон 60 с; overrides — только для смока, шов 21)"; exit 1
+fi
 
 [ -f "$MANIFEST" ] || { echo "ОТКАЗ: нет $MANIFEST (запись материала не выполнена)"; exit 1; }
 # sha-гейт боевых весов = зеркало H0.1 eval'а (первые 8 hex sha256, канон 41f3fd55/7042602a):
@@ -61,7 +69,7 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   for nf in "$dur" "$gs" "$ge"; do
     [[ "$nf" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "ОТКАЗ pre-flight: '$id' — поле '$nf' не число (нужны целые или десятичные с ТОЧКОЙ; запятая '95,0' в awk молча читается как 95, а eval-разбор крашится ПОСЛЕ однократного прогона); роль='$role' поле dur=$nf gs=$gs ge=$ge"; exit 1; }
   done
-  awk "BEGIN{exit !($dur+0 >= 20)}" || { echo "ОТКАЗ pre-flight: '$id' — dur=$dur < 20 с (eval ratio требует dur−10>0; гейт продублирован в stage(), но там он наступал ПОСЛЕ tee/docker — частичным логом однократного открытия)"; exit 1; }
+  awk "BEGIN{exit !($dur+0 >= $MIN_DUR+0)}" || { echo "ОТКАЗ pre-flight: '$id' — dur=$dur < MIN_DUR=$MIN_DUR с (шов 21: на коротких сегментах ratio покрытия H0.4 завышается математически — live-смоук 24.09 дал 1,376 на 30-с pos, ложный H0-блок однократного открытия; это допуск записи, пороги eval не тронуты; гейт продублирован в stage(), но там он наступал ПОСЛЕ tee/docker — частичным логом)"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
@@ -134,7 +142,7 @@ reset_groups() {
 
 stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
   local id="$1" vid="$2" aud="$3" dur="$4"
-  awk "BEGIN{exit !($dur+0 >= 20)}" || { echo "ОТКАЗ: '$id' dur=$dur < 20 с (eval ratio требует dur−10>0)"; exit 1; }
+  awk "BEGIN{exit !($dur+0 >= $MIN_DUR+0)}" || { echo "ОТКАЗ: '$id' dur=$dur < MIN_DUR=$MIN_DUR с (шов 21 — артефакт H0.4 на коротких сегментах)"; exit 1; }
   echo
   echo "=== ЭТАП $id (video=$vid dur=${dur}s) $(date +%H:%M:%S) ==="
   write_override "$vid" "$aud"
@@ -178,6 +186,11 @@ stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
   # бы проблему). Падение ДО SCORE_OFF: срез сегмента не регистрируется, замер не засчитан.
   tail -n +$((OFF_BEFORE+1)) "$JSONL" | grep -qm1 '"models": {"video"' \
     || { echo "ОТКАЗ P6 (дрейф старых образов): в срезе '$id' ($NEW решений) нет fusion-provenance models.video (it-67) — fusion/sink на пре-21.09 стеке; замер не состоялся"; exit 1; }
+  # аттестация trigger_modality (правка пре-открыточного аудита 24.09): H0.3 читает монотонность
+  # по модальным подпотокам — без поля разбор был бы слепой (подпоток None = прежний глобальный ряд,
+  # заведомо не-монотонный в merge-адаптере); отсутствие поля = снова дрейф образов fusion/common
+  tail -n +$((OFF_BEFORE+1)) "$JSONL" | grep -qm1 '"trigger_modality": "video"' \
+    || { echo "ОТКАЗ P6b (дрейф старых образов): в срезе '$id' нет поля trigger_modality — fusion собран без правки 24.09, H0.3 по подпотокам не исполним; замер не состоялся"; exit 1; }
   echo "SCORE_OFF $id $((OFF_BEFORE+1)):$CUR (новых $NEW, тишина ${STABLE}с)"
   echo "TELEMETRY $id audio_inf=$NA video_inf=$NINF"
   "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true

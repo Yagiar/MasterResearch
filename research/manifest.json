@@ -474,20 +474,20 @@
    "bytes": 1111
   },
   "research/it87_holdout_run.sh": {
-   "sha256": "77ba58503c4448581431e732bb7ce710eecb29ca5c15ff57b02e813a2fafb18a",
-   "bytes": 19601
+   "sha256": "7d5d8165c28a7e130faecebf82c9e6660631f130d38b532b212780766a9a086b",
+   "bytes": 22829
   },
   "research/it87_holdout_eval.py": {
-   "sha256": "e2316813fb18cc1995f3dfd23cb2c065a3d66c2ab63463fad3e4e3af2cabaeda",
-   "bytes": 10151
+   "sha256": "e047d36d5e241d0bf3153373bf447310726a75c93195abb1585074cf470d8b96",
+   "bytes": 12098
   },
   "research/it87_eval_selftest.py": {
-   "sha256": "5fa83974f7568dc64b191c58bedd2c0979483be3156fbd401aca5073cbe0405f",
-   "bytes": 10680
+   "sha256": "9e2d88fd83f8a817133c8cbb8bce08f8883068b4e4e8bb06360cb9b69ef237b2",
+   "bytes": 13720
   },
   "research/it87_holdout_manifest_TEMPLATE.tsv": {
-   "sha256": "54850c967a195cd5777d0255c78952db624c32fb91f10586f5c075ec1325d4c8",
-   "bytes": 2566
+   "sha256": "32dab68f7fa7303bdf851b9105558a5c347f33f70d73fb99061e532d011d29e8",
+   "bytes": 3346
   },
   "research/it86_full_negative_run.sh": {
    "sha256": "3959d184a6275f4599d44f9454220cfcd95923fe3849de25e7b75228cb7094e3",

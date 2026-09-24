@@ -10,7 +10,9 @@
 
 H0 (блокаторы, вердиктов не существует при провале): sha весов; audio-телеметрия на каждом
 сегменте (доля окон с p_a>0 … строжайше: непустой audio-инференс — по jsonl-полю p_a);
-media_ts-monotonic; окно-спана ratio (media-покрытие/ожидаемая длительность) ∈ [0,8;1,2].
+media_ts-monotonic по модальным подпотокам trigger_modality (глобальная монотонность
+конструктивно невозможна в merge-адаптере под нагрузкой — правка пре-открыточного аудита 24.09);
+окно-спана ratio (media-покрытие/ожидаемая длительность) ∈ [0,8;1,2].
 H1 (neg): доля alarm-окон ≤ 0,15 (знаменатель — окна сегмента с media_ts≠null; хвост ~10
 невыпущенных окон = зарегистрированная tail-потеря, в знаменатель не входит и не добавляется).
 H2 (pos): sequence-recall ≥ 0,90: в пролёте ≥1 alarm-окно с media_ts ∈ [gt_start, gt_end].
@@ -102,9 +104,21 @@ def main(slices):
         assert sid in segs, f"срез '{sid}' нет в манифесте"
         recs = [json.loads(x) for x in lines[int(a) - 1:int(b)]]
         # mono — по ПОРЯДКУ ПОТОКА (jsonl), не по отсортированному: sorted-ряд монотонен
-        # тривиально и гейт H0 был бы пустым (найдено пре-открыточным аудитом 24.09)
+        # тривиально и гейт H0 был бы пустым (найдено пре-открыточным аудитом 24.09).
+        # 2-я правка аудита того же дня (смоук 7 сегментов): ГЛОБАЛЬНАЯ монотонность недостижима
+        # конструктивно — аудио- и видео-медиачасы merge-адаптера расходятся на секунды под
+        # нагрузкой (аудио-триггеры max_wait выходят между видео-окнами), инверсии 25–50 %.
+        # Честная формулировка гейта (цель — цельность записи, не порядок слияния): монотонность
+        # media_ts по порядку потока ВНУТРИ каждого модального подпотока (trigger_modality);
+        # сшивка чужого этапа/повтор материала всё равно даёт откат обоих подрядов. Строки без
+        # поля (старый стек/самопроверка) — отдельный подсрез None, монотонность к нему тоже.
         mm_stream = [(r["media_ts"], r["decision"]) for r in recs if r.get("media_ts") is not None]
-        mono = all(x[0] <= y[0] + 1e-9 for x, y in zip(mm_stream, mm_stream[1:]))
+        buckets: dict[str | None, list[tuple]] = {}
+        for r in recs:
+            if r.get("media_ts") is not None:
+                buckets.setdefault(r.get("trigger_modality"), []).append((r["media_ts"], r["decision"]))
+        bad = {k: sum(1 for x, y in zip(v, v[1:]) if y[0] < x[0] - 1e-9) for k, v in buckets.items()}
+        mono = all(c == 0 for c in bad.values()) and ("video" in buckets or None in buckets)
         mm = sorted(mm_stream)
         pa = sum(1 for r in recs if (r.get("contributions") or {}).get("p_a") is not None)
         span = (mm[-1][0] - mm[0][0]) if mm else 0.0
@@ -112,8 +126,10 @@ def main(slices):
         ratio = span / exp if exp > 0 else float("nan")
         per[sid] = dict(n=len(recs), mm=mm, mono=mono, pa_frac=pa / max(len(recs), 1),
                         ratio=ratio)
+        inv_s = " ".join(f"{k or 'none'}:{c}" for k, c in sorted(bad.items(), key=lambda x: str(x[0])))
         p(f"[{sid}] role={segs[sid]['role']} окон={len(recs)} p_a≠null={100*per[sid]['pa_frac']:.0f} % "
-          f"media-покрытие={span:.0f} с ratio={ratio:.3f} mono={'OK' if mono else 'ПРОВАЛ'}")
+          f"media-покрытие={span:.0f} с ratio={ratio:.3f} "
+          f"mono(по подпотокам)={'OK' if mono else 'ПРОВАЛ ' + (inv_s or 'нет видео-подпотока')}")
 
     # --- H0.2/3/4: блокаторы ---
     h0 += [all(per[s]["pa_frac"] > 0 for s in per),
@@ -122,7 +138,7 @@ def main(slices):
     if len(per) != len(segs):
         p(f"пройдено сегментов: {len(per)} из {len(segs)} — не все → H0 ПРОВАЛ")
     h0_ok = all(h0) and len(per) == len(segs)
-    p(f"\nH0 (блокаторы: sha, аудио-телеметрия, media_ts-monotonic, ratio∈[0,8;1,2], полнота) → "
+    p(f"\nH0 (блокаторы: sha, аудио-телеметрия, media_ts-monotonic по подпотокам, ratio∈[0,8;1,2], полнота) → "
       f"{'ПРОЙДЕН' if h0_ok else 'ПРОВАЛ — вердиктов H1–H3 НЕ СУЩЕСТВУЮТ; чинить обвязку, повторный прогон — только с явной пометкой о первом пуске'}")
     if not h0_ok:
         report(slices, per, segs, None, None, None)

@@ -18,6 +18,11 @@ sha-префиксы заменяются на префиксы фиктивны
   сценарии B/C (пре-открыточный аудит 24.09): B — 5 пролётов [1,2,3,4,58] → p90=58 (max-ряд,
   проверяет ceil вместо banker's round); C — перестановка потока → mono-гейт ловит НЕ-монотонность
   по порядку jsonl (sorted-ряд тривиально монотонен) и H0 блокирует вердикты.
+  сценарий D (второй finding аудита 24.09, смоук 7 сегментов): двухчасовой интерливинг —
+  аудио-триггеры идут с опережением медиачаса видео (max_wait-выходы между видео-окнами,
+  глобальный ряд media_ts НЕ монотонен на каждом втором переходе), но каждый модальный
+  подпоток монотонен → mono-гейт по подпотокам обязан пропустить (иначе боевое однократное
+  открытие блокируется конструкцией харнеса, а не материалом).
   neg: 40/400 = 10,0 % → H1 🟢; итог-вердикт «НЕ ПОДТВЕРЖДЕНО» (из-за H2).
 """
 import hashlib
@@ -127,12 +132,39 @@ def check_b(out):
 
 def check_c(out):
     fails = []
-    if not re.search(r"\[bpos1\].*mono=ПРОВАЛ", out):
+    if not re.search(r"\[bpos1\].*mono\(по подпотокам\)=ПРОВАЛ", out):
         fails.append("C: перестановка потока не поймана mono-гейтом (bpos1)")
     if not re.search(r"H0 .*→ ПРОВАЛ", out):
         fails.append("C: H0 не заблокирован")
     if re.search(r"H1 \(FP", out):
         fails.append("C: при H0-ПРОВАЛЕ вердикты H1–H3 напечатаны (не должно быть)")
+    return fails
+
+
+def build_d():
+    """D: интерливинг двух медиачасов (аудио-триггер +4,0 с впереди видео) — глобальный ряд
+    media_ts с инверсиями на каждом втором переходе, подпотоки монотонны."""
+    (TMP / "d").mkdir(exist_ok=True)
+    recs = []
+    for i in range(201):
+        tv, ta = 0.5 * i, 0.5 * i + 4.0
+        recs.append({"media_ts": tv, "decision": tv == 22.0, "trigger_modality": "video",
+                     "ts_window": [tv, tv + 0.5],
+                     "contributions": {"p_v": 0.5, "p_a": 0.2, "w_v": 0.5, "w_a": 0.5, "delta": 0.0}})
+        recs.append({"media_ts": ta, "decision": False, "trigger_modality": "audio",
+                     "ts_window": [ta, ta + 0.5],
+                     "contributions": {"p_v": 0.5, "p_a": 0.2, "w_v": 0.5, "w_a": 0.5, "delta": 0.0}})
+    man = TMP / "d" / "manifest.tsv"
+    man.write_text("dpos1\tpos\tsynth.mp4\tsynth.wav\t110\t20\t80\n", encoding="utf-8")
+    return recs, man, ["dpos1=1:%d" % len(recs)]
+
+
+def check_d(out):
+    fails = []
+    if not re.search(r"\[dpos1\].*mono\(по подпотокам\)=OK", out):
+        fails.append("D: корректный двухчасовой интерливинг заблокирован mono-гейтом (ложный блок боёвки)")
+    if not re.search(r"H0 .*→ ПРОЙДЕН", out):
+        fails.append("D: H0 не пройден на монотонных подпотоках")
     return fails
 
 
@@ -194,15 +226,25 @@ def main():
          f"--out={TMP/'bc'/'c.txt'}", f"--weights-dir={TMP/'weights'}", *slices_b],
         capture_output=True, text=True)
     fails += check_c(rc.stdout + rc.stderr)
-    if r.returncode != 0 or rb.returncode != 0 or rc.returncode != 0:
-        fails.append(f"returncode {r.returncode}/{rb.returncode}/{rc.returncode}")
+    # D: двухчасовой интерливинг с монотонными подпотоками — mono-гейт обязан пропустить
+    recs_d, man_d, slices_d = build_d()
+    jd = TMP / "d" / "d.jsonl"
+    jd.write_text("\n".join(json.dumps(x) for x in recs_d) + "\n", encoding="utf-8")
+    rd = subprocess.run(
+        [sys.executable, str(copy), f"--jsonl={jd}", f"--manifest={man_d}",
+         f"--out={TMP/'d'/'d.txt'}", f"--weights-dir={TMP/'weights'}", *slices_d],
+        capture_output=True, text=True)
+    fails += check_d(rd.stdout + rd.stderr)
+    if r.returncode != 0 or rb.returncode != 0 or rc.returncode != 0 or rd.returncode != 0:
+        fails.append(f"returncode {r.returncode}/{rb.returncode}/{rc.returncode}/{rd.returncode}")
     if fails:
         print("\nСАМОПРОВЕРКА: ПРОВАЛ")
         for f in fails:
             print(" -", f)
         sys.exit(1)
     print("\nСАМОПРОВЕРКА it87_holdout_eval на синтетике: ВСЕ ПУТИ A(H1/H2/H3/CSV) "
-          "+ B(p90 n=5 max-ряд) + C(mono по потоку → H0-блок) СОВПАЛИ 🟢")
+          "+ B(p90 n=5 max-ряд) + C(mono по потоку → H0-блок) + D(двухчасовой интерливинг "
+          "с монотонными подпотоками → пропущен) СОВПАЛИ 🟢")
 
 
 if __name__ == "__main__":
