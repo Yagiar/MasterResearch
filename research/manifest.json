@@ -17,6 +17,10 @@
    "sha256": "41f3fd5593f41f6c18b13316ca48ac05e7a88ed14d4804428fb92035f8cda262",
    "bytes": 6215274
   },
+  "models/visual/uav-yolov8s-bg-best.pt": {
+   "sha256": "7042602ab607c4cda1c41da57d9cf771f88b9ffefe043a951606c6b66e137493",
+   "bytes": 22498986
+  },
   "models/acoustic/lwcnn.pt": {
    "sha256": "f35beacbb120834451c708f8760ef1ce7b98710f59bccf869732d80fd4822287",
    "bytes": 102372

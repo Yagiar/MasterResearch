@@ -18,6 +18,7 @@ MD = ROOT / "MasterDiploma"
 FILES = {
     # --- веса моделей, использованные в опубликованных таблицах ---
     "models/visual/yolov8s-uav.pt": MD / "models/visual/yolov8s-uav.pt",
+    "models/visual/uav-yolov8s-bg-best.pt": MD / "models/visual/uav-yolov8s-bg-best.pt",
     "models/acoustic/lwcnn.pt": MD / "models/acoustic/lwcnn.pt",
     "models/acoustic/samid-drone-detector/model.safetensors": MD / "models/acoustic/samid-drone-detector/model.safetensors",
     "models/acoustic/samid-drone-detector/config.json": MD / "models/acoustic/samid-drone-detector/config.json",
