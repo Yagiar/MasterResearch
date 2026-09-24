@@ -553,7 +553,14 @@ research/.venv/bin/python research/it88_tile_aggregate.py   # → it88_tile_agg.
 bash research/it86_sync_negative_run.sh      # SCORE_OFF/TELEMETRY-срезы → it86_sync_run.log
 # Разбор (M0-блокатор + дескриптив; срезы — из SCORE_OFF):
 research/.venv/bin/python research/it86_sync_negative_eval.py \
+  --out=/tmp/it86_sync_replay.txt \
   "V0 off-audio=195319:195969" "V1 +audio=195970:197208" "V2 and+audio=197211:198453"
+# Замечание 24.09: артефакт it86_sync_summary.txt заморожен chmod 444 (боевой it-86-full
+#   требует явного --out; пропуск --out ОТКАЗЫВАЕТ, а не затирает канон). Replay текущим
+#   eval совпадает по всем FA-числам (651/199/200; 100 %/16,1 %/16,1 %), но медиа-охват/FA-per-hour
+#   отличаются — eval после SANITY честно эволюционировал (union-покрытие + сегментация по
+#   gap>5 с: перезапуски loop-материала стали видимы как ~487 сегментов). Канон — замороженный
+#   артефакт; воспроизводство заголовочных чисел — по --out в песочницу, не поверх канона.
 # Канон: M0 🟢 ПРОЙДЕН (audio_inf 631/631; p_a≠null во всех окнах V1/V2 — аудио течёт).
 #   V0 FA 651/651=100% (p_v≈0,83 на тепличном фоне), V1 199/1239=16,1%, V2 200/1243=16,1% —
 #   знак M2 = подавление вкладом аудио-гейта; СИЛА и headline FA/hour НЕ заявлены: материал

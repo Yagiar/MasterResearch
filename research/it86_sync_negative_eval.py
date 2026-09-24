@@ -118,9 +118,18 @@ def main(slices):
         v2 = res.get("V2 and+audio")
         if v2:
             p(f"\nM3 (боевая V2): FA-доля {100 * v2['fa_rate']:.1f} %, FA/hour≈{v2['fa_hr']:.0f}.")
-    with open(OUT, "w", encoding="utf-8") as f:
-        f.write("it-86 sync negative — срез stdout (протокол: iterations/it-86-multimodal-sync-negative.md)\n\n"
-                + "\n".join(LOG) + "\n")
+    try:
+        with open(OUT, "w", encoding="utf-8") as f:
+            f.write("it-86 sync negative — срез stdout (протокол: iterations/it-86-multimodal-sync-negative.md)\n\n"
+                    + "\n".join(LOG) + "\n")
+    except PermissionError:
+        # it86_sync_summary.txt намеренно chmod 444 (защита 24.09): боевой разбор требует
+        # явного --out=it86_full_summary.txt; случайный пропуск --out больше не затирает
+        # замороженный SANITY-артефакт. Осознанный пересанкционированный переразбор SANITY:
+        # chmod u+w файла, тогда легитимное воспроизводство пройдёт.
+        sys.exit(f"ОТКАЗ: {OUT.name} заморожен (444). Для боевого it-86-full передайте "
+                 f"--out=research/it86_full_summary.txt; переразбор SANITY — только осознанно, "
+                 f"снять 444 вручную (REPRODUCE §6v).")
     p(f"\nСводка: {OUT}")
 
 
