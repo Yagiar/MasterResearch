@@ -23,6 +23,18 @@ FPS=2
 MIN_NEW="${MIN_NEW:-20}"
 
 [ -f "$MANIFEST" ] || { echo "ОТКАЗ: нет $MANIFEST (запись материала не выполнена)"; exit 1; }
+# --- up-front валидация (чтобы отказ был ДО пуска, а не посреди однократного замера) ---
+NPOS=0; NNEG=0; NEGDUR=0
+while IFS=$'\t' read -r id role vid aud dur gs ge; do
+  case "$id" in ''|'#'*) continue ;; esac
+  [[ "$vid" == *'"'* || "$aud" == *'"'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка в имени файла сломает YAML-оверрай"; exit 1; }
+  [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
+  [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
+  if [ "$role" = "pos" ]; then NPOS=$((NPOS+1)); elif [ "$role" = "neg" ]; then NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}"); fi
+done < <(tr -d '\r' < "$MANIFEST")
+[ "$NPOS" -ge 5 ] || { echo "ОТКАЗ pre-flight: позитивов $NPOS < 5 (спека протокола)"; exit 1; }
+awk "BEGIN{exit !($NEGDUR >= 600)}" || { echo "ОТКАЗ pre-flight: суммарный негатив ${NEGDUR}с < 600с (спека ≥10 мин)"; exit 1; }
+echo "[it87] pre-flight манифеста OK: сегментов=$((NPOS+NNEG)), pos=$NPOS, neg=$NNEG (${NEGDUR}с)"
 COMPOSE=(docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml -f "$OVR")
 COMPOSE_INFRA=(docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml)
 SERVICES="source-simulator ingest-gateway visual-detector acoustic-detector fusion sink"
