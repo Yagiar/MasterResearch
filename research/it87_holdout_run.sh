@@ -27,7 +27,7 @@ MIN_NEW="${MIN_NEW:-20}"
 NPOS=0; NNEG=0; NEGDUR=0
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
-  [[ "$vid" == *'"'* || "$aud" == *'"'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка в имени файла сломает YAML-оверрай"; exit 1; }
+  [[ "$vid$aud" == *'"'* || "$vid$aud" == *'$'* || "$vid$aud" == *'`'* || "$vid$aud" == *'\'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка/\$/backtick/обратный слэш в имени файла: heredoc-оверрай раскрывает \$ и \` молча, путь в контейнер уйдёт испорченный (однократный замер умерит не гейт, а пустой стрим)"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
