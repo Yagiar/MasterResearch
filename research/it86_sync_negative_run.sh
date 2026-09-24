@@ -72,7 +72,10 @@ stage() {  # $1=имя, $2=vote_mode, $3=floor, $4=enable_audio, $5=audio_path, 
   sleep 20
   echo "-- P5 env:"
   docker exec uavdet-visual-detector env | grep -E "VOTE" || { echo "ОТКАЗ P5"; exit 1; }
-  docker exec uavdet-source-simulator env | grep -E "ENABLE_AUDIO|ADAPTER" || { echo "ОТКАЗ P5 source"; exit 1; }
+  # 17-с материал: source-simulator штатно завершается (exit 0) до этой проверки —
+  # env читаем docker inspect (работает и на остановленном контейнере), не exec.
+  docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' uavdet-source-simulator \
+    | grep -E "ENABLE_AUDIO|ADAPTER" || { echo "ОТКАЗ P5 source"; exit 1; }
   sleep 30
   NINF=$(q "SELECT count(1) FROM uavdet.inference;" | tr -d '[:space:]')
   [ "${NINF:-0}" -gt 0 ] || { echo "ОТКАЗ: пустой стрим на '$1'"; exit 1; }
