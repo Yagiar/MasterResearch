@@ -70,6 +70,12 @@ adaptive reuse. Дальнейшие текстовые работы (главы
 1. `MasterDiploma/sandboxDataForSimulator/holdout-24/manifest.tsv` появился → runner сам
    прогонит up-front валидацию (файлы, кавычки, pos≥5 ∧ neg≥600 с); отказ на этом шаге —
    НЕ боевой пуск (материал чинится, протокол не потрепан).
+   1а. Состояние до пуска (проверено 24.09, повторять только если веса правились):
+       sha хостовых `models/visual/yolov8s-uav.pt` = `41f3fd55…` и
+       `uav-yolov8s-bg-best.pt` = `7042602a…` — канону H0 соответствуют; маунт
+       `../models:/models:ro` (docker-compose.app.yml:55) — контейнер видит ровно эти файлы
+       read-only, дрейф весов между проверкой и прогоном структурно исключён; путь
+       `VOTE_WEIGHTS_PATH` в оверлее = тот же файл.
 2. `bash research/it87_holdout_run.sh` — ровно ОДИН раз (дефолт-песочница holdout-24;
    любые HOLD_SUBDIR/MIN_NEW overrides только для смока, не для боя).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
