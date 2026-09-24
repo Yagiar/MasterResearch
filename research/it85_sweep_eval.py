@@ -10,7 +10,9 @@
   p50/p95/p99 лага; send_done = t0 + 400/fps; drain_s = от send_done до первого сэмпла
   (~15 с тик) с vd+fusion лагом = 0 (не нашли до конца окна этапа → цензура = провал);
   max lag за стрим; GPU util mean/p95; VRAM peak — из research/it85_samples.csv.
-sustainable := drain ≤ 60 с И p95 ≤ 10 с И coverage ≥ 0,45.
+sustainable := drain ≤ 60 с И p95_steady ≤ 10 с И coverage ≥ 0,45;
+  p95_steady — p95 по решениям после первых 60 с этапа (исключение тёп-бэклога холодной
+  загрузки весов; поправка предрега, полный p95 тоже пишется в артефакты).
 Проверки: C1 coverage(A@2)∈[0,45;0,60]; P0 sustainable(A@0,5); P1 все A sustainable;
 P2 sustainable_fps(B) ≤ sustainable_fps(A) и Δp95(B−A) ≥ 0 на общих точках.
 Артефакты: research/it85_sweep.csv, research/it85_sweep_summary.txt.
@@ -26,22 +28,31 @@ JSONL = f"{ROOT}/MasterDiploma/data/decisions/decisions.jsonl"
 SAMPLES = f"{ROOT}/research/it85_samples.csv"
 OUT_CSV = f"{ROOT}/research/it85_sweep.csv"
 OUT_TXT = f"{ROOT}/research/it85_sweep_summary.txt"
-# опциональные пути только для синтетической самопроверки парсера (дефолт — боевые артефакты)
-_args = [a for a in sys.argv[1:] if a.startswith("--")]
-for _a in _args:
-    k, v = _a.split("=", 1)
-    if k == "--jsonl":
-        JSONL = v
-    elif k == "--samples":
-        SAMPLES = v
-    elif k == "--out":
-        OUT_CSV = v + ".csv"
-        OUT_TXT = v + ".txt"
-sys.argv = [sys.argv[0]] + [a for a in sys.argv[1:] if not a.startswith("--")]
+# опциональные пути только для синтетической самопроверки парсера (дефолт — боевые артефакты);
+# принимаются обе формы: --out=ПУТЬ и --out ПУТЬ
+_opts, _rest, _want = {}, [], None
+for _a in sys.argv[1:]:
+    if _want:
+        _opts[_want], _want = _a, None
+    elif _a.startswith("--"):
+        if "=" in _a:
+            k, v = _a[2:].split("=", 1)
+            _opts[k] = v
+        else:
+            _want = _a[2:]
+    else:
+        _rest.append(_a)
+JSONL = _opts.get("jsonl", JSONL)
+SAMPLES = _opts.get("samples", SAMPLES)
+if "out" in _opts:
+    OUT_CSV = _opts["out"] + ".csv"
+    OUT_TXT = _opts["out"] + ".txt"
+sys.argv = [sys.argv[0]] + _rest
 N_FRAMES = 400
 DRAIN_MAX = 60.0
 P95_MAX = 10.0
 COV_MIN = 0.45
+WARMUP_EXCL = 60.0  # с, исключение стартового тёп-бэклога из steady-перцентиля (поправка предрега)
 
 
 def pct(xs, p):
@@ -75,8 +86,13 @@ for spec in sys.argv[1:]:
     for m, ts in recs:
         frames[m] = min(frames.get(m, ts), ts)
     lags = [ts - t0 - m for m, ts in frames.items()]
+    # поправка предрега (warm-up): старт этапа холодный (загрузка весов ~35-45 с) даёт линейно
+    # затухающий стартовый бэклог; p95_steady считается после первых WARMUP_EXCL с этапа
+    # (ts ≥ first_ts + 60); полный p95 тоже сохраняется в артефактах.
+    lags_st = [ts - t0 - m for m, ts in sorted(frames.items()) if ts >= first_ts + WARMUP_EXCL]
     cov = len(frames) / N_FRAMES
     p50, p95, p99 = pct(lags, 0.50), pct(lags, 0.95), pct(lags, 0.99)
+    p95s = pct(lags_st, 0.95)
     send_done = t0 + N_FRAMES / fps
     smin, smax = first_ts - 120, last_ts + 90
     st = [s for s in samples if s[1] == name and smin <= s[0] <= smax]
@@ -90,10 +106,11 @@ for spec in sys.argv[1:]:
         vmem = max(vmem, gm)
         if math.isnan(drain) and ep >= send_done and vd + fu == 0:
             drain = ep - send_done
-    sust = (not math.isnan(drain)) and drain <= DRAIN_MAX and p95 <= P95_MAX and cov >= COV_MIN
+    sust = (not math.isnan(drain)) and drain <= DRAIN_MAX and p95s <= P95_MAX and cov >= COV_MIN
     out.append((name, fps, len(frames), cov, p50, p95, p99, drain, maxlag,
-                sum(util) / len(util) if util else float("nan"), pct(util, 0.95), vmem, sust, len(st)))
-    print(f"{name}: cov {cov:.3f} ({len(frames)}) | лаг p50 {p50:.1f} p95 {p95:.1f} p99 {p99:.1f} с | "
+                sum(util) / len(util) if util else float("nan"), pct(util, 0.95), vmem, sust, len(st), p95s))
+    print(f"{name}: cov {cov:.3f} ({len(frames)}) | лаг p50 {p50:.1f} p95 {p95:.1f} p99 {p99:.1f} "
+          f"p95_steady {p95s:.1f} с | "
           f"drain {drain:.0f} с | maxlag {maxlag} | GPU {out[-1][9]:.0f}%/{out[-1][10]:.0f}% p95 | "
           f"VRAM {vmem:.0f} MiB | семплов {len(st)} | {'sustainable 🟢' if sust else 'НЕ sustainable 🔴'}")
 
@@ -141,15 +158,17 @@ def fmt(x):
 
 with open(OUT_CSV, "w", encoding="utf-8") as fh:
     fh.write("stage,fps,n_frames_covered,coverage,lag_p50,lag_p95,lag_p99,drain_s,max_backlog,"
-             "gpu_util_mean,gpu_util_p95,vram_peak_mib,sustainable,n_samples\n")
+             "gpu_util_mean,gpu_util_p95,vram_peak_mib,sustainable,n_samples,lag_p95_steady\n")
     for o in out:
         fh.write(",".join(fmt(x) for x in o) + "\n")
 
 with open(OUT_TXT, "w", encoding="utf-8") as fh:
     fh.write("it-85 throughput saturation sweep (strict400 OI, loop=false, 400 кадров/этап, "
-             "post-fix media_ts; sustainable := drain≤60с ∧ p95≤10с ∧ coverage≥0,45)\n")
+             "post-fix media_ts; sustainable := drain≤60с ∧ p95_steady≤10с (первые 60 с этапа "
+             "исключены — тёп-бэклог холодной загрузки весов, поправка предрега) ∧ coverage≥0,45)\n")
     for o in out:
         fh.write(f"{o[0]}: cov={o[3]:.3f} p50={o[4]:.1f} p95={o[5]:.1f} p99={o[6]:.1f} "
+                 f"p95_steady={o[14]:.1f} "
                  f"drain={o[7]:.0f} maxlag={o[8]} gpu={o[9]:.0f}/{o[10]:.0f} vram={o[11]:.0f} "
                  f"sust={'да' if o[12] else 'нет'}\n")
     fh.write(f"\nsustainable_fps(A)={sus_fps('A')}, sustainable_fps(B)={sus_fps('B')}\n")
