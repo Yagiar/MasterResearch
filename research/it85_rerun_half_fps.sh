@@ -15,6 +15,7 @@ exec > >(tee -a "$ROOT/research/it85_rerun_half_fps.log") 2>&1
 echo "=== it-85 корректировочный @0,5 повтор $(date '+%F %T') ==="
 NIMG=$(ls "$MD/train/data/_prepared/hi-res-bg-v1/strict400" | wc -l)
 [ "$NIMG" -eq 400 ] || { echo "ОТКАЗ: знаменатель не 400 ($NIMG)"; exit 1; }
+write_override off 0.4 0.5   # оверлей нужен до build (main-раннер удаляет файл на finish)
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it85-rerun] ждём инфраструктуру (30с)..."; sleep 30
