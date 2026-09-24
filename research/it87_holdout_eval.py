@@ -95,9 +95,11 @@ def main(slices):
         a, b = rng.split(":")
         assert sid in segs, f"срез '{sid}' нет в манифесте"
         recs = [json.loads(x) for x in lines[int(a) - 1:int(b)]]
-        mm = [(r["media_ts"], r["decision"]) for r in recs if r.get("media_ts") is not None]
-        mm.sort()
-        mono = all(x[0] <= y[0] + 1e-9 for x, y in zip(mm, mm[1:]))
+        # mono — по ПОРЯДКУ ПОТОКА (jsonl), не по отсортированному: sorted-ряд монотонен
+        # тривиально и гейт H0 был бы пустым (найдено пре-открыточным аудитом 24.09)
+        mm_stream = [(r["media_ts"], r["decision"]) for r in recs if r.get("media_ts") is not None]
+        mono = all(x[0] <= y[0] + 1e-9 for x, y in zip(mm_stream, mm_stream[1:]))
+        mm = sorted(mm_stream)
         pa = sum(1 for r in recs if (r.get("contributions") or {}).get("p_a") is not None)
         span = (mm[-1][0] - mm[0][0]) if mm else 0.0
         exp = segs[sid]["dur"] - TAIL_LOSS_S
@@ -148,7 +150,9 @@ def main(slices):
       f"{'🟢' if h2 else '🔴'}")
     if ttds:
         med = statistics.median(ttds)
-        p90 = sorted(ttds)[max(0, int(round(0.9 * len(ttds))) - 1)]
+        # nearest-rank (предрегистр.): ceil(0,9·n)-й ряд; round даёт banker's rounding и
+        # при n=5 (min spec pos≥5) брал 4-й ряд вместо max-ряда → гейт слабел
+        p90 = sorted(ttds)[-(-9 * len(ttds) // 10) - 1]  # ceil(0,9n)-й ряд
         h3 = med <= 10.0 and p90 <= 20.0
         p(f"H3 (TTD): медиана {med:.1f} с ≤10 ∧ p90 {p90:.1f} с ≤20 → {'🟢' if h3 else '🔴'}")
     else:

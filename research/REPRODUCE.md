@@ -568,10 +568,13 @@ research/.venv/bin/python research/it86_sync_negative_eval.py \
 ```bash
 # САМОПРОВЕРКА eval-путей H1–H3 (CPU, ноль инференса, детерминированно; синтеты в /tmp/it87_selftest):
 research/.venv/bin/python research/it87_eval_selftest.py
-# Канон: «ВСЕ ПУТИ H1/H2/H3/CSV СОВПАЛИ С РУЧНОЙ АРИФМЕТИКОЙ 🟢» — H1 40/402 🟢; H2 4/5 🔴
-#   (фильтр alarm∈[gs,ge]; pos5 с t=90 вне GT не ловится); H3 медиана 3,0 / p90 10,0 🟢
-#   (nearest-rank: при n=4 p90 = максимум ряда). Боевой it87_holdout_eval.py при этом НЕ меняется
-#   (копия с подменой sha-констант).
+# Канон: «ВСЕ ПУТИ A(H1/H2/H3/CSV) + B(p90 n=5 max-ряд) + C(mono по потоку → H0-блок) СОВПАЛИ 🟢»
+#   A: H1 40/402 🟢; H2 4/5 🔴 (фильтр alarm∈[gs,ge]; pos5 с t=90 вне GT не ловится);
+#      H3 медиана 3,0 / p90 10,0 🟢 (nearest-rank ceil(0,9n): при n=4 p90 = максимум ряда).
+#   B: 5 пролётов TTD [1,2,3,4,58] → p90 58,0 → H3 🔴; C: перестановка окон в потоке →
+#      mono=ПРОВАЛ → H0 блокирует, H1–H3 не печатаются. Боевой it87_holdout_eval.py изменён
+#   пре-открыточным аудитом 24.09 (mono по порядку потока вместо sorted; p90 ceil вместо round) —
+#   см. итерацию it-87; пороги H0–H3 и веса не тронуты (копия с подменой sha-констант).
 # БОЕВОЙ ЗАМЕР — ОДИН РАЗ после записи автором holdout-24 (манифест+видео+аудио):
 #   runner (замороженный стек AND@0,40 + audio, fps=2, loop=false) → один разбор:
 research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/manifest.tsv> \

@@ -13,8 +13,11 @@ sha-префиксы заменяются на префиксы фиктивны
   7 сегментов (pos1..pos5, neg1, neg2), dur=110, окна 0,5 с (span=100 → ratio=1,000 OK);
   pos: pos1 TTD 2,0; pos2 TTD 10,0; pos3 TTD 0,5; pos4 TTD 4,0; pos5 — вне интервала →
        H2 = 4/5 = 80 % (красный путь гейта, ≥90 не выполнен);
-  TTD [2,10,0.5,4] → медиана 3,0; p90 (nearest-rank round(0,9n)-1, при n=4 — максимум
+  TTD [2,10,0.5,4] → медиана 3,0; p90 (nearest-rank ceil(0,9n)-й ряд; при n=4 — максимум
        ряда) = 10,0 → H3 🟢;
+  сценарии B/C (пре-открыточный аудит 24.09): B — 5 пролётов [1,2,3,4,58] → p90=58 (max-ряд,
+  проверяет ceil вместо banker's round); C — перестановка потока → mono-гейт ловит НЕ-монотонность
+  по порядку jsonl (sorted-ряд тривиально монотонен) и H0 блокирует вердикты.
   neg: 40/400 = 10,0 % → H1 🟢; итог-вердикт «НЕ ПОДТВЕРЖДЕНО» (из-за H2).
 """
 import hashlib
@@ -89,6 +92,50 @@ def build():
     return jsonl, man, copy, slices, alarms_total
 
 
+def build_bc():
+    """Сценарии B/C: 5 pos с TTD [1,2,3,4,58] + 2 neg; C = тот же поток с перестановкой
+    (мнимая не-монотонность). Проверки пре-открыточного аудита 24.09: nearest-rank p90 при
+    n=5 берёт max-ряд (58 → H3 🔴), а mono читается ПО ПОРЯДКУ ПОТОКА, а не sorted-ряда."""
+    (TMP / "bc").mkdir(exist_ok=True)
+    pos_alarms = [{21.0}, {22.0}, {23.0}, {24.0}, {78.0}]
+    plan = [(f"bpos{i+1}", "pos", a) for i, a in enumerate(pos_alarms)]
+    plan += [("bneg1", "neg", {i * 0.5 for i in range(20, 40, 2)}),
+             ("bneg2", "neg", {i * 0.5 for i in range(40, 100, 2)})]
+    recs, slices = [], []
+    for sid, role, al in plan:
+        start_line = len(recs) + 1
+        recs.extend(windows(alarms=al))
+        slices.append(f"{sid}={start_line}:{len(recs)}")
+    man = TMP / "bc" / "manifest.tsv"
+    man.write_text("\n".join(
+        f"{sid}\t{role}\tsynth.mp4\tsynth.wav\t110\t20\t80"
+        if role == "pos" else f"{sid}\t{role}\tsynth.mp4\tsynth.wav\t110\t0\t0"
+        for sid, role, _ in plan) + "\n", encoding="utf-8")
+    return recs, man, slices
+
+
+def check_b(out):
+    fails = []
+    m = re.search(r"H2 \(sequence-recall\): (\d+)/(\d+) = .*→ 🟢", out)
+    if not m or (int(m[1]), int(m[2])) != (5, 5):
+        fails.append("B: H2 ≠ 5/5 🟢")
+    m = re.search(r"H3 \(TTD\): медиана ([\d.]+) с ≤10 ∧ p90 ([\d.]+) с ≤20 → (🟢|🔴)", out)
+    if not m or (float(m[1]), float(m[2]), m[3]) != (3.0, 58.0, "🔴"):
+        fails.append(f"B: H3 {m.groups() if m else None} ≠ 3,0/58,0/🔴 (p90 обязан брать max-ряд при n=5)")
+    return fails
+
+
+def check_c(out):
+    fails = []
+    if not re.search(r"\[bpos1\].*mono=ПРОВАЛ", out):
+        fails.append("C: перестановка потока не поймана mono-гейтом (bpos1)")
+    if not re.search(r"H0 .*→ ПРОВАЛ", out):
+        fails.append("C: H0 не заблокирован")
+    if re.search(r"H1 \(FP", out):
+        fails.append("C: при H0-ПРОВАЛЕ вердикты H1–H3 напечатаны (не должно быть)")
+    return fails
+
+
 def check(out, alarms_total):
     fails = []
 
@@ -128,15 +175,34 @@ def main():
         capture_output=True, text=True)
     out = r.stdout + r.stderr
     fails = check(out, alarms_total)
-    print(out)
-    if r.returncode != 0:
-        fails.append(f"returncode {r.returncode}")
+    recs_b, man_b, slices_b = build_bc()
+    # B: корректный поток — p90 nearest-rank при n=5 обязан быть max-рядом (58 → H3 🔴)
+    jb = TMP / "bc" / "b.jsonl"
+    jb.write_text("\n".join(json.dumps(x) for x in recs_b) + "\n", encoding="utf-8")
+    rb = subprocess.run(
+        [sys.executable, str(copy), f"--jsonl={jb}", f"--manifest={man_b}",
+         f"--out={TMP/'bc'/'b.txt'}", f"--weights-dir={TMP/'weights'}", *slices_b],
+        capture_output=True, text=True)
+    fails += check_b(rb.stdout + rb.stderr)
+    # C: тот же поток, но bpos1 перемешан (окно 2,5 с впереди 1,0 с) — mono по порядку потока
+    recs_c = list(recs_b)
+    recs_c[3], recs_c[8] = recs_c[8], recs_c[3]
+    jc = TMP / "bc" / "c.jsonl"
+    jc.write_text("\n".join(json.dumps(x) for x in recs_c) + "\n", encoding="utf-8")
+    rc = subprocess.run(
+        [sys.executable, str(copy), f"--jsonl={jc}", f"--manifest={man_b}",
+         f"--out={TMP/'bc'/'c.txt'}", f"--weights-dir={TMP/'weights'}", *slices_b],
+        capture_output=True, text=True)
+    fails += check_c(rc.stdout + rc.stderr)
+    if r.returncode != 0 or rb.returncode != 0 or rc.returncode != 0:
+        fails.append(f"returncode {r.returncode}/{rb.returncode}/{rc.returncode}")
     if fails:
         print("\nСАМОПРОВЕРКА: ПРОВАЛ")
         for f in fails:
             print(" -", f)
         sys.exit(1)
-    print("\nСАМОПРОВЕРКА it87_holdout_eval на синтетике: ВСЕ ПУТИ H1/H2/H3/CSV СОВПАЛИ С РУЧНОЙ АРИФМЕТИКОЙ 🟢")
+    print("\nСАМОПРОВЕРКА it87_holdout_eval на синтетике: ВСЕ ПУТИ A(H1/H2/H3/CSV) "
+          "+ B(p90 n=5 max-ряд) + C(mono по потоку → H0-блок) СОВПАЛИ 🟢")
 
 
 if __name__ == "__main__":

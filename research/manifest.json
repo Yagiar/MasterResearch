@@ -474,12 +474,12 @@
    "bytes": 8884
   },
   "research/it87_holdout_eval.py": {
-   "sha256": "9bfc98eb1223453595f43778969a22826351ae7bad31a49563e6ef49a5a53be0",
-   "bytes": 8987
+   "sha256": "dc096d20de5346dd64945aa724ee7ab9c3225f8953fbca345d60be1f4361a8bc",
+   "bytes": 9533
   },
   "research/it87_eval_selftest.py": {
-   "sha256": "1730f6bb61c5d729af81559eeb91474a9e09b77a836a6f5baa9258aee40519d0",
-   "bytes": 6744
+   "sha256": "5fa83974f7568dc64b191c58bedd2c0979483be3156fbd401aca5073cbe0405f",
+   "bytes": 10680
   },
   "research/it87_holdout_manifest_TEMPLATE.tsv": {
    "sha256": "72a89e629271c288366effc9ea8fb925b0d5997d07ef3bb69222925339137cf9",
