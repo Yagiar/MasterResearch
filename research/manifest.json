@@ -477,6 +477,10 @@
    "sha256": "1730f6bb61c5d729af81559eeb91474a9e09b77a836a6f5baa9258aee40519d0",
    "bytes": 6744
   },
+  "research/it87_holdout_manifest_TEMPLATE.tsv": {
+   "sha256": "72a89e629271c288366effc9ea8fb925b0d5997d07ef3bb69222925339137cf9",
+   "bytes": 1367
+  },
   "research/verify_manifest.py": {
    "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
    "bytes": 3142
