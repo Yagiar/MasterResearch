@@ -166,7 +166,9 @@ write_override dummy.mp4 dummy.wav
 # дренажа — все они exit 1 и хвостовую уборку не делают) гасим app-стек, освобождая GPU.
 # Именно rm -sf $SERVICES, НЕ down: down с этим стеком files снёс бы общую kafka/postgres.
 # До write_override trap не стоит — pre-flight-ОТКАЗы не наступают вообще на docker.
-trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true' EXIT
+# rm -f "$OVR" — ПОСЛЕ compose rm (самому compose нужен файл оверрея как -f-аргумент):
+# иначе mid-run ОТКАЗ осирощает оверрей (живой stub-смоук 24.09 поймал ровно это).
+trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true; rm -f "$OVR"' EXIT
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it87] ждём инфраструктуру (30с)..."; sleep 30

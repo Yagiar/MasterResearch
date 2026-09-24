@@ -100,7 +100,8 @@ adaptive reuse. Дальнейшие текстовые работы (главы
    погасить app-стек, пока оверрей на месте: `cd MasterDiploma && docker compose
    -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml
    -f infra/docker-compose.it87.yml rm -sf source-simulator ingest-gateway visual-detector
-   acoustic-detector fusion sink` (для it-86-full — оверрей `.it86f.yml`; НЕ `down`: с этим
+   acoustic-detector fusion sink` (для it-86-full — оверрей `.it86f.yml`; после погашения —
+   `rm -f` соответствующего оверрея; НЕ `down`: с этим
    стеком files он снёс бы и общую kafka/postgres; `rm -sf` — ровно то, что раннер делает
    между этапами).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
@@ -232,6 +233,11 @@ pre-flight sha-гейт (зеркало H0.1: первые 8 hex sha256, до te
 стороны: канонические веса → пройден, дописанный байт → ОТКАЗ. it86-full отдельного гейта
 не получил осознанно: он и так блокирован grep'ом «H0 → ПРОЙДЕН» в it87-summary (шов 14),
 а шаг 5 идёт сразу за закрытием it-87. Манифест пересобран: 154 файла / 0 расхождений.
+Шестнадцатый шов: регресс-stub-смоук после шва 15 поймал осиротевший оверрей — mid-run ОТКАЗ
+оставлял docker-compose.it87.yml (trap снимал контейнеры, но хвостовой rm -f "$OVR" не
+доходил). В trap обоих раннеров добавлен `rm -f "$OVR"` ПОСЛЕ compose rm (самому compose
+оверрей нужен как -f-аргумент — порядок существен). Перетест: RC=1 на той же точке P5 vote,
+оверрей не остаётся; штатный выход идемпотентен (двойной rm -f). Манифест пересобран 154/0.
 
 ## Что уже выполнено из P0-блока аудита (этот проход)
 

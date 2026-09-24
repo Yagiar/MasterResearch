@@ -159,7 +159,8 @@ write_override dummy "" false off 0.4
 # выходе после этой точки (mid-run ОТКАЗ P4/P5/стрима/дренажа делает exit 1 и хвост не
 # выполняет) гасим app-стек и освобождаем GPU. rm -sf $SERVICES, НЕ down (down задел бы
 # общую kafka/postgres). Pre-flight-ОТКАЗы до этой точки — trap не стоит, docker не тронут.
-trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true' EXIT
+# rm -f "$OVR" — ПОСЛЕ compose rm (нужен ему как -f-аргумент): mid-run ОТКАЗ не осирощает оверрей.
+trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true; rm -f "$OVR"' EXIT
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it86-full] ждём инфраструктуру (30с)..."; sleep 30
