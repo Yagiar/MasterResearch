@@ -58,7 +58,7 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml --pro
    ```
    # id	role	video	audio	dur_s	gt_start	gt_end
    pos1	pos	pos-1.mp4	pos-1.wav	95	12	78
-   neg1	neg	neg-1.mp4	neg-1.wav	300	-1	-1
+   neg1	neg	neg-1.mp4	neg-1.wav	300	0	0
    ```
 2. **Негатив 10–30 мин для headline it-86** (V0/V1/V2 на cam+mic без дрона, один статичный ракурс,
    реалистичный шум) — может совпасть с негативами `holdout-24/`, но тогда используются разные
