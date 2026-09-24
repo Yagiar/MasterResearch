@@ -157,6 +157,7 @@ FILES = {
     "research/it86_sync_summary.txt": ROOT / "research/it86_sync_summary.txt",
     "research/it87_holdout_run.sh": ROOT / "research/it87_holdout_run.sh",
     "research/it87_holdout_eval.py": ROOT / "research/it87_holdout_eval.py",
+    "research/it87_eval_selftest.py": ROOT / "research/it87_eval_selftest.py",
     "research/verify_manifest.py": ROOT / "research/verify_manifest.py",
     "research/it89_skyguard_gate.py": ROOT / "research/it89_skyguard_gate.py",
     "research/it89_skyguard_gate.csv": ROOT / "research/it89_skyguard_gate.csv",

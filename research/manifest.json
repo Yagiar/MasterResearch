@@ -473,6 +473,10 @@
    "sha256": "9bfc98eb1223453595f43778969a22826351ae7bad31a49563e6ef49a5a53be0",
    "bytes": 8987
   },
+  "research/it87_eval_selftest.py": {
+   "sha256": "1730f6bb61c5d729af81559eeb91474a9e09b77a836a6f5baa9258aee40519d0",
+   "bytes": 6744
+  },
   "research/verify_manifest.py": {
    "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
    "bytes": 3142
