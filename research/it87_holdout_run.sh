@@ -142,6 +142,11 @@ stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
 exec > >(tee -a "$LOG") 2>&1
 echo "=== it-87 holdout $(date '+%F %T') (ОДНОКРАТНОЕ ОТКРЫТИЕ) MIN_NEW=$MIN_NEW ==="
 write_override dummy.mp4 dummy.wav
+# EXIT-trap: при ЛЮБОМ выходе после этой точки (в т.ч. mid-run ОТКАЗ P4/P5/пустого стрима/
+# дренажа — все они exit 1 и хвостовую уборку не делают) гасим app-стек, освобождая GPU.
+# Именно rm -sf $SERVICES, НЕ down: down с этим стеком files снёс бы общую kafka/postgres.
+# До write_override trap не стоит — pre-flight-ОТКАЗы не наступают вообще на docker.
+trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true' EXIT
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it87] ждём инфраструктуру (30с)..."; sleep 30
@@ -155,11 +160,11 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
   stage "$id" "$vid" "$aud" "$dur"
 done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
-# убрать приложения (GPU!): тот же отработанный rm -sf, что между этапами; full `down`
-# с этим стеком files снёс бы и общую infra (kafka/postgres переживают прогон осознанно),
-# а после rm -f "$OVR" он ещё и падал бы на отсутствующем оверрее (|| true его бы проглотил).
-# При mid-run ОТКАЗе (P4/P5/дренаж) этот шаг не выполняется — гасить вручную:
-# тот же rm -sf с оверреем, пока $OVR на месте (шаг 2.5 чек-листа роадмапа).
+# убрать приложения (GPU!) — явная хвостовая уборка успешного пути; EXIT-trap выше дублирует
+# её на любом выходе (в т.ч. mid-run ОТКАЗе), а rm -f "$OVR" до trap делает trap-вызов
+# пустым (|| true) — контейнеры к тому моменту уже сняты. Full down здесь/в trap отвергнут:
+# с этим стеком files он снёс бы и общую kafka/postgres (переживают прогон осознанно).
+# Если и trap не отработал (kill -9 раннера) — ручная уборка: шаг 2.5 чек-листа роадмапа.
 "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 rm -f "$OVR"
 echo

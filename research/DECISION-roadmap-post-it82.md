@@ -94,13 +94,15 @@ adaptive reuse. Дальнейшие текстовые работы (главы
        съёмки — зафиксировано комментарием в скрипте).
 2. `bash research/it87_holdout_run.sh` — ровно ОДИН раз (дефолт-песочница holdout-24;
    любые HOLD_SUBDIR/MIN_NEW overrides только для смока, не для боя).
-2.5 При mid-run ОТКАЗе (P4/P5/пустой стрим/дренаж) хвост-уборка раннера не выполняется и
-   app-контейнеры остаются держать GPU: погасить вручную тем же отработанным вызовом,
-   пока оверрей на месте: `cd MasterDiploma && docker compose -f infra/docker-compose.yml
-   -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml
+2.5 Штатно GPU освобождает EXIT-trap обоих раннеров (`rm -sf $SERVICES` на любом выходе
+   после write_override, включая mid-run ОТКАЗ P4/P5/стрима/дренажа — stub-прогон 24.09
+   подтвердил). Ручная уборка нужна только если trap не отработал (kill -9 раннера):
+   погасить app-стек, пока оверрей на месте: `cd MasterDiploma && docker compose
+   -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml
    -f infra/docker-compose.it87.yml rm -sf source-simulator ingest-gateway visual-detector
-   acoustic-detector fusion sink` (НЕ `down`: с этим стеком files он снесёт и общую
-   kafka/postgres; `rm -sf` — ровно то, что раннер делает между этапами).
+   acoustic-detector fusion sink` (для it-86-full — оверрей `.it86f.yml`; НЕ `down`: с этим
+   стеком files он снёс бы и общую kafka/postgres; `rm -sf` — ровно то, что раннер делает
+   между этапами).
 3. Из `research/it87_holdout_run.log` достать строки `SCORE_OFF id START:END` → ОДИН разбор:
    `mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)`
    `research/.venv/bin/python research/it87_holdout_eval.py --manifest=<путь к holdout-24/manifest.tsv> "${SRES[@]}"`
@@ -173,9 +175,16 @@ eval её не проверяет (у eval свои пять блокаторо�
 после `rm -f "$OVR"`) сам содержал два дефекта, пойманных проверкой перед коммитом: `down`
 с полным стеком files снёс бы и общую kafka/postgres (которые переживают прогон осознанно),
 а после удаления оверрея ещё и молча падал бы под `|| true`. Итог: хвостовой `"${COMPOSE[@]}"
-rm -sf $SERVICES` (тот же отработанный между этапами вызов) ДО `rm -f "$OVR"`; EXIT-trap
-сознательно не добавлен — тот же риск задеть общую infra. Ручная уборка при mid-run ОТКАЗе —
-новый шаг 2.5 чек-листа (на него ссылается комментарий в скрипте).
+rm -sf $SERVICES` (тот же отработанный между этапами вызов) ДО `rm -f "$OVR"`; затем усилено
+до EXIT-trap (`rm -sf $SERVICES` на любом выходе после `write_override`) — в отличие от `down`
+он безопасен для общей infra, и именно mid-run ОТКАЗ (exit 1 внутри stage) есть главный путь
+утечки; хвост остался явной дубль-уборкой успешного пути. Живой stub-тест (фейковый `docker`
+в PATH, dummy-манифест 5 pos + 600с neg, HOLD_SUBDIR=it87_gate_dummy): `ОТКАЗ P5 vote` →
+trap дёрнул канонический `rm -sf`-вызов с оверреем, RC=1 сохранён, pre-flight-ОТКАЗ trap не
+трогает (не установлен). Тот же trap симметрично в it86-full (path-зависимость it86f
+замока невозможна: HOLD_SUBDIR захардкожен на holdout-24, поэтому за него — только `bash -n`
++ идентичность паттерна). Шаг 2.5 чек-листа переписан: ручная уборка — теперь только под
+kill -9 раннера.
 
 ## Что уже выполнено из P0-блока аудита (этот проход)
 

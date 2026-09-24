@@ -144,6 +144,11 @@ stage() {  # $1=имя "$ARM/$seg", $2=vid, $3=aud, $4=dur, $5=audio_on(true|fal
 exec > >(tee -a "$LOG") 2>&1
 echo "=== it-86-full $(date '+%F %T') (V0/V1/V2 × neg-сегменты holdout-24, loop=false) ==="
 write_override dummy "" false off 0.4
+# EXIT-trap (симметрично it87, тот же паттерн протестирован stub-прогоном 24.09): при ЛЮБОМ
+# выходе после этой точки (mid-run ОТКАЗ P4/P5/стрима/дренажа делает exit 1 и хвост не
+# выполняет) гасим app-стек и освобождаем GPU. rm -sf $SERVICES, НЕ down (down задел бы
+# общую kafka/postgres). Pre-flight-ОТКАЗы до этой точки — trap не стоит, docker не тронут.
+trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true' EXIT
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it86-full] ждём инфраструктуру (30с)..."; sleep 30
@@ -166,6 +171,10 @@ run_arm() {  # $1=имя плечи (ровно как в eval), $2..$5 = audio_
 run_arm "V0 off-audio" false off 0.4 "$REGEX_SINGLE"
 run_arm "V1 +audio"    true  off 0.4 "$REGEX_SINGLE"
 run_arm "V2 and+audio" true  and 0.40 "$REGEX_AND"
+# хвостовая уборка app-стека (GPU) — симметрично it87: явная на успешном пути, EXIT-trap
+# выше дублирует на любом выходе. Full down отвергнут (снёс бы общую kafka/postgres).
+# Если и trap не отработал (kill -9) — ручная уборка: шаг 2.5 чек-листа роадмапа.
+"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 rm -f "$OVR"
 echo
 echo "=== it-86-full завершён; РАЗБОР (идеома сквозно проверена 24.09; агрегация M1–M3 — по сумме плеч): ==="
