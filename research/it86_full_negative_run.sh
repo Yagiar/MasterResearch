@@ -55,7 +55,7 @@ services:
       UAVDET_SOURCE__ENABLE_AUDIO: "$3"
       UAVDET_SOURCE__FPS: "$FPS"
       UAVDET_SOURCE__MEDIA_FILE__VIDEO_PATH: "/data/sandbox/$HOLD_SUBDIR/$1"
-      UAVDET_SOURCE__MEDIA_FILE__AUDIO_PATH: "$2"
+      UAVDET_SOURCE__MEDIA_FILE__AUDIO_PATH: "$([ -n "$2" ] && echo "/data/sandbox/$HOLD_SUBDIR/$2")"
       UAVDET_SOURCE__MEDIA_FILE__LOOP: "false"
   fusion:
     environment:

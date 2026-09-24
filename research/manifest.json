@@ -486,8 +486,8 @@
    "bytes": 1367
   },
   "research/it86_full_negative_run.sh": {
-   "sha256": "0ba5469dd7922a14c6c43210148dccf16b05afebf81f7df71ebc43b238f9549c",
-   "bytes": 8997
+   "sha256": "51a31e90b8d7b42a9f6c1237d8e54529032cc3a8698e126a3d1ba3c79c79cc18",
+   "bytes": 9049
   },
   "research/verify_manifest.py": {
    "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
