@@ -592,4 +592,7 @@ research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/m
 # Гейты/протокол: iterations/it-87-frozen-holdout-PLANNED.md; H0-блокаторы (sha 41f3fd55/7042602a,
 #   p_a≠null, mono, ratio∈[0,8;1,2], полнота) → вердиктов H1–H3 не существует при провале.
 #   Выход: it87_holdout_summary.txt + it87_holdout.csv (вне git до боевого запуска).
+#   Сквозная репетиция механизма (24.09, заезд baf01bkmb: клон раннера с заглушкой material-гейта
+#   и песочницей arm86f-test, 3 плеча × 3 сегмента) пройдена end-to-end; парсеры манифеста после
+#   неё терпят BOM/CRLF (15962f6). Артефакты репетиции удалены, боевые файлы не тронуты.
 ```
