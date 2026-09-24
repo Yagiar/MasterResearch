@@ -12,8 +12,12 @@ cd "$MD"
 
 OVR="$MD/infra/docker-compose.it87.yml"
 JSONL="$MD/data/decisions/decisions.jsonl"
+# HOLD_SUBDIR — песочница прогона внутри sandboxDataForSimulator (bind /data/sandbox:ro).
+# Боевое открытие: только дефолт holdout-24. Smoke-прогон обвязки: HOLD_SUBDIR=smoke87 (не боевой замер).
+HOLD_SUBDIR="${HOLD_SUBDIR:-holdout-24}"
 LOG="$ROOT/research/it87_holdout_run.log"
-HOLD="$MD/sandboxDataForSimulator/holdout-24"
+if [ "$HOLD_SUBDIR" != "holdout-24" ]; then LOG="$ROOT/research/it87_smoke_run.log"; fi
+HOLD="$MD/sandboxDataForSimulator/$HOLD_SUBDIR"
 MANIFEST="$HOLD/manifest.tsv"
 FPS=2
 MIN_NEW="${MIN_NEW:-20}"
@@ -27,7 +31,7 @@ DOWNSTREAM="ingest-gateway visual-detector acoustic-detector fusion sink"
 q() { docker compose -f infra/docker-compose.yml exec -T postgres psql -U uavdet -d uavdet -tA -c "$1"; }
 offset() { wc -l < "$JSONL" 2>/dev/null || echo 0; }
 
-write_override() {  # $1=video $2=audio (файлы лежат в holdout-24 внутри sandboxDataForSimulator,
+write_override() {  # $1=video $2=audio (файлы лежат в $HOLD_SUBDIR внутри sandboxDataForSimulator,
   # который уже примонтирован compose как /data/sandbox:ro — новых volume не требуется)
   cat > "$OVR" <<EOF
 services:
@@ -36,8 +40,8 @@ services:
       UAVDET_SOURCE__ADAPTER: "media_file"
       UAVDET_SOURCE__ENABLE_AUDIO: "true"
       UAVDET_SOURCE__FPS: "$FPS"
-      UAVDET_SOURCE__MEDIA_FILE__VIDEO_PATH: "/data/sandbox/holdout-24/$1"
-      UAVDET_SOURCE__MEDIA_FILE__AUDIO_PATH: "/data/sandbox/holdout-24/$2"
+      UAVDET_SOURCE__MEDIA_FILE__VIDEO_PATH: "/data/sandbox/$HOLD_SUBDIR/$1"
+      UAVDET_SOURCE__MEDIA_FILE__AUDIO_PATH: "/data/sandbox/$HOLD_SUBDIR/$2"
       UAVDET_SOURCE__MEDIA_FILE__LOOP: "false"
   fusion:
     environment:
