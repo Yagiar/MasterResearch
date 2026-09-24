@@ -1,16 +1,16 @@
 {
  "schema": "uavdet-repro-manifest/1",
  "hf_revisions": {
-  "Rashidbm/samid-drone-detector": "3a12f618dd8aebf180945bf04ebfeef262d65795"
+  "Rashidbm/samid-drone-detector": "unknown"
  },
  "versions": {
   "python": "3.12.3",
-  "torch": "2.14.0+cu130",
-  "transformers": "5.16.1",
-  "librosa": "1.0.0",
-  "ultralytics": "8.4.139",
-  "numpy": "2.5.2",
-  "huggingface_hub": "1.30.0"
+  "torch": "not-installed",
+  "transformers": "not-installed",
+  "librosa": "not-installed",
+  "ultralytics": "not-installed",
+  "numpy": "not-installed",
+  "huggingface_hub": "not-installed"
  },
  "files": {
   "models/visual/yolov8s-uav.pt": {
@@ -466,8 +466,8 @@
    "bytes": 1111
   },
   "research/it87_holdout_run.sh": {
-   "sha256": "92f5b8e93cbb5be4194280b594dc5a2c7b3e27c1c0b111ad2586c061a224b40e",
-   "bytes": 7102
+   "sha256": "d9bd20a047d2231ed6ea2bbffc596523c749ace969aca1b3eb6db03418807c45",
+   "bytes": 7524
   },
   "research/it87_holdout_eval.py": {
    "sha256": "9bfc98eb1223453595f43778969a22826351ae7bad31a49563e6ef49a5a53be0",

@@ -69,6 +69,7 @@ reset_groups() {
 
 stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
   local id="$1" vid="$2" aud="$3" dur="$4"
+  awk "BEGIN{exit !($dur+0 >= 20)}" || { echo "ОТКАЗ: '$id' dur=$dur < 20 с (eval ratio требует dur−10>0)"; exit 1; }
   echo
   echo "=== ЭТАП $id (video=$vid dur=${dur}s) $(date +%H:%M:%S) ==="
   write_override "$vid" "$aud"
@@ -101,6 +102,7 @@ stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
     PREV=$CUR
     [ "$STABLE" -ge 45 ] && break
   done
+  [ "$STABLE" -ge 45 ] || { echo "ОТКАЗ дренажа: '$id' тишина ${STABLE}с < 45с за 240с окна (обрезанный срез губит однократный замер; перезапуск сегмента вне протокола)"; exit 1; }
   NEW=$((CUR-OFF_BEFORE))
   [ "$NEW" -ge "$MIN_NEW" ] || { echo "ОТКАЗ дренажа: '$id' дал $NEW решений (<$MIN_NEW)"; exit 1; }
   echo "SCORE_OFF $id $((OFF_BEFORE+1)):$CUR (новых $NEW, тишина ${STABLE}с)"
@@ -123,7 +125,7 @@ done
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
   stage "$id" "$vid" "$aud" "$dur"
-done < "$MANIFEST"
+done < <(tr -d '\r' < "$MANIFEST")
 rm -f "$OVR"
 echo
 echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ: research/.venv/bin/python research/it87_holdout_eval.py --manifest \"$MANIFEST\" <срезы SCORE_OFF> ==="
