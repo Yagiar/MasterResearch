@@ -11,8 +11,8 @@
   (~15 с тик) с vd+fusion лагом = 0 (не нашли до конца окна этапа → цензура = провал);
   max lag за стрим; GPU util mean/p95; VRAM peak — из research/it85_samples.csv.
 sustainable := drain ≤ 60 с И p95_steady ≤ 10 с И coverage ≥ 0,45;
-  p95_steady — p95 по решениям после первых 60 с этапа (исключение тёп-бэклога холодной
-  загрузки весов; поправка предрега, полный p95 тоже пишется в артефакты).
+  p95_steady — p95 по решениям после первых 10 с потока решений этапа (исключение тёп-бэклога
+  холодной загрузки весов; поправка предрега №3, полный p95 тоже пишется в артефакты).
 Проверки: C1 coverage(A@2)∈[0,45;0,60]; P0 sustainable(A@0,5); P1 все A sustainable;
 P2 sustainable_fps(B) ≤ sustainable_fps(A) и Δp95(B−A) ≥ 0 на общих точках.
 Артефакты: research/it85_sweep.csv, research/it85_sweep_summary.txt.
@@ -52,7 +52,7 @@ N_FRAMES = 400
 DRAIN_MAX = 60.0
 P95_MAX = 10.0
 COV_MIN = 0.45
-WARMUP_EXCL = 60.0  # с, исключение стартового тёп-бэклога из steady-перцентиля (поправка предрега)
+WARMUP_EXCL = 10.0  # с, исключение стартового тёп-бэклога из steady-перцентиля (поправка предрега)
 
 
 def pct(xs, p):
@@ -87,7 +87,7 @@ for spec in sys.argv[1:]:
         frames[m] = min(frames.get(m, ts), ts)
     lags = [ts - t0 - m for m, ts in frames.items()]
     # поправка предрега (warm-up): старт этапа холодный (загрузка весов ~35-45 с) даёт линейно
-    # затухающий стартовый бэклог; p95_steady считается после первых WARMUP_EXCL с этапа
+    # затухающий стартовый бэклог; p95_steady считается после первых WARMUP_EXCL с потока решений этапа
     # (ts ≥ first_ts + 60); полный p95 тоже сохраняется в артефактах.
     lags_st = [ts - t0 - m for m, ts in sorted(frames.items()) if ts >= first_ts + WARMUP_EXCL]
     cov = len(frames) / N_FRAMES
@@ -164,7 +164,7 @@ with open(OUT_CSV, "w", encoding="utf-8") as fh:
 
 with open(OUT_TXT, "w", encoding="utf-8") as fh:
     fh.write("it-85 throughput saturation sweep (strict400 OI, loop=false, 400 кадров/этап, "
-             "post-fix media_ts; sustainable := drain≤60с ∧ p95_steady≤10с (первые 60 с этапа "
+             "post-fix media_ts; sustainable := drain≤60с ∧ p95_steady≤10с (первые 10 с потока решений этапа "
              "исключены — тёп-бэклог холодной загрузки весов, поправка предрега) ∧ coverage≥0,45)\n")
     for o in out:
         fh.write(f"{o[0]}: cov={o[3]:.3f} p50={o[4]:.1f} p95={o[5]:.1f} p99={o[6]:.1f} "
