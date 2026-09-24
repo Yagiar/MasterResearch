@@ -38,7 +38,13 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
-  if [ "$role" = "pos" ]; then NPOS=$((NPOS+1)); else NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}"); fi
+  if [ "$role" = "pos" ]; then
+    awk "BEGIN{exit !($gs+0 < $ge+0)}" || { echo "ОТКАЗ pre-flight: '$id' — gt_start≥gt_end ($gs≥$ge): H2-фильтр alarm∈[gs,ge] пуст навсегда, пролёт молча выпал бы из seq-recall после необратимого замера"; exit 1; }
+    awk "BEGIN{exit !($ge+0 > 0 && $gs+0 < $dur+0)}" || { echo "ОТКАЗ pre-flight: '$id' — gt-интервал [$gs,$ge] вне ролика dur=$dur (ge≤0 или gs≥dur): тем же молчаливым выпадением H2"; exit 1; }
+    NPOS=$((NPOS+1))
+  else
+    NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}")
+  fi
 done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
 [ "$NPOS" -ge 5 ] || { echo "ОТКАЗ pre-flight: позитивов $NPOS < 5 (спека протокола)"; exit 1; }
 awk "BEGIN{exit !($NEGDUR >= 600)}" || { echo "ОТКАЗ pre-flight: суммарный негатив ${NEGDUR}с < 600с (спека ≥10 мин)"; exit 1; }
