@@ -453,6 +453,18 @@
    "sha256": "3af869a3771e79a0cd5ce297bc0e3cdea604a9c006322437771a5e7565fe1b0a",
    "bytes": 1588
   },
+  "research/it86_sync_negative_run.sh": {
+   "sha256": "c298c401c62fe0dd3d3ba482a312cb488a1aabedae0a97caae580616db8f235c",
+   "bytes": 6781
+  },
+  "research/it86_sync_negative_eval.py": {
+   "sha256": "c2147e3b8095e0570f5f3fa9e729fe4f6f3f6f59e39e23879c18589e1d5964f1",
+   "bytes": 5183
+  },
+  "research/it86_sync_summary.txt": {
+   "sha256": "97737bfa2255b5b6d37ba73d778913a08824ca4aa986d9e93f990ce9fdf0c7b1",
+   "bytes": 1111
+  },
   "research/it89_skyguard_gate.py": {
    "sha256": "6d7cbbf2f9ad9378a216ddb4933b6106500d1f329276164dd829bc6753e37743",
    "bytes": 6587

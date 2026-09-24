@@ -535,3 +535,20 @@ research/.venv/bin/python research/it88_tile_aggregate.py   # → it88_tile_agg.
 # Воспроизводится детерминированно (дампы закоммичены). Артефакты: it88_bg400_{old,new}.csv,
 #   it88_mmaud_{old,new}.csv, it88_tile_agg.csv, it88_tile_agg.txt.
 ```
+
+## 6v. Мультимодальный синхронный негатив it-86 (2026-09-24, живой контур, sanity-обвязка)
+
+```bash
+# Три плеча V0/V1/V2 на negative-session (cam+mic, GT «дрона нет»), живой Kafka-пайплайн, GPU:
+bash research/it86_sync_negative_run.sh      # SCORE_OFF/TELEMETRY-срезы → it86_sync_run.log
+# Разбор (M0-блокатор + дескриптив; срезы — из SCORE_OFF):
+research/.venv/bin/python research/it86_sync_negative_eval.py \
+  "V0 off-audio=195319:195969" "V1 +audio=195970:197208" "V2 and+audio=197211:198453"
+# Канон: M0 🟢 ПРОЙДЕН (audio_inf 631/631; p_a≠null во всех окнах V1/V2 — аудио течёт).
+#   V0 FA 651/651=100% (p_v≈0,83 на тепличном фоне), V1 199/1239=16,1%, V2 200/1243=16,1% —
+#   знак M2 = подавление вкладом аудио-гейта; СИЛА и headline FA/hour НЕ заявлены: материал
+#   17,04 с зациклен loop=true ×~18 (автокорреляция; watermark-релиз сообщения-дрiven теряет
+#   100% окон одноразового 17-с прохода — 2 ОТКАЗа дренажа, диагноз: симуляция consumer.py).
+#   M3-дескриптив: AND@0,4 не отличим от V1 на этом материале. Full-прогон — после записи
+#   автором 10–30 мин синхронного негатива. Артефакты: it86_sync_summary.txt (+ run/eval).
+```

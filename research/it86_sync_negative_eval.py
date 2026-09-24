@@ -42,7 +42,9 @@ def main(slices):
         n = len(recs)
         fa = sum(1 for r in recs if r["decision"])
         pa = sum(1 for r in recs if (r.get("contributions") or {}).get("p_a") is not None)
-        tw = [x for r in recs for x in r["ts_window"]]
+        # span по медиа-шкале:records с media_ts=None — wall-clock обвязка (первые max_wait-
+        # релизы до первого media_ts), их окна в epoch — в охват не входят (иначе span≈1.79e9 с)
+        tw = [x for r in recs if r.get("media_ts") is not None for x in r["ts_window"]]
         span = (max(tw) - min(tw)) if tw else 0.0
         res[name] = dict(n=n, fa=fa, pa=pa, span=span,
                          fa_rate=(fa / n if n else float("nan")),
