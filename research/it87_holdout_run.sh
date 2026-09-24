@@ -30,7 +30,8 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [[ "$vid" == *'"'* || "$aud" == *'"'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка в имени файла сломает YAML-оверрай"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
-  if [ "$role" = "pos" ]; then NPOS=$((NPOS+1)); elif [ "$role" = "neg" ]; then NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}"); fi
+  [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
+  if [ "$role" = "pos" ]; then NPOS=$((NPOS+1)); else NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}"); fi
 done < <(tr -d '\r' < "$MANIFEST")
 [ "$NPOS" -ge 5 ] || { echo "ОТКАЗ pre-flight: позитивов $NPOS < 5 (спека протокола)"; exit 1; }
 awk "BEGIN{exit !($NEGDUR >= 600)}" || { echo "ОТКАЗ pre-flight: суммарный негатив ${NEGDUR}с < 600с (спека ≥10 мин)"; exit 1; }

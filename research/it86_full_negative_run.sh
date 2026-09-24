@@ -28,6 +28,7 @@ NEGDUR=0
 declare -a SEGS=()
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
+  [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg)"; exit 1; }
   [ "$role" = "neg" ] || continue
   [[ "$vid" == *'"'* || "$aud" == *'"'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка в имени"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }

@@ -71,6 +71,7 @@ def load_manifest(path):
             continue
         f = ln.split("\t")
         assert len(f) >= 7, f"манифест: мало полей в '{ln}'"
+        assert f[1] in ("pos", "neg"), f"манифест: role='{f[1]}' у '{f[0]}' (только pos|neg)"
         segs[f[0]] = dict(id=f[0], role=f[1], video=f[2], audio=f[3],
                            dur=float(f[4]), gs=float(f[5]), ge=float(f[6]))
     return segs
