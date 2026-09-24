@@ -94,7 +94,11 @@ adaptive reuse. Дальнейшие текстовые работы (главы
    повторный РАЗБОР допустим, повторный ПРОГОН — нет). Выход: `it87_holdout_summary.txt`, `it87_holdout.csv`.
 4. Закрытие it-87 по ритуалу (красный — тоже закрытие): отчёт-итерация, канон-блок INDEX,
    SYNTHESIS (если меняет claims), REPORT-DELTA позиция 18 (§8 Заключение) — фактический
-   вердикт, тестовый контур, манифест.
+   вердикт, тестовый контур, манифест. Конвенция имени (как it-84/85/86): git-rename
+   `it-87-frozen-holdout-PLANNED.md` → `it-87-frozen-holdout.md` + синхронная правка 5
+   держателей ссылки (`it87_holdout_eval.py`, `it87_holdout_run.sh`, `REPRODUCE.md`,
+   `REPORT-DELTA.md`, `INDEX.md`); два из них — манифестные файлы → пересборка манифеста
+   в ритуале покрывает.
 5. ТОЛЬКО ПОСЛЕ шага 4 — it-86-full: `bash research/it86_full_negative_run.sh` (плечи V0/V1/V2
    на neg-сегментах holdout-24; runner сам требует завершённый разбор it-87 и негативы ≥600 с;
    разбор — `it86_sync_negative_eval.py` объединёнными `SCORE_OFF`-срезами плеч; eval аттестован
