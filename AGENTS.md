@@ -25,7 +25,7 @@ pip install -e 'libs/proto[dev]' -e libs/common && make proto-gen  # перед 
 make install         # pip install -e всех пакетов
 make train-install   # train-приложение отдельно (тяжелые: torch/ultralytics/librosa)
 make test            # pytest (libs/common/tests, services)
-make lint            # ruff check (line-length 100, py310; *_pb2* исключены; E501 игнорируется)
+make lint            # ruff check (line-length 100, py310; *_pb2* исключены; E501 игнорируется); ruff в venv не установлен — команда работает только при ruff из внешнего PATH
 make infra-up && make topics-create && make db-migrate   # Kafka (KRaft) + PostgreSQL + Liquibase
 make run-pipeline[-mm|-gpu] / run-dashboard / pipeline-logs / pipeline-down / infra-down
 ```
