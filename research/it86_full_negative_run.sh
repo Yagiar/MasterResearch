@@ -31,6 +31,9 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg)"; exit 1; }
   [ "$role" = "neg" ] || continue
   [[ "$vid$aud" == *'"'* || "$vid$aud" == *'$'* || "$vid$aud" == *'`'* || "$vid$aud" == *'\'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка/\$/backtick/обратный слэш в имени (heredoc-оверрай раскрывает \$ и \` молча)"; exit 1; }
+  for nf in "$dur" "$gs" "$ge"; do
+    [[ "$nf" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "ОТКАЗ pre-flight: '$id' — поле '$nf' не число (точка, не запятая; '95,0' в awk читается как 95)"; exit 1; }
+  done
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}")
