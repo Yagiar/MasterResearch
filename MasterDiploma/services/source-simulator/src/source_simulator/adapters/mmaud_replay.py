@@ -103,6 +103,8 @@ class MmaudReplayAdapter:
             # it-83: у папки кадров собственной частоты нет — таймбейс медиа = темп отправки
             # (requested_fps); иначе media_ts идёт по номинальным 30 Hz при подаче, например,
             # 2 к/с и сжимает таймлайн ×15 (находка it-82: 240 с wall → 18,3 с media).
+            # it-85: делитель — сам _fps_nominal без max(1.0, ·): кламп сжимал медиа-часы ×(1/fps)
+            # при fps<1 (A@0.5: лаг +1 с/с, разрыв стыковки с окнами аудио в fusion ±ε).
             self._fps_nominal = self._requested_fps if self._requested_fps > 0 else _DEFAULT_FPS
             files = self._frame_files()
             if not files:
@@ -122,10 +124,10 @@ class MmaudReplayAdapter:
                     seq += 1
                     yield FrameItem(jpeg_bytes=buf.tobytes(), seq=seq, width=int(w), height=int(h),
                                     fps_nominal=float(self._fps_nominal),
-                                    media_ts=media_base + fi / max(1.0, self._fps_nominal),
+                                    media_ts=media_base + fi / self._fps_nominal,
                                     meta={"source_kind": "mmaud", "src": f.name})
                     fi += 1
-                media_base += len(files) / max(1.0, self._fps_nominal)
+                media_base += len(files) / self._fps_nominal
                 fi = 0
                 if not self._loop:
                     return

@@ -77,6 +77,15 @@ def test_folder_media_ts_requested_fps_continues_across_loops(seq) -> None:
     ad.close()
 
 
+def test_folder_media_ts_below_1fps(seq) -> None:
+    """it-85: при fps<1 шаг media_ts = 1/fps (кламп max(1.0, ·) сжимал медиа-часы при 0,5 к/с)."""
+    img_dir, _ = seq
+    ad = MmaudReplayAdapter(source_id="cam-01", video_path=str(img_dir), audio_path=None,
+                            fps=0.5, loop=False)
+    mts = [f.media_ts for f in ad.frames()]
+    assert mts == pytest.approx([i * 2.0 for i in range(6)])
+
+
 def test_no_audio_yields_no_windows(seq) -> None:
     """audio_path=None → audio_windows() пуст (video-only режим, it-57)."""
     img_dir, _ = seq
