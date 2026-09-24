@@ -15,6 +15,12 @@ cd "$MD"
 OVR="$MD/infra/docker-compose.it86f.yml"
 JSONL="$MD/data/decisions/decisions.jsonl"
 LOG="$ROOT/research/it86_full_run.log"
+# Страж однократности (тот же класс, что в it87): tee -a дописал бы в старый лог — SCORE_OFF
+# плечей склеились бы из двух прогонов (первое/последнее решение плеча из разных миров).
+# Повтор после прерванного запуска — только с письменной пометкой автора (шаг 6 чек-листа).
+if [ -e "$LOG" ]; then
+  echo "ОТКАЗ pre-flight: боевой лог $LOG уже существует (след первого или прерванного запуска) — пуск не начнётся; см. шаг 6 чек-листа роадмапа"; exit 1
+fi
 HOLD_SUBDIR="holdout-24"
 HOLD="$MD/sandboxDataForSimulator/$HOLD_SUBDIR"
 MANIFEST="$HOLD/manifest.tsv"

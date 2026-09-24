@@ -17,6 +17,14 @@ JSONL="$MD/data/decisions/decisions.jsonl"
 HOLD_SUBDIR="${HOLD_SUBDIR:-holdout-24}"
 LOG="$ROOT/research/it87_holdout_run.log"
 if [ "$HOLD_SUBDIR" != "holdout-24" ]; then LOG="$ROOT/research/it87_smoke_run.log"; fi
+# Страж однократности (боевой режим): tee -a ДОПИСЫВАЛ бы в оставшийся от прошлой попытки
+# лог — awk-идиома разбора собрала бы срезы из двух прогонов вместе, а сам факт второго
+# запуска — уже нарушение протокола. Продолжение прерванного запуска — только осознанно:
+# переименовать старый лог с письменной пометкой автора (шаг 6 чек-листа). Смоук-лог
+# намеренно переиспользуется (дописывается).
+if [ "$HOLD_SUBDIR" = "holdout-24" ] && [ -e "$LOG" ]; then
+  echo "ОТКАЗ pre-flight: боевой лог $LOG уже существует (след первого или прерванного запуска) — пуск не начнётся; см. шаг 6 чек-листа роадмапа"; exit 1
+fi
 HOLD="$MD/sandboxDataForSimulator/$HOLD_SUBDIR"
 MANIFEST="$HOLD/manifest.tsv"
 FPS=2
