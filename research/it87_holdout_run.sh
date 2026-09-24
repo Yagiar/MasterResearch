@@ -80,11 +80,13 @@ stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
   # downstream ДО source (урок it-86: подписка-гонка latest-offset)
   "${COMPOSE[@]}" up -d $DOWNSTREAM 2>&1 | tail -1
   sleep 20
-  docker exec uavdet-visual-detector env | grep -E "VOTE_MODE=and|VOTE_FLOOR=0.40" \
+  docker exec uavdet-visual-detector env | grep -qE "VOTE_MODE=and" \
+    && docker exec uavdet-visual-detector env | grep -qE "VOTE_FLOOR=0.40" \
     || { echo "ОТКАЗ P5 vote"; exit 1; }
   "${COMPOSE[@]}" up -d source-simulator 2>&1 | tail -1
-  docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' uavdet-source-simulator \
-    | grep -E "ENABLE_AUDIO=true|ADAPTER=media_file" || { echo "ОТКАЗ P5 source"; exit 1; }
+  SRC_ENV=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' uavdet-source-simulator)
+  grep -qE "ENABLE_AUDIO=true" <<<"$SRC_ENV" && grep -qE "ADAPTER=media_file" <<<"$SRC_ENV" \
+    || { echo "ОТКАЗ P5 source"; exit 1; }
   # ждём конец real-time потока (dur) + 20 с, затем дренаж 45 с тишины решений
   sleep "$(awk "BEGIN{print int($dur)+20}")"
   NINF=$(q "SELECT count(1) FROM uavdet.inference;" | tr -d '[:space:]')
