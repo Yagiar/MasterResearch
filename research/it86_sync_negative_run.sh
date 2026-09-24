@@ -20,6 +20,7 @@ MIN_NEW="${MIN_NEW:-5}"
 COMPOSE=(docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml -f "$OVR")
 COMPOSE_INFRA=(docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml)
 SERVICES="source-simulator ingest-gateway visual-detector acoustic-detector fusion sink"
+DOWNSTREAM="ingest-gateway visual-detector acoustic-detector fusion sink"
 
 q() { docker compose -f infra/docker-compose.yml exec -T postgres psql -U uavdet -d uavdet -tA -c "$1"; }
 offset() { wc -l < "$JSONL" 2>/dev/null || echo 0; }
@@ -68,11 +69,15 @@ stage() {  # $1=имя, $2=vote_mode, $3=floor, $4=enable_audio, $5=audio_path, 
   reset_groups
   q "TRUNCATE uavdet.inference, uavdet.decisions;" >/dev/null
   OFF_BEFORE=$(offset)
-  "${COMPOSE[@]}" up -d $SERVICES 2>&1 | tail -1
+  # 17-с одноразовый стрим + auto.offset.reset=latest: downstream (fusion/sink) должен
+  # подписаться ДО появления сообщений, иначе все 36 inference будут пропущены (итог: 0 решений).
+  "${COMPOSE[@]}" up -d $DOWNSTREAM 2>&1 | tail -1
   sleep 20
-  echo "-- P5 env:"
+  echo "-- P5 env (visual):"
   docker exec uavdet-visual-detector env | grep -E "VOTE" || { echo "ОТКАЗ P5"; exit 1; }
-  # 17-с материал: source-simulator штатно завершается (exit 0) до этой проверки —
+  "${COMPOSE[@]}" up -d source-simulator 2>&1 | tail -1
+  echo "-- P5 env (source):"
+  # 17-с материал: source-simulator штатно завершается (exit 0) примерно через 17 с —
   # env читаем docker inspect (работает и на остановленном контейнере), не exec.
   docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' uavdet-source-simulator \
     | grep -E "ENABLE_AUDIO|ADAPTER" || { echo "ОТКАЗ P5 source"; exit 1; }
