@@ -494,3 +494,28 @@ research/.venv/bin/python research/it89_skyguard_gate.py
 #   Q2 🔴 (MAJ₃@0,4: ΔR=+4,0 п.п. против ΔFP=+11,5 п.п.). Итог: закрытие отрицательно без GPU.
 # Артефакты: research/it89_skyguard_gate.csv, research/it89_skyguard_gate.txt. Воспроизводится детерминированно.
 ```
+
+## 6t. Throughput saturation sweep it-85 (2026-09-24, GPU-docker, свип ~90 мин + повтор @0,5 ~30 мин)
+
+```bash
+# Прогон 12 этапов A(от)/B(AND@0,4) × fps{0,5;1;2;3;4;5} на strict400 (loop=false, аудио off):
+bash research/it85_sweep_run.sh            # лог research/it85_sweep_run.log; семплы it85_samples.csv
+# Дефект @0,5 (кламп max(1,fps) в mmaud_replay сжимал медиа-часы ×(1/fps)) — поправка предрега №2:
+# этапы @0,5 пуска №2 не засчитываются; корректировочный повтор на пересобранном образце:
+bash research/it85_rerun_half_fps.sh       # build с фиксом → A@0,5/B@0,5; лог it85_rerun_half_fps.log
+# Разбор (срезы 1-based строки decisions.jsonl из SCORE_OFF; @0,5 — из rerun-лога):
+research/.venv/bin/python research/it85_sweep_eval.py \
+  "A@0.5=194861:195080" "A@1=192502:192722" "A@2=192723:192939" "A@3=192940:193152" \
+  "A@4=193153:193362" "A@5=193363:193569" "B@0.5=195081:195303" "B@1=193793:194013" \
+  "B@2=194014:194230" "B@3=194231:194443" "B@4=194444:194653" "B@5=194654:194860"
+# Канон: sustainable(fps,arm) := drain≤60с ∧ p95_steady≤10с (первые 10с потока решений исключены —
+#   тёп-бэклог холодного старта, поправка предрега №3; полный p95 сохранён в Δp95(P2)) ∧ cov≥0,45.
+#   Все 12 этапов sustainable 🟢; sustainable_fps(A)=sustainable_fps(B)=5 (потолок сеткой НЕ достигнут,
+#   нижняя оценка «≥5»). C0 🟢 (дренаж 206…223≥200); C1 🟢 cov(A@2)=0,540; P0 🟢 (A@0,5 повтором:
+#   maxlag 1, p50 0,2с); P2 🟢 sustainable_fps(B)≤(A) и Δp95(полный,B−A)≥0 во всех 6 точках
+#   Δ∈[0,00;3,21]с. Гипотеза «×2 снижает потолок» НЕ подтверждена в 0,5…5 к/с; цена ×2 = +70 MiB
+#   VRAM (607→677) и GPU-util p95 до 12% против 3%. НЕ воспроизводится байт-в-байт (живой поток).
+# Артефакты: research/it85_sweep.csv, research/it85_sweep_summary.txt, research/it85_samples.csv.
+# Фикс измерителя: services/source-simulator/.../mmaud_replay.py + регресс test_mmaud_replay_media_ts.py
+#   (fps=0,5 → шаг media_ts 2,0с).
+```

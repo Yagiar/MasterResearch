@@ -397,6 +397,26 @@
    "sha256": "404f3ca637dcf7edba733fbb62099776127b0dc6bb036e1e4681b807b62c2cf6",
    "bytes": 560
   },
+  "research/it85_sweep_run.sh": {
+   "sha256": "02c97c22520bd27dcbd0c81a30f8982c3a2ceb50cd902c4a488ec9d76353a49c",
+   "bytes": 7805
+  },
+  "research/it85_sweep_eval.py": {
+   "sha256": "7d8b75c7946efc9cbfdf3b5aafba4ef79c7b151835f864803d90888d9d43d9fc",
+   "bytes": 8776
+  },
+  "research/it85_rerun_half_fps.sh": {
+   "sha256": "46fb9beb07d23ae4463dbe13aaed52fc516016a0e9807379e2e3a297d7672d46",
+   "bytes": 1642
+  },
+  "research/it85_sweep.csv": {
+   "sha256": "263fba3b72070e74bede265678415908efc4f9cdd47e11b5672db416cd695ae2",
+   "bytes": 1239
+  },
+  "research/it85_sweep_summary.txt": {
+   "sha256": "80c65381648ac20984ff56ddec11eb4b349de1b1a7744df57af23f4d8f06af5f",
+   "bytes": 1892
+  },
   "research/it89_skyguard_gate.py": {
    "sha256": "6d7cbbf2f9ad9378a216ddb4933b6106500d1f329276164dd829bc6753e37743",
    "bytes": 6587
