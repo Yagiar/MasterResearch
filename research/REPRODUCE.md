@@ -11,7 +11,7 @@
 ```bash
 research/.venv/bin/python research/make_manifest.py   # перегенерировать
 git diff research/manifest.json                        # что изменилось
-research/.venv/bin/python research/verify_manifest.py  # сверить sha256 всех 118 файлов (exit 0 = целостно)
+research/.venv/bin/python research/verify_manifest.py  # сверить sha256 всех файлов манифеста + gitignored-входы (сейчас 148+3; exit 0 = целостно)
 ```
 
 Ключевые артефакты (ревизии — в manifest.json):

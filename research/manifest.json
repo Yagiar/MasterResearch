@@ -473,6 +473,10 @@
    "sha256": "9bfc98eb1223453595f43778969a22826351ae7bad31a49563e6ef49a5a53be0",
    "bytes": 8987
   },
+  "research/verify_manifest.py": {
+   "sha256": "7fa529358f8deb197170e766a3f0bfb08f28f2677ebaa75586a4b1f54f095cc8",
+   "bytes": 3142
+  },
   "research/it89_skyguard_gate.py": {
    "sha256": "6d7cbbf2f9ad9378a216ddb4933b6106500d1f329276164dd829bc6753e37743",
    "bytes": 6587
