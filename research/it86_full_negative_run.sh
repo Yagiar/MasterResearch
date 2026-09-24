@@ -27,6 +27,10 @@ MANIFEST="$HOLD/manifest.tsv"
 FPS=2
 
 [ -f "$ROOT/research/it87_holdout_summary.txt" ] || { echo "ОТКАЗ: разбор it-87 не завершён (нет it87_holdout_summary.txt) — it-86-full идёт ПОСЛЕ него по чек-листу"; exit 1; }
+# Существование файла — Necessary, но не достаточное: eval пишет summary и при H0-ПРОВАЛЕ
+# (шаг 6: на H0-блокаторе всё останавливается). Гейт — по строке вердикта H0 → ПРОЙДЕН.
+grep -q "^H0 (блокаторы.*→ ПРОЙДЕН" "$ROOT/research/it87_holdout_summary.txt" \
+  || { echo "ОТКАЗ: в it87_holdout_summary.txt нет строки вердикта «H0 (блокаторы…) → ПРОЙДЕН» — it-87 H0 не пройдена, it-86-full не идёт (шаг 6 чек-листа)"; exit 1; }
 [ -f "$MANIFEST" ] || { echo "ОТКАЗ: нет $MANIFEST"; exit 1; }
 
 # --- up-front: neg-сегменты (файлы, роли, кавычки); суммарный негатив >=600 c ---
