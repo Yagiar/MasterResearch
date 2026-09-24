@@ -59,8 +59,9 @@ reports/**/~$*
 # --- Docker / env ---
 .env
 *.env.local
-# временный override прогона it87: генерируется runner'ом, удаляется в конце
-infra/docker-compose.it87.yml
+# временные override прогонов (it87, it86-full, …): генерируются runner'ами, удаляются в конце;
+# при ОТКАЗе могут остаться — игнорируем паттерном, чтобы не светить в git status однократного пуска
+infra/docker-compose.it*.yml
 
 # --- Jupyter ---
 .ipynb_checkpoints/
