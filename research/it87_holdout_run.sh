@@ -205,10 +205,20 @@ for t in video.raw audio.raw inference decisions; do
     --topic "$t" --partitions 1 --replication-factor 1 >/dev/null 2>&1 || true
 done
 # манифест: segment_id<TAB>role<TAB>video<TAB>audio<TAB>duration_s<TAB>gt_start<TAB>gt_end
+# Шов 19 (найдено живым смоуком 24.09, песочница smoke18): docker-команды внутри stage()
+# (compose rm/up/exec) доедали stdin while-read, читавший манифест, — после pos1 цикл молча
+# увидел EOF и раннер завершился rc=0 с ОДНИМ сегментом из семи. it86-full от этого защищён
+# заранее (его цикл — по массиву SEGS, поэтому репетиция 24.09 прошла 3×3). Механика:
+# (1) stdin stage() принудительно /dev/null; (2) полнота конвейера проверяется счётчиком:
+# DONE_N≠NPOS+NNEG → громкий ОТКАЗ (не тихо «успешно»), замер неполон — это ещё и страховка
+# на любой будущий stdin-подобный дефект внутри stage.
+DONE_N=0
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
-  stage "$id" "$vid" "$aud" "$dur"
+  stage "$id" "$vid" "$aud" "$dur" < /dev/null
+  DONE_N=$((DONE_N+1))
 done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
+[ "$DONE_N" -eq $((NPOS+NNEG)) ] || { echo "ОТКАЗ (шов 19): этапов завершено $DONE_N из $((NPOS+NNEG)) — однократный замер неполон (SCORE_OFF-срезов меньше манифеста), разбор не состоится"; exit 1; }
 # убрать приложения (GPU!) — явная хвостовая уборка успешного пути; EXIT-trap выше дублирует
 # её на любом выходе (в т.ч. mid-run ОТКАЗе), а rm -f "$OVR" до trap делает trap-вызов
 # пустым (|| true) — контейнеры к тому моменту уже сняты. Full down здесь/в trap отвергнут:
