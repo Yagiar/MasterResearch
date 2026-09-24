@@ -29,6 +29,12 @@ HOLD="$MD/sandboxDataForSimulator/$HOLD_SUBDIR"
 MANIFEST="$HOLD/manifest.tsv"
 FPS=2
 MIN_NEW="${MIN_NEW:-20}"
+# Страж боевого режима: чек-лист допускает HOLD_SUBDIR/MIN_NEW overrides только для смока;
+# экспортированный в сессии MIN_NEW молча ослабил бы гейт «пустой сегмент» однократного
+# открытия — в бою фиксируем каноническое 20 механически.
+if [ "$HOLD_SUBDIR" = "holdout-24" ] && [ "$MIN_NEW" != "20" ]; then
+  echo "ОТКАЗ pre-flight: боевой режим не принимает MIN_NEW=$MIN_NEW (канон 20; overrides — только для смока, см. шаг 2 чек-листа)"; exit 1
+fi
 
 [ -f "$MANIFEST" ] || { echo "ОТКАЗ: нет $MANIFEST (запись материала не выполнена)"; exit 1; }
 # sha-гейт боевых весов = зеркало H0.1 eval'а (первые 8 hex sha256, канон 41f3fd55/7042602a):
