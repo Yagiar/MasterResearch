@@ -127,18 +127,6 @@ stage() {  # $1=имя, $2=vote_mode, $3=floor, $4=model_regex, $5=fps
   "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 }
 
-exec > >(tee -a "$LOG") 2>&1
-echo "=== it-85 throughput sweep $(date '+%F %T') ==="
-[ -d "$MD/train/data/_prepared/hi-res-bg-v1/strict400" ] || { echo "ОТКАЗ: нет strict400"; exit 1; }
-NIMG=$(ls "$MD/train/data/_prepared/hi-res-bg-v1/strict400" | wc -l)
-echo "[it85] кадров в strict400: $NIMG (ожидаем 400)"
-[ "$NIMG" -eq 400 ] || { echo "ОТКАЗ: знаменатель не 400"; exit 1; }
-echo "[it85] sha весов: $(sha256sum models/visual/yolov8s-uav.pt models/visual/uav-yolov8s-bg-best.pt | cut -c1-12 | tr '\n' ' ')"
-[ -f "$SAMPLES" ] || echo "epoch,stage,vd_lag,fusion_lag,gpu_util,gpu_mem_mib" > "$SAMPLES"
-write_override off 0.4 2
-"${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
-"${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
-echo "[it85] ждём инфраструктуру (30с)..."; sleep 30
 create_topics() {
   local t have
   for t in video.raw audio.raw inference decisions; do
@@ -151,6 +139,20 @@ create_topics() {
     grep -qx "$t" <<<"$have" || { echo "ОТКАЗ: топик $t не создан"; exit 1; }
   done
 }
+
+if [ -n "${IT85_SOURCE_ONLY:-}" ]; then return 0 2>/dev/null || exit 0; fi  # только функции, без main
+exec > >(tee -a "$LOG") 2>&1
+echo "=== it-85 throughput sweep $(date '+%F %T') ==="
+[ -d "$MD/train/data/_prepared/hi-res-bg-v1/strict400" ] || { echo "ОТКАЗ: нет strict400"; exit 1; }
+NIMG=$(ls "$MD/train/data/_prepared/hi-res-bg-v1/strict400" | wc -l)
+echo "[it85] кадров в strict400: $NIMG (ожидаем 400)"
+[ "$NIMG" -eq 400 ] || { echo "ОТКАЗ: знаменатель не 400"; exit 1; }
+echo "[it85] sha весов: $(sha256sum models/visual/yolov8s-uav.pt models/visual/uav-yolov8s-bg-best.pt | cut -c1-12 | tr '\n' ' ')"
+[ -f "$SAMPLES" ] || echo "epoch,stage,vd_lag,fusion_lag,gpu_util,gpu_mem_mib" > "$SAMPLES"
+write_override off 0.4 2
+"${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
+"${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
+echo "[it85] ждём инфраструктуру (30с)..."; sleep 30
 create_topics
 
 REGEX_A='^yolov8s-uav$'
