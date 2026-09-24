@@ -560,7 +560,8 @@ research/.venv/bin/python research/it86_sync_negative_eval.py \
 #   17,04 с зациклен loop=true ×~18 (автокорреляция; watermark-релиз сообщения-дрiven теряет
 #   100% окон одноразового 17-с прохода — 2 ОТКАЗа дренажа, диагноз: симуляция consumer.py).
 #   M3-дескриптив: AND@0,4 не отличим от V1 на этом материале. Full-прогон — после записи
-#   автором 10–30 мин синхронного негатива. Артефакты: it86_sync_summary.txt (+ run/eval).
+#   автором 10–30 мин синхронного негатива. Артефакты SANITY: it86_sync_summary.txt (+ run/eval);
+#   прогон it-86-full пишет в НОВЫЙ it86_full_summary.txt (--out, см. §6w — замороженный не трогать).
 ```
 
 ## 6w. Frozen holdout it-87 — харнес и самопроверка eval (24.09; боевое открытие — одно, в ожидании)
@@ -585,7 +586,9 @@ research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/m
 #   mapfile -t SRES < <(awk '$1=="SCORE_OFF"{print $2 "=" $3}' research/it87_holdout_run.log)
 #   research/.venv/bin/python research/it87_holdout_eval.py --manifest=<…> "${SRES[@]}"
 #   mapfile -t FRES < <(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print $2 " " $3 "=" $4}' research/it86_full_run.log)
-#   research/.venv/bin/python research/it86_sync_negative_eval.py "${FRES[@]}"
+#   research/.venv/bin/python research/it86_sync_negative_eval.py --out=research/it86_full_summary.txt "${FRES[@]}"
+#   (--out обязателен в прогоне it-86-full: дефолт eval — it86_sync_summary.txt, замороженный
+#   манифестный артефакт закрытой SANITY it-86; перезапись сломала бы и трассировку, и сверку манифеста)
 # Гейты/протокол: iterations/it-87-frozen-holdout-PLANNED.md; H0-блокаторы (sha 41f3fd55/7042602a,
 #   p_a≠null, mono, ratio∈[0,8;1,2], полнота) → вердиктов H1–H3 не существует при провале.
 #   Выход: it87_holdout_summary.txt + it87_holdout.csv (вне git до боевого запуска).

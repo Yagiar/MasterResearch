@@ -105,7 +105,8 @@ adaptive reuse. Дальнейшие текстовые работы (главы
    под multi-segment синтетикой `it86_eval_selftest.py`: покрытие = union по сегментам,
    число сегментов в срезе сверить с манифестом); экстрактор имён с пробелом — та же mapfile-
    идиома (сквозной тест 24.09): `mapfile -t FRES < <(awk '$1=="SCORE_OFF" && $2 ~ /^V[012]$/ {print $2 " " $3 "=" $4}' research/it86_full_run.log)`,
-   затем `it86_sync_negative_eval.py "${FRES[@]}"`. Срезы it-87
+   затем `it86_sync_negative_eval.py --out=research/it86_full_summary.txt "${FRES[@]}"` (--out
+   обязателен: дефолт eval — замороженный манифестный `it86_sync_summary.txt` SANITY it-86). Срезы it-87
    не затрагиваются: decisions.jsonl append-only, разбор it-87 к этому моменту завершён.
 6. Любой H0-блокатор на шаге 3 → стоп, честная фиксация «замер не состоялся + причина»;
    повторный прогон — только с явной письменной пометкой автора о первом пуске.

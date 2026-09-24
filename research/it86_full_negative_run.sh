@@ -162,4 +162,5 @@ rm -f "$OVR"
 echo
 echo "=== it-86-full завершён; РАЗБОР (идеома сквозно проверена 24.09; агрегация M1–M3 — по сумме плеч): ==="
 echo "  mapfile -t FRES < <(awk '\$1==\"SCORE_OFF\" && \$2 ~ /^V[012]\$/ {print \$2 \" \" \$3 \"=\" \$4}' $LOG)"
-echo "  research/.venv/bin/python research/it86_sync_negative_eval.py \"\${FRES[@]}\""
+echo "  research/.venv/bin/python research/it86_sync_negative_eval.py --out=research/it86_full_summary.txt \"\${FRES[@]}\""
+echo "  (--out обязателен: дефолт eval — it86_sync_summary.txt, замороженный манифестный артефакт SANITY it-86)"
