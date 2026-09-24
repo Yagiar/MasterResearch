@@ -60,6 +60,9 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml --pro
    pos1	pos	pos-1.mp4	pos-1.wav	95	12	78
    neg1	neg	neg-1.mp4	neg-1.wav	300	0	0
    ```
+   Длительность каждого сегмента желательно ≥60 с: mono-плечо V0 замера it-86-full (шаг 5
+   после it-87) на сегментах <40 с деградирует (watermark-релиз только событийным max_wait —
+   находка 6 отчёта it-86); обязательный минимум гейтов — 20 с.
 2. **Негатив 10–30 мин для headline it-86** (V0/V1/V2 на cam+mic без дрона, один статичный ракурс,
    реалистичный шум) — может совпасть с негативами `holdout-24/`, но тогда используются разные
    несвязанные сегменты. Спека: `../research/iterations/it-86-multimodal-sync-negative.md`.
