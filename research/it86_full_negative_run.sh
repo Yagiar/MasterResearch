@@ -209,7 +209,7 @@ run_arm "V2 and+audio" true  and 0.40 "$REGEX_AND"
 "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 rm -f "$OVR"
 echo
-echo "=== it-86-full завершён; РАЗБОР (идеома сквозно проверена 24.09; агрегация M1–M3 — по сумме плеч): ==="
+echo "=== it-86-full завершён; РАЗБОР (идиома сквозно проверена 24.09; агрегация M1–M3 — по сумме плеч): ==="
 echo "  mapfile -t FRES < <(awk '\$1==\"SCORE_OFF\" && \$2 ~ /^V[012]\$/ {print \$2 \" \" \$3 \"=\" \$4}' $LOG)"
 echo "  research/.venv/bin/python research/it86_sync_negative_eval.py --out=research/it86_full_summary.txt \"\${FRES[@]}\""
 echo "  (--out обязателен: дефолт eval — it86_sync_summary.txt, замороженный манифестный артефакт SANITY it-86)"

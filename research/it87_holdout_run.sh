@@ -245,6 +245,6 @@ done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
 "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
 rm -f "$OVR"
 echo
-echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ (идеома сквозно проверена 24.09; повторный ПРОГОН — нет): ==="
+echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ (идиома сквозно проверена 24.09; повторный ПРОГОН — нет): ==="
 echo "  mapfile -t SRES < <(awk '\$1==\"SCORE_OFF\"{print \$2 \"=\" \$3}' $LOG)"
 echo "  research/.venv/bin/python research/it87_holdout_eval.py --manifest=\"$MANIFEST\" \"\${SRES[@]}\""

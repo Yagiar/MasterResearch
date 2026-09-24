@@ -1,16 +1,16 @@
 {
  "schema": "uavdet-repro-manifest/1",
  "hf_revisions": {
-  "Rashidbm/samid-drone-detector": "3a12f618dd8aebf180945bf04ebfeef262d65795"
+  "Rashidbm/samid-drone-detector": "unknown"
  },
  "versions": {
   "python": "3.12.3",
-  "torch": "2.14.0+cu130",
-  "transformers": "5.16.1",
-  "librosa": "1.0.0",
-  "ultralytics": "8.4.139",
-  "numpy": "2.5.2",
-  "huggingface_hub": "1.30.0"
+  "torch": "not-installed",
+  "transformers": "not-installed",
+  "librosa": "not-installed",
+  "ultralytics": "not-installed",
+  "numpy": "not-installed",
+  "huggingface_hub": "not-installed"
  },
  "files": {
   "models/visual/yolov8s-uav.pt": {
@@ -474,7 +474,7 @@
    "bytes": 1111
   },
   "research/it87_holdout_run.sh": {
-   "sha256": "efb86b9b0607542ca2885149156fa604dfd72fd837bb968b1c04edc1fe78e5fa",
+   "sha256": "61fbb542b18ba4481addcd2cfaeba9b254a6cc74c121d2ec822481b336e591a5",
    "bytes": 23785
   },
   "research/it87_holdout_eval.py": {
@@ -490,7 +490,7 @@
    "bytes": 3759
   },
   "research/it86_full_negative_run.sh": {
-   "sha256": "3d41db1f8bf7d413f17eb248fc161eda6b6b737d01321b9f7a55a0b8cdfc7560",
+   "sha256": "e7434576c28423508ee8745dae3389a2025c2411d70719b0c1d1c1870f5e3cec",
    "bytes": 16323
   },
   "research/it87_build_media_index.sh": {
