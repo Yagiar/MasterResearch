@@ -490,8 +490,8 @@
    "bytes": 3759
   },
   "research/it86_full_negative_run.sh": {
-   "sha256": "3959d184a6275f4599d44f9454220cfcd95923fe3849de25e7b75228cb7094e3",
-   "bytes": 15605
+   "sha256": "3d41db1f8bf7d413f17eb248fc161eda6b6b737d01321b9f7a55a0b8cdfc7560",
+   "bytes": 16323
   },
   "research/it87_build_media_index.sh": {
    "sha256": "07ab35e142064033c6ad1e464a2e1a4c780e701f4b0b2f89d850f9910126cbdf",

@@ -44,6 +44,11 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [[ -n "${SEENID[$id]:-}" ]] && { echo "ОТКАЗ pre-flight: segment_id '$id' повторяется (дубликат съедал бы сегмент в eval-словаре)"; exit 1; }
   SEENID[$id]=1
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg)"; exit 1; }
+  # Инвариант транзитивной защиты (швы 21/22 не дублируются здесь намеренно): этот раннер
+  # впускается только grep'ом «H0 → ПРОЙДЕН» из боевого it87_holdout_summary.txt выше, а тот
+  # возможен лишь после однократного открытия тех же файлов holdout-24, у которых it87
+  # pre-flight уже отсек dur<60 с и расширения вне .mp4/.wav ДО tee/docker. Поэтому нижний
+  # floor 20 с — остаточная консервативная страховка, а не основной гейт длительности.
   [ "$role" = "neg" ] || continue
   [[ "$vid$aud" == *'"'* || "$vid$aud" == *'$'* || "$vid$aud" == *'`'* || "$vid$aud" == *'\'* ]] && { echo "ОТКАЗ pre-flight: '$id' — кавычка/\$/backtick/обратный слэш в имени (heredoc-оверрай раскрывает \$ и \` молча)"; exit 1; }
   for nf in "$dur" "$gs" "$ge"; do
