@@ -76,5 +76,5 @@ Harness `it88_sahi_tiled.py` сохраняет на кадр: `n_tiles`, спи
 
 ## Артефакты (план)
 
-`it88_sahi_tiled.py`, `it88_tile_aggregate.py`; дампы `it88_bg400_{old,new}.csv`,
+`it88_sahi_tiled.py`, `it88_tile_aggregate.py`, `it88_dump_run.sh` (последовательный пуск 4 дампов); дампы `it88_bg400_{old,new}.csv`,
 `it88_mmaud_{old,new}.csv`; разбор `it88_tile_agg.{csv,txt}`. В манифест — после закрытия.
