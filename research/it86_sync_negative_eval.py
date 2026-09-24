@@ -28,6 +28,8 @@ for _a in [x for x in sys.argv[1:] if x.startswith("--")]:
         JSONL = Path(v)
     elif k == "--out":
         OUT = Path(v)
+    else:
+        sys.exit(f"ОТКАЗ: неизвестная опция '{k}' (опечатка? иначе аргумент молча исчез из срезов)")
 sys.argv = [sys.argv[0]] + [x for x in sys.argv[1:] if not x.startswith("--")]
 SANITY_MAX_T = 60.0
 RESTART_GAP = 5.0  # с: падение конца окна ниже running max на бо́льшее — перезапуск медиа-шкалы

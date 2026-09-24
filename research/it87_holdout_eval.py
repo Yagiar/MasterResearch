@@ -35,6 +35,8 @@ TAIL_LOSS_S = 10.0  # ~10 окон × 0,5 с: watermark-хвост конечн�
 WEIGHTS = MD / "models/visual"
 argv = sys.argv[1:]
 for a in [x for x in argv if x.startswith("--")]:
+    if "=" not in a:
+        sys.exit(f"ОТКАЗ: опция '{a}' должна быть вида --jsonl=ПУТЬ / --manifest=ПУТЬ (голый флаг молча проглотился бы)")
     k, v = a.split("=", 1)
     if k == "--jsonl":
         JSONL = Path(v)
@@ -45,6 +47,8 @@ for a in [x for x in argv if x.startswith("--")]:
         CSV = Path(v + ".csv")
     elif k == "--weights-dir":
         WEIGHTS = Path(v)
+    else:
+        sys.exit(f"ОТКАЗ: неизвестная опция '{k}' (опечатка? иначе аргумент молча исчез из срезов)")
 sys.argv = argv = [x for x in argv if not x.startswith("--")]
 assert argv, 'передай срезы "SEGID=START:END" и --manifest'
 

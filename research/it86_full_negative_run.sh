@@ -30,6 +30,7 @@ declare -A SEENID=()
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
   [[ "$id" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "ОТКАЗ pre-flight: segment_id '$id' — только буквы/цифры/точка/дефис/подчёркивание (пробел ломает awk-идиому разбора SCORE_OFF)"; exit 1; }
+  [[ "$id" == -* ]] && { echo "ОТКАЗ pre-flight: segment_id '$id' — ведущий дефис (тот же namespace-конфликт с eval-флагами, что в it87; манифест у прогонов общий)"; exit 1; }
   [[ -n "${SEENID[$id]:-}" ]] && { echo "ОТКАЗ pre-flight: segment_id '$id' повторяется (дубликат съедал бы сегмент в eval-словаре)"; exit 1; }
   SEENID[$id]=1
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg)"; exit 1; }
