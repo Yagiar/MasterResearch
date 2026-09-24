@@ -66,6 +66,15 @@ DOWNSTREAM="ingest-gateway visual-detector acoustic-detector fusion sink"
 q() { docker compose -f infra/docker-compose.yml exec -T postgres psql -U uavdet -d uavdet -tA -c "$1"; }
 offset() { wc -l < "$JSONL" 2>/dev/null || echo 0; }
 
+# --- Шов 18 (симметрично it87): pre-flight пересборка ВСЕГО стека. Код запечён в образы COPY,
+# `up -d` без --build поднимает образы какие есть (аудит 24.09: fusion-образ — 05.09, acoustic —
+# древнее it-47; прежний пост-tee build пересобирал только source+visual). До tee — чтобы падение
+# сборки не оставляло частичный лог прогона (плечи собираются по SCORE_OFF, хвостовые ОТКАЗы
+# после tee оставили бы лог без плеч, а до tee — чистый отказ без побочных эффектов замера).
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml \
+  build $SERVICES \
+  || { echo "ОТКАЗ pre-flight: docker compose build не пересобрал стек ($SERVICES) — прогон пошёл бы на дрейфовавших образах; пуск не начат"; exit 1; }
+
 write_override() {  # $1=video $2=audio $3=enable_audio $4=vote_mode $5=vote_floor
   cat > "$OVR" <<EOF
 services:
@@ -146,6 +155,10 @@ stage() {  # $1=имя "$ARM/$seg", $2=vid, $3=aud, $4=dur, $5=audio_on(true|fal
   [ "$STABLE" -ge 45 ] || { echo "ОТКАЗ дренажа: '$name' тишина ${STABLE}с < 45с (обрезанный срез губит M1–M3)"; exit 1; }
   NEW=$((CUR-OFF_BEFORE))
   [ "$NEW" -ge "$MIN_NEW" ] || { echo "ОТКАЗ дренажа: '$name' дал $NEW решений (<$MIN_NEW)"; exit 1; }
+  # Шов 18, рантайм-аттестация P6 (симметрично it87): ненулевой models словарь пишет только свежий
+  # fusion (it-67), сохраняет в jsonl — свежий sink; нет ключа = плечо пошло на старых образах.
+  tail -n +$((OFF_BEFORE+1)) "$JSONL" | grep -qm1 '"models": {"video"' \
+    || { echo "ОТКАЗ P6 (дрейф образов) '$name': в срезе $NEW решений нет models.video (it-67) — fusion/sink на пре-21.09 стеке; этап не засчитан"; exit 1; }
   ARM_FIRST="${ARM_FIRST:-$((OFF_BEFORE + 1))}"; ARM_LAST="$CUR"
   echo "SEGSTAT $name $((OFF_BEFORE+1)):$CUR (новых $NEW, тишина ${STABLE}с)"
   echo "TELEMETRY $name audio_inf=$NA video_inf=$NINF"
@@ -161,6 +174,8 @@ write_override dummy "" false off 0.4
 # общую kafka/postgres). Pre-flight-ОТКАЗы до этой точки — trap не стоит, docker не тронут.
 # rm -f "$OVR" — ПОСЛЕ compose rm (нужен ему как -f-аргумент): mid-run ОТКАЗ не осирощает оверрей.
 trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true; rm -f "$OVR"' EXIT
+# Шов 18: полная пересборка стека — в pre-flight (до tee); строка — безобидная страховка на
+# cache-hit'ах (секунды), пересобирала source+visual и на смоук-репетиции 24.09.
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it86-full] ждём инфраструктуру (30с)..."; sleep 30

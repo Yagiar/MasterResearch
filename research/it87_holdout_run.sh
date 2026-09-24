@@ -84,6 +84,18 @@ DOWNSTREAM="ingest-gateway visual-detector acoustic-detector fusion sink"
 q() { docker compose -f infra/docker-compose.yml exec -T postgres psql -U uavdet -d uavdet -tA -c "$1"; }
 offset() { wc -l < "$JSONL" 2>/dev/null || echo 0; }
 
+# --- Шов 18: pre-flight пересборка боевого стека (найдено аудитом 24.09). Код сервисов запекается
+# в образ COPY (Dockerfile), volume'ы — только configs/models/data, а `up -d` без --build поднимает
+# образы какие есть: у fusion образ стоял на 05.09 (древнее it-67 provenance), acoustic —
+# древнее it-47, прежний же пост-tee build молча пересобирал только source-simulator+visual-detector.
+# Пересборка ВСЕХ шести — ДО tee: падение docker build не должно оставлять боевой лог (его наличие
+# = страж однократности, повтор только через переименование с пометкой автора); сам build — детермин
+# из замороженного рабочего дерева, материалов замера не касается. Оверрей $OVR здесь не нужен
+# (он задаёт только environment), поэтому файлы compose — базовая тройка без -f "$OVR".
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.app.yml -f infra/docker-compose.gpu.yml \
+  build $SERVICES \
+  || { echo "ОТКАЗ pre-flight: docker compose build не пересобрал стек ($SERVICES) — боевой пуск пошёл бы на дрейфовавших образах; замер не начинался"; exit 1; }
+
 write_override() {  # $1=video $2=audio (файлы лежат в $HOLD_SUBDIR внутри sandboxDataForSimulator,
   # который уже примонтирован compose как /data/sandbox:ro — новых volume не требуется)
   cat > "$OVR" <<EOF
@@ -160,6 +172,12 @@ stage() {  # $1=segment_id, $2=video, $3=audio, $4=duration_s
   [ "$STABLE" -ge 45 ] || { echo "ОТКАЗ дренажа: '$id' тишина ${STABLE}с < 45с за 240с окна (обрезанный срез губит однократный замер; перезапуск сегмента вне протокола)"; exit 1; }
   NEW=$((CUR-OFF_BEFORE))
   [ "$NEW" -ge "$MIN_NEW" ] || { echo "ОТКАЗ дренажа: '$id' дал $NEW решений (<$MIN_NEW)"; exit 1; }
+  # Шов 18, рантайм-аттестация P6: ненулевой models-словарь пишет только свежий fusion (it-67,
+  # 21.09), а в jsonl его сохраняет только свежий sink (старый schema молча теряет unknown-поля)
+  # — отсутствие ключа в боёвом срезе = стек поднялся на старых образах (pre-flight-build обошёл
+  # бы проблему). Падение ДО SCORE_OFF: срез сегмента не регистрируется, замер не засчитан.
+  tail -n +$((OFF_BEFORE+1)) "$JSONL" | grep -qm1 '"models": {"video"' \
+    || { echo "ОТКАЗ P6 (дрейф старых образов): в срезе '$id' ($NEW решений) нет fusion-provenance models.video (it-67) — fusion/sink на пре-21.09 стеке; замер не состоялся"; exit 1; }
   echo "SCORE_OFF $id $((OFF_BEFORE+1)):$CUR (новых $NEW, тишина ${STABLE}с)"
   echo "TELEMETRY $id audio_inf=$NA video_inf=$NINF"
   "${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true
@@ -175,6 +193,9 @@ write_override dummy.mp4 dummy.wav
 # rm -f "$OVR" — ПОСЛЕ compose rm (самому compose нужен файл оверрея как -f-аргумент):
 # иначе mid-run ОТКАЗ осирощает оверрей (живой stub-смоук 24.09 поймал ровно это).
 trap '"${COMPOSE[@]}" rm -sf $SERVICES >/dev/null 2>&1 || true; rm -f "$OVR"' EXIT
+# Шов 18: полная пересборка стека — в pre-flight (ДО tee, см. блок после COMPOSE-массивов);
+# эта строка — безобидная страховка на cache-hit'ах (секунды): она же пересобирала source+visual
+# на смоук-репетиции 24.09 и покрывает ручной вызов stage() вне раннера.
 "${COMPOSE[@]}" build source-simulator visual-detector 2>&1 | tail -2
 "${COMPOSE_INFRA[@]}" up -d kafka postgres >/dev/null 2>&1 || true
 echo "[it87] ждём инфраструктуру (30с)..."; sleep 30

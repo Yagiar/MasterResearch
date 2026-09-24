@@ -474,8 +474,8 @@
    "bytes": 1111
   },
   "research/it87_holdout_run.sh": {
-   "sha256": "3612994b67403db773783b245599997b34f8e7aa66b6900f9498ed6933cc0fab",
-   "bytes": 16685
+   "sha256": "77ba58503c4448581431e732bb7ce710eecb29ca5c15ff57b02e813a2fafb18a",
+   "bytes": 19601
   },
   "research/it87_holdout_eval.py": {
    "sha256": "e2316813fb18cc1995f3dfd23cb2c065a3d66c2ab63463fad3e4e3af2cabaeda",
@@ -490,8 +490,8 @@
    "bytes": 2566
   },
   "research/it86_full_negative_run.sh": {
-   "sha256": "02c7bd4fc290cfb82ec1ab452be22397704f79cf753234f8460f5678e5c0388a",
-   "bytes": 13633
+   "sha256": "3959d184a6275f4599d44f9454220cfcd95923fe3849de25e7b75228cb7094e3",
+   "bytes": 15605
   },
   "research/it87_build_media_index.sh": {
    "sha256": "767bf68c660f2fa638cd03e5745af4fdaccdf1c124b34ca46d1476772f7d31d6",

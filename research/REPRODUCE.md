@@ -606,7 +606,10 @@ research/.venv/bin/python research/it87_holdout_eval.py --manifest=<holdout-24/m
 #   Механическая защита пре-флайта раннера (шов 15): sha боевых весов проверяется ДО tee/docker
 #   (зеркало H0.1, первые 8 hex); шов 17: в боевом режиме MIN_NEW≠20 → ОТКАЗ (overrides — только
 #   смок); шов 16: EXIT-trap при любом mid-run выходе снимает app-стек И оверрей (rm -f после
-#   compose rm — порядок существен).
+#   compose rm — порядок существен); шов 18: pre-flight пересборка всего стека (шесть сервисов,
+#   GPU-оверлей, до tee) + этапный гейт P6 — срез jsonl обязан нести fusion-provenance
+#   "models": {"video" (it-67) ДО регистрации SCORE_OFF/SEGSTAT; пустой models = старые образы
+#   (аудит 24.09: fusion-образ пережил only source+visual build'ы и отстал от it-55/it-67).
 #   Выход: it87_holdout_summary.txt + it87_holdout.csv (вне git до боевого запуска).
 #   Сквозная репетиция механизма (24.09, заезд baf01bkmb: клон раннера с заглушкой material-гейта
 #   и песочницей arm86f-test, 3 плеча × 3 сегмента) пройдена end-to-end; парсеры манифеста после
