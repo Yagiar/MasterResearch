@@ -1,5 +1,5 @@
 # it-87 holdout-24 — ШАБЛОН манифеста (скопировать в MasterDiploma/sandboxDataForSimulator/holdout-24/manifest.tsv и заполнить)
-# Формат: 7 полей, РАЗДЕЛИТЕЛЬ — ТАБУЛЯЦИЯ, кодировка UTF-8, перевод строки LF (Windows-CRLF парсер runner'а терпит с 24.09, eval — нет: пересохраните в LF).
+# Формат: 7 полей, РАЗДЕЛИТЕЛЬ — ТАБУЛЯЦИЯ, кодировка UTF-8 (с BOM или без — парсеры раннеров и eval срезают; CRLF тоже терпим с 24.09, но LF предпочтительнее).
 # Строки, начинающиеся с #, игнорируются. Пустые строки игнорируются.
 # Поля: segment_id  role(pos|neg)  video.mp4  audio.wav  duration_s  gt_start_s  gt_end_s
 #   duration_s ≥ 20 (гейт runner'а); для neg gt_start/gt_end заполните любым числом (например 0) — в eval не используются;

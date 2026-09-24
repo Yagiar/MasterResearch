@@ -35,7 +35,7 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}")
   SEGS+=("$id"$'\t'"$vid"$'\t'"$aud"$'\t'"$dur")
-done < <(tr -d '\r' < "$MANIFEST")
+done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
 awk "BEGIN{exit !($NEGDUR >= 600)}" || { echo "ОТКАЗ pre-flight: суммарный негатив ${NEGDUR}с < 600с (спека M1–M3)"; exit 1; }
 echo "[it86-full] pre-flight OK: neg-сегментов=${#SEGS[@]}, суммарно ${NEGDUR}с"
 

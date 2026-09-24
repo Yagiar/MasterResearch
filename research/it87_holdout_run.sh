@@ -32,7 +32,7 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }
   if [ "$role" = "pos" ]; then NPOS=$((NPOS+1)); else NNEG=$((NNEG+1)); NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}"); fi
-done < <(tr -d '\r' < "$MANIFEST")
+done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
 [ "$NPOS" -ge 5 ] || { echo "ОТКАЗ pre-flight: позитивов $NPOS < 5 (спека протокола)"; exit 1; }
 awk "BEGIN{exit !($NEGDUR >= 600)}" || { echo "ОТКАЗ pre-flight: суммарный негатив ${NEGDUR}с < 600с (спека ≥10 мин)"; exit 1; }
 echo "[it87] pre-flight манифеста OK: сегментов=$((NPOS+NNEG)), pos=$NPOS, neg=$NNEG (${NEGDUR}с)"
@@ -140,7 +140,7 @@ done
 while IFS=$'\t' read -r id role vid aud dur gs ge; do
   case "$id" in ''|'#'*) continue ;; esac
   stage "$id" "$vid" "$aud" "$dur"
-done < <(tr -d '\r' < "$MANIFEST")
+done < <(sed '1s/^\xef\xbb\xbf//' "$MANIFEST" | tr -d '\r')
 rm -f "$OVR"
 echo
 echo "=== it-87 завершён; РАЗБОР ОДИН РАЗ (идеома сквозно проверена 24.09; повторный ПРОГОН — нет): ==="

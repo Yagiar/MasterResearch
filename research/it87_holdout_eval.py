@@ -66,7 +66,8 @@ def sha_prefix(path):
 
 def load_manifest(path):
     segs = {}
-    for ln in path.read_text(encoding="utf-8").splitlines():
+    # utf-8-sig: срезает BOM, если автор пересохранит манифест «UTF-8 с BOM» (Notepad/Excel)
+    for ln in path.read_text(encoding="utf-8-sig").splitlines():
         if not ln.strip() or ln.startswith("#"):
             continue
         f = ln.split("\t")
