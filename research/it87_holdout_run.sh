@@ -35,6 +35,7 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   for nf in "$dur" "$gs" "$ge"; do
     [[ "$nf" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "ОТКАЗ pre-flight: '$id' — поле '$nf' не число (нужны целые или десятичные с ТОЧКОЙ; запятая '95,0' в awk молча читается как 95, а eval-разбор крашится ПОСЛЕ однократного прогона); роль='$role' поле dur=$nf gs=$gs ge=$ge"; exit 1; }
   done
+  awk "BEGIN{exit !($dur+0 >= 20)}" || { echo "ОТКАЗ pre-flight: '$id' — dur=$dur < 20 с (eval ratio требует dur−10>0; гейт продублирован в stage(), но там он наступал ПОСЛЕ tee/docker — частичным логом однократного открытия)"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   [ "$role" = "pos" ] || [ "$role" = "neg" ] || { echo "ОТКАЗ pre-flight: '$id' — role='$role' (допустимы только pos|neg; мусорная роль съела бы однократный сегмент, не попав ни в H1, ни в H2)"; exit 1; }

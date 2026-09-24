@@ -38,6 +38,7 @@ while IFS=$'\t' read -r id role vid aud dur gs ge; do
   for nf in "$dur" "$gs" "$ge"; do
     [[ "$nf" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "ОТКАЗ pre-flight: '$id' — поле '$nf' не число (точка, не запятая; '95,0' в awk читается как 95)"; exit 1; }
   done
+  awk "BEGIN{exit !($dur+0 >= 20)}" || { echo "ОТКАЗ pre-flight: '$id' — dur=$dur < 20 с (MIN_NEW.stage floor=20 решений был бы недостижим в коротком окне — отказ наступил бы ПОСЛЕ tee, частичным логом)"; exit 1; }
   [ -f "$HOLD/$vid" ] || { echo "ОТКАЗ pre-flight: '$id' — нет видео $HOLD/$vid"; exit 1; }
   [ -f "$HOLD/$aud" ] || { echo "ОТКАЗ pre-flight: '$id' — нет аудио $HOLD/$aud"; exit 1; }
   NEGDUR=$(awk "BEGIN{print $NEGDUR+($dur+0)}")
